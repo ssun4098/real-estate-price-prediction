@@ -2,7 +2,7 @@
 
 모델이 아직 없어도 앱은 정상 기동합니다. `GET /api/model/status`는 `not_configured`를,
 `POST /api/model/predict`는 `503 MODEL_NOT_READY`를 반환합니다. 이 폴더는 컨테이너에
-`/app/models`로 **읽기 전용** 마운트됩니다.
+`/app/data/models`로 **읽기 전용** 마운트됩니다.
 
 ## 1. 계약 (`app/features/model.py`의 `Predictor`)
 
@@ -16,7 +16,7 @@ class Predictor(Protocol):
 
 ## 2. 예시
 
-`models/my_model.py`
+`data/models/my_model.py`
 
 ```python
 from pathlib import Path

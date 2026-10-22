@@ -1,4 +1,4 @@
-"""대시보드 화면. web/V6.template.html 에 샘플 선반 자료를 끼워 넣어 요청마다 만든다.
+"""대시보드 화면. frontend/build/V6.template.html 에 샘플 선반 자료를 끼워 넣어 요청마다 만든다.
 (예전처럼 V6.html 파일을 디스크에 쓰지 않는다.)
 """
 from __future__ import annotations

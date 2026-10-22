@@ -29,7 +29,7 @@
 
 ### 현재 준비된 것
 
-- `models/` 폴더: 모델 파일을 넣을 곳 (컨테이너에는 읽기 전용으로 연결)
+- `data/models/` 폴더: 모델 파일을 넣을 곳 (컨테이너에는 읽기 전용으로 연결)
 - `app/features/model.py`: "모델은 이런 모양이어야 한다"는 규격(`Predictor`)
   - 이름(`name`), 버전(`version`)을 가진다
   - `load`: 시작할 때 파일을 불러온다
@@ -38,7 +38,7 @@
 
 ### 모델이 준비되면 할 일
 
-1. 모델 개발자가 위 규격에 맞는 파일 하나를 `models/`에 넣는다 (예시: [models/README.md](../models/README.md))
+1. 모델 개발자가 위 규격에 맞는 파일 하나를 `data/models/`에 넣는다 (예시: [data/models/README.md](../data/models/README.md))
 2. `.env`에 `MODEL_ENTRYPOINT=파일이름:클래스이름` 한 줄을 추가한다
 3. `docker compose up -d --build api` 로 다시 켠다
 4. `/api/model/status`가 `ready`로 바뀌면 사용 가능

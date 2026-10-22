@@ -1,9 +1,9 @@
-"""학습 모델 자리. 모델이 아직 없어도 앱은 정상으로 켜진다 (자세한 방법은 models/README.md).
+"""학습 모델 자리. 모델이 아직 없어도 앱은 정상으로 켜진다 (자세한 방법은 data/models/README.md).
 
     GET  /api/model/status    not_configured(모델 미지정) / ready / failed
     POST /api/model/predict   {"features": {...}} → 모델 결과. 모델이 없으면 503 MODEL_NOT_READY
 
-.env 의 MODEL_ENTRYPOINT=모듈:클래스 로 models/ 폴더 안의 클래스를 지정한다.
+.env 의 MODEL_ENTRYPOINT=모듈:클래스 로 data/models/ 폴더 안의 클래스를 지정한다.
 그 클래스는 name, version, load(model_dir), predict(features) 를 갖추면 된다.
 """
 from __future__ import annotations

@@ -7,7 +7,7 @@ venv
 __pycache__
 *.py[cod]
 frontend
+!frontend/build
 tests
-scripts
-models
+data/models
 *.zip

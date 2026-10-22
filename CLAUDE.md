@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-개발사업성 분석 V6: a real-estate development feasibility tool. A prebuilt React dashboard (`web/V6.template.html`) talks to a Python backend that calls Korean public APIs (VWorld, data.go.kr, Juso, KOSIS, SGIS) and runs the financial analysis engine. UI text, errors and comments are mostly Korean; keep that.
+개발사업성 분석 V6: a real-estate development feasibility tool. A prebuilt React dashboard (`frontend/build/V6.template.html`) talks to a Python backend that calls Korean public APIs (VWorld, data.go.kr, Juso, KOSIS, SGIS) and runs the financial analysis engine. UI text, errors and comments are mostly Korean; keep that.
 
 ## Running
 
@@ -18,11 +18,11 @@ docker compose up -d --build        # api only → http://127.0.0.1:4175/
 python -m app                       # same server without Docker (loads .env, 127.0.0.1:PUBLIC_PORT)
 
 # Tests (unittest, no network/keys/MySQL). Interpreter needs requirements.txt installed.
-python scripts/run_tests.py
+python tests/run_tests.py
 python -m unittest discover -s tests -p "test_engine.py"      # one file (set PYTHONPATH=backend;tests;.)
 ```
 
-`tests/test_app_api.py` and `tests/test_app_storage.py` exercise `app/` against SQLite via `DATABASE_URL`. There is no linter config. Frontend (`frontend/`) is rebuilt separately with Node (`npm ci && npm run build`, copy `dist/index.html` to `web/V6.template.html`); its `AGENTS.md` and `protected-runtime.json` mark protected runtime files that must not be edited without the authorize script — don't touch the frontend unless asked.
+`tests/test_app_api.py` and `tests/test_app_storage.py` exercise `app/` against SQLite via `DATABASE_URL`. There is no linter config. Frontend (`frontend/`) is rebuilt separately with Node (`npm ci && npm run build`, copy `dist/index.html` to `frontend/build/V6.template.html`); its `AGENTS.md` and `protected-runtime.json` mark protected runtime files that must not be edited without the authorize script — don't touch the frontend unless asked.
 
 ## Architecture of `app/`
 
@@ -40,7 +40,7 @@ Organised **by feature**, so one feature reads top to bottom in one file. The us
 
 The app does **not** run its own MySQL: it connects to a MySQL 8.4 container the user already runs on their PC (it also holds their own land-trade data). In Docker the api joins the external network `v6_mysql` (`MYSQL_NETWORK`) and reaches the container by name (`MYSQL_CONTAINER`, default `land-mysql`) on port 3306; the user connects it once with `docker network connect v6_mysql land-mysql`. Directly (`python -m app`), via `MYSQL_HOST`/`MYSQL_PORT`. `db.connect` only creates missing app tables, never alters/drops existing ones, and refuses to start if a same-named table lacks expected columns. Never add code that drops, truncates or migrates tables it did not create.
 
-App tables (`app/db.py`) hold documents as LONGTEXT JSON strings (preserves key order/numbers): `analysis_snapshots`, `portfolio_samples`, `app_settings`, and the land-trade cache (`land_complete/pages/errors`). Table/column names must stay stable (existing data). `MySqlLandStore` subclasses `pf_land_store.LandStore` (SQLite) and keeps its interface/cache policy so `pf_api.Collector` is unchanged. Bundled read-only samples come from `samples/` (`default.json` names the default). `V6.html` is no longer written to disk; `features/pages.py` renders it per request.
+App tables (`app/db.py`) hold documents as LONGTEXT JSON strings (preserves key order/numbers): `analysis_snapshots`, `portfolio_samples`, `app_settings`, and the land-trade cache (`land_complete/pages/errors`). Table/column names must stay stable (existing data). `MySqlLandStore` subclasses `pf_land_store.LandStore` (SQLite) and keeps its interface/cache policy so `pf_api.Collector` is unchanged. Bundled read-only samples come from `data/samples/` (`default.json` names the default). `V6.html` is no longer written to disk; `features/pages.py` renders it per request.
 
 ### Services worth knowing
 
@@ -50,7 +50,7 @@ App tables (`app/db.py`) hold documents as LONGTEXT JSON strings (preserves key 
 
 ### Trained model (not built yet)
 
-`features/model.py` defines the `Predictor` protocol and `ModelHolder`, which loads `MODEL_ENTRYPOINT=module:Class` from `MODEL_DIR` (`./models`, mounted read-only). With no entrypoint the app starts normally, `/api/model/status` reports `not_configured`, and `/api/model/predict` returns 503 `MODEL_NOT_READY`. Model failures at load never block startup. Details in `models/README.md`. The analysis engine does not depend on the model.
+`features/model.py` defines the `Predictor` protocol and `ModelHolder`, which loads `MODEL_ENTRYPOINT=module:Class` from `MODEL_DIR` (`./data/models`, mounted read-only). With no entrypoint the app starts normally, `/api/model/status` reports `not_configured`, and `/api/model/predict` returns 503 `MODEL_NOT_READY`. Model failures at load never block startup. Details in `data/models/README.md`. The analysis engine does not depend on the model.
 
 ## `backend/` (domain layer)
 

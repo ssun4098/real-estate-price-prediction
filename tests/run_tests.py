@@ -1,4 +1,4 @@
-"""Run packaged regression and configuration tests without external API calls."""
+"""전체 테스트 실행: python tests/run_tests.py  (외부 API·인증키·MySQL 없이 동작)"""
 from pathlib import Path
 import sys
 import unittest

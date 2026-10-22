@@ -64,8 +64,8 @@ class Settings:
             public_port=port,
             allowed_hosts=frozenset(hosts or {f"127.0.0.1:{port}", f"localhost:{port}"}),
             enable_docs=env("ENABLE_DOCS", "").strip().lower() in ("1", "true", "yes", "on"),
-            template_path=Path(env("TEMPLATE_PATH", ROOT / "web" / "V6.template.html")),
-            samples_dir=Path(env("SAMPLES_DIR", ROOT / "samples")),
-            model_dir=Path(env("MODEL_DIR", ROOT / "models")),
+            template_path=Path(env("TEMPLATE_PATH", ROOT / "frontend" / "build" / "V6.template.html")),
+            samples_dir=Path(env("SAMPLES_DIR", ROOT / "data" / "samples")),
+            model_dir=Path(env("MODEL_DIR", ROOT / "data" / "models")),
             model_entrypoint=env("MODEL_ENTRYPOINT", "").strip(),
         )

@@ -9,7 +9,7 @@
 규칙
   - 저장할 때만 엔진으로 다시 계산한다. 읽을 때는 저장 당시 결과를 그대로 보여준다
     (엔진이 바뀌어도 과거 보관본이 달라지지 않도록. persistencePolicy=portfolio_frozen_v1).
-  - samples/ 폴더의 샘플은 읽기 전용 기본 제공본이다. DB에 같은 id가 있으면 DB 것이 우선.
+  - data/samples/ 폴더의 샘플은 읽기 전용 기본 제공본이다. DB에 같은 id가 있으면 DB 것이 우선.
   - 기본 샘플로 지정한 id가 잘못되면 다른 샘플로 몰래 바꾸지 않고 '기본 없음'으로 둔다.
 """
 from __future__ import annotations
@@ -71,7 +71,7 @@ def set_default(request: Request, body: dict = Depends(json_body)):
 # 규칙
 # ---------------------------------------------------------------------------
 def load_bundled_samples(samples_dir: Path) -> tuple[list[dict], str | None]:
-    """samples/pf-sample-*.json 과 samples/default.json(기본 샘플 id)."""
+    """data/samples/pf-sample-*.json 과 data/samples/default.json(기본 샘플 id)."""
     entries = [json.loads(p.read_text("utf-8")) for p in sorted(samples_dir.glob("pf-sample-*.json"))]
     default_file = samples_dir / "default.json"
     default_id = json.loads(default_file.read_text("utf-8")).get("id") if default_file.is_file() else None

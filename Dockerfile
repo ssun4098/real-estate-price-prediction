@@ -10,14 +10,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Only what the service needs: no frontend sources, tests or .env.
+# 서버에 필요한 것만 넣는다: 화면 소스·테스트·.env 는 넣지 않음.
 COPY app ./app
 COPY backend ./backend
-COPY web ./web
-COPY samples ./samples
+COPY frontend/build ./frontend/build
+COPY data/samples ./data/samples
 
-# Trained models are mounted at /app/models (see docker-compose.yml); never baked into the image.
-RUN useradd --system --no-create-home --uid 10001 v6 && mkdir -p /app/models && chown -R v6 /app/models
+# 학습 모델은 이미지에 넣지 않고 실행할 때 /app/data/models 로 연결한다 (docker-compose.yml).
+RUN useradd --system --no-create-home --uid 10001 v6 && mkdir -p /app/data/models && chown -R v6 /app/data/models
 USER v6
 
 EXPOSE 4175
