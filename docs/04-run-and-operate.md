@@ -25,7 +25,7 @@
 4. **켜기** (둘 중 하나)
    ```powershell
    docker compose up -d --build        # Docker로
-   .venv\Scripts\python.exe -m app     # Docker 없이 PC에서 바로
+   .venv\Scripts\python.exe -m server     # Docker 없이 PC에서 바로
    ```
 5. **접속:** 브라우저에서 `http://127.0.0.1:4175/`
 6. **끄기:** `docker compose down` (또는 Ctrl+C). MySQL 컨테이너와 자료는 그대로 남습니다.

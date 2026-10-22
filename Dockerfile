@@ -11,8 +11,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # 서버에 필요한 것만 넣는다: 화면 소스·테스트·.env 는 넣지 않음.
-COPY app ./app
-COPY backend ./backend
+COPY server ./server
 COPY frontend/build ./frontend/build
 COPY data/samples ./data/samples
 
@@ -25,4 +24,4 @@ EXPOSE 4175
 HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
     CMD python -c "import os,urllib.request as u; u.urlopen('http://127.0.0.1:%s/healthz' % os.environ['PUBLIC_PORT'], timeout=4)"
 
-CMD ["sh", "-c", "exec uvicorn app.main:create_app --factory --host 0.0.0.0 --port ${PUBLIC_PORT} --no-access-log"]
+CMD ["sh", "-c", "exec uvicorn server.main:create_app --factory --host 0.0.0.0 --port ${PUBLIC_PORT} --no-access-log"]

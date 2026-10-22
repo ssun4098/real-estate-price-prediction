@@ -1,7 +1,7 @@
 """V5 exports retain inputs/independent land evidence, never geocoder results."""
 from __future__ import annotations
 import copy
-from pf_engine import analyze
+from server.domain.engine import analyze
 
 # This explicit, dated portfolio capture is separate from ordinary exports.
 # It retains the verified values shown at capture time without claiming that

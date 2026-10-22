@@ -1,7 +1,7 @@
 """Trust budget defaults and live calculation; contract cash flows stay separate."""
 import copy
 import unittest
-from pf_engine import _budget_allocation, analyze
+from server.domain.engine import _budget_allocation, analyze
 from test_revision_engine import revision_fixture
 
 

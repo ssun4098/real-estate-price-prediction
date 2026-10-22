@@ -16,7 +16,7 @@ services:
     env_file: .env
     environment:
       # 같은 네트워크 안에서는 컨테이너 이름이 곧 주소다. 포트도 MySQL 컨테이너 내부 포트(3306).
-      # (.env 의 MYSQL_HOST / MYSQL_PORT 는 Docker 없이 python -m app 으로 켤 때만 쓰인다)
+      # (.env 의 MYSQL_HOST / MYSQL_PORT 는 Docker 없이 python -m server 로 켤 때만 쓰인다)
       MYSQL_HOST: ${MYSQL_CONTAINER:-land-mysql}
       MYSQL_PORT: "3306"
       MODEL_DIR: /app/data/models

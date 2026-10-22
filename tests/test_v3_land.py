@@ -3,10 +3,10 @@ import copy
 import json
 import unittest
 
-from pf_engine import analyze, validate_snapshot
-from pf_land import classify_zone, classify_jimok, parcel_profile, ZONE_POOL, JIMOK_POOL
-from pf_persistence import export_snapshot
-from pf_api import Collector
+from server.domain.engine import analyze, validate_snapshot
+from server.domain.land import classify_zone, classify_jimok, parcel_profile, ZONE_POOL, JIMOK_POOL
+from server.domain.persistence import export_snapshot
+from server.domain.public_api import Collector
 from test_engine import fixture, parcel_evidence, add_boundary
 from test_parcel_linkage import linked_fixture
 

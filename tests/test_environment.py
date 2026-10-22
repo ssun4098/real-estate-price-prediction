@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from pf_config import ConfigurationError, load_environment, read_keys
+from server.env import ConfigurationError, load_environment, read_keys
 
 
 class EnvironmentTests(unittest.TestCase):

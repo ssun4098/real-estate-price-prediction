@@ -4,10 +4,10 @@ import json
 import unittest
 from unittest.mock import patch
 
-from pf_boundary import (recompute_boundary, attribute_basis, _request_features,
+from server.domain.boundary import (recompute_boundary, attribute_basis, _request_features,
                          PARCEL_LAYER, ZONE_LAYERS, collect_boundary)
-from pf_land import parcel_area_profile
-from pf_engine import analyze
+from server.domain.land import parcel_area_profile
+from server.domain.engine import analyze
 from test_engine import fixture
 
 
@@ -144,7 +144,7 @@ class OverlayTests(unittest.TestCase):
 
     def test_engine_dependency_failure_holds(self):
         p=fixture()['parcels'][0];p['boundaryAllocation']['queriedAt']='fresh-test-dependency'
-        with patch('pf_boundary._geometry_engine',side_effect=RuntimeError('missing')):
+        with patch('server.domain.boundary._geometry_engine',side_effect=RuntimeError('missing')):
             a=recompute_boundary(p)
         self.assertEqual(a['status'],'held')
         self.assertTrue(any('계산 도구' in r for r in a['reasons']))

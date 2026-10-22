@@ -17,7 +17,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse, Response
 
-from pf_api import ApiError  # 계산 엔진이 쓰는 것과 같은 예외: ApiError(code, message, status)
+from server.domain.public_api import ApiError  # 계산 엔진이 쓰는 것과 같은 예외: ApiError(code, message, status)
 
 MAX_JSON = 64 * 1024 * 1024
 

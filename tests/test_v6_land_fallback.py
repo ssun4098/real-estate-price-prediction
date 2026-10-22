@@ -2,8 +2,8 @@
 import copy
 import unittest
 
-from pf_engine import analyze, validate_snapshot
-from pf_land import RULES_VERSION
+from server.domain.engine import analyze, validate_snapshot
+from server.domain.land import RULES_VERSION
 from test_engine import add_boundary, parcel_evidence
 from test_v3_land import v3_fixture
 

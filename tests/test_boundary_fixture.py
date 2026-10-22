@@ -1,7 +1,7 @@
 """Synthetic public-style polygon evidence for pre-existing calculation tests."""
 import copy
-from pf_boundary import VERSION, PARCEL_LAYER, ZONE_LAYERS, attribute_basis, recompute_boundary
-from pf_land import classify_zone
+from server.domain.boundary import VERSION, PARCEL_LAYER, ZONE_LAYERS, attribute_basis, recompute_boundary
+from server.domain.land import classify_zone
 
 
 def add_boundary(parcel):

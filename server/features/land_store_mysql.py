@@ -1,7 +1,7 @@
 """토지 실거래 캐시를 MySQL에 보관한다.
 
-backend/pf_land_store.py 의 LandStore(SQLite 파일용)와 메서드 이름·캐시 규칙이 같아서
-pf_api.Collector 는 아무것도 바꾸지 않고 저장 위치만 MySQL로 바뀐다.
+domain/land_store.py 의 LandStore(SQLite 파일용)와 메서드 이름·캐시 규칙이 같아서
+domain/public_api.py 의 Collector 는 아무것도 바꾸지 않고 저장 위치만 MySQL로 바뀐다.
   - 최근 달 자료는 1시간, 지난 달 자료는 30일 동안 다시 받지 않고 재사용
   - 받는 중인 페이지는 하루 동안 이어 받기 가능
 """
@@ -15,8 +15,8 @@ import re
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.db import LandCompleteRow, LandErrorRow, LandPageRow
-from pf_land_store import FORMAT, LandStore, LandStoreError
+from server.db import LandCompleteRow, LandErrorRow, LandPageRow
+from server.domain.land_store import FORMAT, LandStore, LandStoreError
 
 _UNAVAILABLE = "토지 저장소(MySQL)를 읽거나 기록하지 못했습니다. 데이터베이스 상태를 확인하세요."
 

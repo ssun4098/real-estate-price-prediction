@@ -1,7 +1,7 @@
-"""앱 조립. 실행: uvicorn app.main:create_app --factory
+"""앱 조립. 실행: uvicorn server.main:create_app --factory
 
 요청 하나가 지나가는 길
-    브라우저 → guard(접속 주소 검사) → features/*.py 의 라우터 함수 → backend 엔진 / MySQL → ok() 응답
+    브라우저 → guard(접속 주소 검사) → features/*.py 의 라우터 함수 → domain(계산 엔진) / MySQL → ok() 응답
     어디서든 예외가 나면 guard 가 받아서 web.error_response() 로 표준 오류 응답을 만든다.
 """
 from __future__ import annotations
@@ -13,12 +13,12 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
-from app import db
-from app.features import model, pages, portfolio, public_data, snapshots, system
-from app.features.land_store import MySqlLandStore
-from app.settings import Settings
-from app.web import SafeJSONResponse, add_security_headers, check_host, error_response, set_secrets
-from pf_api import Collector
+from server import db
+from server.features import model, pages, portfolio, public_data, snapshots, system
+from server.features.land_store_mysql import MySqlLandStore
+from server.settings import Settings
+from server.web import SafeJSONResponse, add_security_headers, check_host, error_response, set_secrets
+from server.domain.public_api import Collector
 
 # 요청 URL에 주소·인증키가 섞이므로 접속 로그는 끈다 (예전 서버와 같음).
 logging.getLogger("uvicorn.access").disabled = True

@@ -19,9 +19,9 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from collections import OrderedDict, defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from pf_regions import RegionCatalog
-from pf_land import parcel_profile, RULES_VERSION
-from pf_land_store import LandStore, LandStoreError
+from server.domain.regions import RegionCatalog
+from server.domain.land import parcel_profile, RULES_VERSION
+from server.domain.land_store import LandStore, LandStoreError
 
 VERSION = "4.0.0"
 DEFAULT_DOMAIN = "http://127.0.0.1:4175"
@@ -595,7 +595,7 @@ class Collector:
 
     def boundary_allocation(self, pnu, year, refresh=False):
         """PNU-bound current evidence and polygon overlay, independent of map state."""
-        from pf_boundary import collect_boundary, VERSION as BOUNDARY_VERSION
+        from server.domain.boundary import collect_boundary, VERSION as BOUNDARY_VERSION
         parcel = self.parcel(pnu, year, refresh=refresh)
         cache_key = ('boundary', BOUNDARY_VERSION, pnu, int(year))
         if refresh: self.cache.discard(cache_key)

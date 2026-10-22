@@ -1,6 +1,6 @@
 """공공 API 조회 (브이월드, 공공데이터포털, 도로명주소, KOSIS, SGIS).
 
-실제 호출은 전부 backend/pf_api.py 의 Collector 가 한다. 여기서는
+실제 호출은 전부 domain/public_api.py 의 Collector 가 한다. 여기서는
   - URL 쿼리값을 Collector 에 넘기고
   - 외부 API가 느리고 호출 한도가 있으므로 동시에 4건까지만 허용한다 (넘으면 429 BUSY).
 """
@@ -12,9 +12,9 @@ from contextlib import contextmanager
 
 from fastapi import APIRouter, Path, Request
 
-from app.web import ApiError, ok, raw
-from pf_api import Collector
-from pf_survey import enrich_parcel, site_survey
+from server.web import ApiError, ok, raw
+from server.domain.public_api import Collector
+from server.domain.survey import enrich_parcel, site_survey
 
 router = APIRouter(prefix="/api")
 

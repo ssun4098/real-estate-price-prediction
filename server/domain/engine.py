@@ -13,7 +13,7 @@ import re
 import uuid
 from collections import defaultdict
 from urllib.parse import parse_qsl, urlsplit
-from pf_land import calculate_land, parcel_profile
+from server.domain.land import calculate_land, parcel_profile
 
 VERSION = "pf-study-5"
 WON_PER_MANWON = 10000
@@ -1397,7 +1397,7 @@ def analyze(inputs, partial=False):
     # Refresh verified saved overlay calculations from retained raw polygons;
     # no API call or guessed geometry. Held evidence stays untouched so a stale
     # attribute/PNU/version conflict cannot disappear on the next analysis.
-    from pf_boundary import recompute_boundary
+    from server.domain.boundary import recompute_boundary
     for parcel in safe.get("parcels", []):
         if isinstance(parcel, dict) and isinstance(parcel.get("boundaryAllocation"), dict):
             recalculated = recompute_boundary(parcel)

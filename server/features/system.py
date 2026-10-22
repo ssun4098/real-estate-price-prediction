@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Request
 
-from app import db
-from app.web import ok
+from server import db
+from server.web import ok
 
 router = APIRouter()
 

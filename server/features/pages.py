@@ -8,7 +8,7 @@ import json
 from fastapi import APIRouter, Request
 from starlette.responses import Response
 
-from app.web import html
+from server.web import html
 
 router = APIRouter(include_in_schema=False)
 

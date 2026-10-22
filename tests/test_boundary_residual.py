@@ -1,7 +1,7 @@
 import copy
 import unittest
-from pf_boundary import tolerated_adjacent_zones, recompute_boundary, attribute_basis
-from pf_engine import analyze
+from server.domain.boundary import tolerated_adjacent_zones, recompute_boundary, attribute_basis
+from server.domain.engine import analyze
 from test_boundary import multi_fixture, polygon
 
 

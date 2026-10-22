@@ -18,10 +18,10 @@ import uuid
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 
-from app.db import SnapshotRow, db_errors
-from app.web import ApiError, json_body, ok, reject_secrets
-from pf_engine import analyze, validate_snapshot
-from pf_persistence import export_snapshot
+from server.db import SnapshotRow, db_errors
+from server.web import ApiError, json_body, ok, reject_secrets
+from server.domain.engine import analyze, validate_snapshot
+from server.domain.persistence import export_snapshot
 
 router = APIRouter()
 

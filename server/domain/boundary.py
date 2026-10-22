@@ -69,7 +69,7 @@ def attribute_basis(parcel):
 
 
 def _geometry_engine():
-    from pf_geometry_runtime import load_geometry
+    from server.domain.geometry import load_geometry
     load_geometry()
     from shapely.geometry import shape, mapping
     from shapely.ops import transform, unary_union
@@ -150,7 +150,7 @@ def recompute_boundary(parcel, evidence=None):
 
 def _recompute_boundary(parcel, evidence=None):
     """Return recomputed allocation; supplied ratios/status/parts are discarded."""
-    from pf_land import classify_zone
+    from server.domain.land import classify_zone
     raw = evidence if isinstance(evidence, dict) else parcel.get('boundaryAllocation')
     raw = raw if isinstance(raw, dict) else {}
     pnu = str(parcel.get('pnu') or '')

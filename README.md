@@ -2,7 +2,7 @@
 
 Made by 최태영
 
-선택 필지의 토지·건축물·규제·주변 입지를 살펴보고, 분양 비교사례와 토지 실거래 자료로 개발사업 수지를 검토하는 웹 프로젝트다. React 화면(빌드 완료본 `frontend/build/V6.template.html`)과 Python FastAPI 서버(`app/`)로 구성되고, 저장소는 MySQL이다. 안산 장상동 27필지의 저장 예시가 포함되어 있다.
+선택 필지의 토지·건축물·규제·주변 입지를 살펴보고, 분양 비교사례와 토지 실거래 자료로 개발사업 수지를 검토하는 웹 프로젝트다. React 화면(빌드 완료본 `frontend/build/V6.template.html`)과 Python FastAPI 서버(`server/`)로 구성되고, 저장소는 MySQL이다. 안산 장상동 27필지의 저장 예시가 포함되어 있다.
 
 인증키는 **프로세스 환경변수 → 이 프로젝트 폴더의 `.env`** 순서로 읽는다. 키를 코드, HTML, React의 `VITE_*` 변수 또는 분석 JSON에 넣지 않는다. 화면은 Python 서버에 요청하고, 서버가 인증키를 붙여 외부 API를 호출한다.
 
@@ -84,14 +84,14 @@ docker compose up -d --build
 # 방법 B: Docker 없이 PC에서 바로 (MYSQL_HOST=127.0.0.1, MYSQL_PORT=docker ps 의 PORTS 왼쪽 번호)
 python -m venv .venv                                      # 처음 한 번 (Python 3.11 이상)
 .venv\Scripts\python.exe -m pip install -r requirements.txt   # 처음 한 번
-.venv\Scripts\python.exe -m app
+.venv\Scripts\python.exe -m server
 ```
 
 브라우저에서 `http://127.0.0.1:4175/`로 접속한다. `network v6_mysql declared as external, but could not be found` 오류가 나면 2-1의 `docker network create`를 안 한 것이다.
 
 ### 2-3. 기존 자료 보호 규칙
 
-시작할 때 `app/db.py`가 다음만 한다. 로그에 `새로 만듦: … / 기존 유지: …`가 찍힌다.
+시작할 때 `server/db.py`가 다음만 한다. 로그에 `새로 만듦: … / 기존 유지: …`가 찍힌다.
 
 - 이 앱의 테이블 6개(`analysis_snapshots`, `portfolio_samples`, `app_settings`, `land_complete`, `land_pages`, `land_errors`) 중 **없는 것만 새로 만든다.**
 - 이미 있는 테이블(직접 적재한 실거래 테이블 포함)은 **지우거나 구조를 바꾸지 않는다.**
@@ -109,22 +109,31 @@ python -m venv .venv                                      # 처음 한 번 (Pyth
 ## 3. 코드 구조
 
 ```
-app/
+server/
 ├─ main.py          앱 조립: 설정 → MySQL 연결 → 기능 객체 생성 → URL 등록
-├─ settings.py      .env(환경변수) 읽기
+├─ settings.py      .env(환경변수) → Settings
+├─ env.py           .env 파일 읽기, 공공 API 키 형식 검사
 ├─ web.py           공통 규칙: 오류 응답 모양, JSON 본문 검사, 접속 주소 검사, 인증키 유출 차단
 ├─ db.py            테이블 정의 + 연결 + 기존 테이블 보호
-└─ features/        기능별 파일. 한 파일 안에 "URL → 업무 규칙 → DB" 가 위에서 아래로
-   ├─ pages.py          대시보드 HTML
-   ├─ system.py         /healthz, /api/status
-   ├─ public_data.py    공공 API 조회 (동시 4건 제한)
-   ├─ land_store.py     토지 실거래 캐시 MySQL 보관
-   ├─ snapshots.py      /api/analyze, 분석 저장본
-   ├─ portfolio.py      샘플 선반
-   └─ model.py          학습 모델 자리
+├─ features/        기능별 파일. 한 파일 안에 "URL → 업무 규칙 → DB" 가 위에서 아래로
+│  ├─ pages.py             대시보드 HTML
+│  ├─ system.py            /healthz, /api/status
+│  ├─ public_data.py       공공 API 조회 (동시 4건 제한)
+│  ├─ land_store_mysql.py  토지 실거래 캐시 MySQL 보관
+│  ├─ snapshots.py         /api/analyze, 분석 저장본
+│  ├─ portfolio.py         샘플 선반
+│  └─ model.py             학습 모델 자리
+└─ domain/          계산 엔진·공공 API 연결 (웹·DB를 모름)
+   ├─ engine.py            사업성 계산 analyze()
+   ├─ public_api.py        공공 API 호출 창구 Collector
+   ├─ survey.py            입지 조사
+   ├─ land.py  boundary.py  regions.py   토지 분류·경계 배분·지역 목록
+   ├─ persistence.py       저장할 때 빼야 할 자료 정리
+   ├─ land_store.py        토지 실거래 캐시 규칙
+   └─ geometry.py          도형 계산 라이브러리 불러오기
 ```
 
-`backend/`에는 사업성 계산 엔진과 공공 API 연결 코드가 있다(`pf_*.py`). 하나의 기능을 고칠 때는 `features/` 안의 파일 하나만 열면 된다. Spring으로 치면 Controller·Service·Repository가 한 파일 안에 차례로 들어 있는 모양이다.
+부르는 방향은 `features → domain` 한쪽뿐이다. 하나의 기능을 고칠 때는 `features/` 안의 파일 하나만 열면 된다. Spring으로 치면 Controller·Service·Repository가 한 파일 안에 차례로 들어 있는 모양이고, `domain/`은 가져다 쓰는 계산 라이브러리다.
 
 - 저장 위치: 분석 저장본·샘플 선반·기본 샘플·토지 실거래 캐시가 MySQL에 들어간다. `/api/save`와 `/api/export-json`은 같은 레코드를 저장하며 `V6.html` 파일은 쓰지 않는다(페이지는 요청마다 DB에서 만든다).
 - 학습 모델: 아직 없어도 기동한다. 추가 방법은 [data/models/README.md](data/models/README.md). 상태는 `GET /api/model/status`, 추론은 `POST /api/model/predict`.

@@ -1,9 +1,9 @@
 """Reference unit distributions must not relax acquisition eligibility."""
 import copy
 import unittest
-from pf_engine import analyze
+from server.domain.engine import analyze
 from test_v3_land import v3_fixture
-from pf_persistence import export_snapshot
+from server.domain.persistence import export_snapshot
 
 
 def reference_fixture():

@@ -17,7 +17,7 @@ from typing import Any, Protocol, runtime_checkable
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 
-from app.web import ApiError, ok
+from server.web import ApiError, ok
 
 router = APIRouter(prefix="/api/model", tags=["model"])
 log = logging.getLogger("uvicorn.error")
@@ -71,7 +71,7 @@ class ModelHolder:
             if not module_name or not class_name:
                 raise ValueError("MODEL_ENTRYPOINT는 'module:ClassName' 형식이어야 합니다.")
             if self.model_dir.is_dir() and str(self.model_dir) not in sys.path:
-                sys.path.append(str(self.model_dir))  # 맨 뒤에 추가 → app/backend 모듈을 가리지 않음
+                sys.path.append(str(self.model_dir))  # 맨 뒤에 추가 → server 모듈을 가리지 않음
             predictor = getattr(importlib.import_module(module_name), class_name)()
             predictor.load(self.model_dir)
             if not isinstance(predictor, Predictor):

@@ -174,7 +174,7 @@ def parcel_profile(parcel):
 
 def parcel_area_profile(parcel):
     """Classifications plus independently recomputed, mandatory V5 allocation."""
-    from pf_boundary import recompute_boundary
+    from server.domain.boundary import recompute_boundary
     profile = parcel_profile(parcel)
     allocation = recompute_boundary(parcel)
     reasons = [r for r in profile['reasons'] if r != '혼합 용도지역·면적 배분 미확인']
@@ -305,7 +305,7 @@ def calculate_land(inputs, development, *, stats, context, date_reason, incomple
         date_issue = date_reason(case) if not reason else None
         if date_issue: reasons.append(date_issue)
         if context:
-            from pf_engine import _same_dong
+            from server.domain.engine import _same_dong
             if str(case.get("sggCode") or "") != str(query.get("sgg") or ""):
                 reasons.append("선택 필지의 시군구 밖 거래 또는 지역 미확정")
             elif scope == "dong" and not _same_dong(case.get("dong"), query.get("dong")):

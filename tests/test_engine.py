@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from pf_engine import analyze, calculate_cashflow, statistics, validate_snapshot, COST_LABELS
+from server.domain.engine import analyze, calculate_cashflow, statistics, validate_snapshot, COST_LABELS
 from test_boundary_fixture import add_boundary
 
 

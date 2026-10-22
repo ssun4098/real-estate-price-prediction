@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import quote_plus
 
-from app import ROOT
-from pf_config import read_keys
+from server import ROOT
+from server.env import read_keys
 
 
 def _int(name: str, default: int) -> int:
@@ -52,7 +52,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         env = os.environ.get
-        keys = read_keys()  # 키 형식 검증 (backend/pf_config.py)
+        keys = read_keys()  # 키 형식 검증 (env.py)
         port = _int("PUBLIC_PORT", 4175)
         hosts = {h.strip().lower() for h in env("ALLOWED_HOSTS", "").split(",") if h.strip()}
         return cls(

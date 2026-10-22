@@ -13,13 +13,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 try:
     from fastapi.testclient import TestClient
-    from app.settings import Settings
-    from app.main import create_app
+    from server.settings import Settings
+    from server.main import create_app
     HAVE_APP = True
 except ImportError:
     HAVE_APP = False
 
-from pf_engine import analyze
+from server.domain.engine import analyze
 from test_engine import fixture
 
 SECRET = 'TEST_SECRET_NEVER_PUBLISH_847295'
@@ -85,7 +85,7 @@ class StorageRuleTests(unittest.TestCase):
         (self.samples / (item['id'] + '.json')).write_text(json.dumps(item, ensure_ascii=False), 'utf-8')
         (self.samples / 'default.json').write_text(json.dumps({'id': item['id']}), 'utf-8')
         self.db_path.unlink()  # 빈 DB: samples 폴더의 기본 제공본만 있는 상태
-        with patch('app.features.portfolio.validate_snapshot', side_effect=AssertionError('frozen capture recalculated')):
+        with patch('server.features.portfolio.validate_snapshot', side_effect=AssertionError('frozen capture recalculated')):
             with self.client() as client:
                 restored = client.get('/api/portfolio-samples/' + item['id']).json()
                 self.assertEqual(client.get('/api/portfolio-default').json()['id'], item['id'])
@@ -139,7 +139,7 @@ class StorageRuleTests(unittest.TestCase):
             self.assertNotIn(SECRET, status.text)
             self.assertEqual(status.json()['apiStatus']['vworld'], '준비')
             self.assertNotIn(SECRET, client.get('/').text)
-            for path in ['/.env', '/backend/pf_config.py', '/app/settings.py']:
+            for path in ['/.env', '/server/env.py', '/server/settings.py']:
                 response = client.get(path)
                 self.assertEqual(response.status_code, 404)
                 self.assertNotIn(SECRET, response.text)

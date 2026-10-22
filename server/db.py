@@ -19,7 +19,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
-from pf_api import ApiError
+from server.domain.public_api import ApiError
 
 log = logging.getLogger("uvicorn.error")
 

@@ -9,8 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 try:
     from fastapi.testclient import TestClient
-    from app.settings import Settings
-    from app.main import create_app
+    from server.settings import Settings
+    from server.main import create_app
     HAVE_APP = True
 except ImportError:  # requirements.txt 를 설치하지 않은 환경
     HAVE_APP = False
@@ -81,7 +81,7 @@ class ExistingDatabaseTests(unittest.TestCase):
 
     def test_keeps_other_tables_and_stops_on_conflict(self):
         import sqlite3
-        from app import db
+        from server import db
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, 'existing.db')
             with sqlite3.connect(path) as con:

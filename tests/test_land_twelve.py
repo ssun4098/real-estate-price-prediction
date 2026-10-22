@@ -3,8 +3,8 @@ import copy
 import itertools
 import unittest
 
-from pf_engine import analyze
-from pf_land import (ZONE_POOL, JIMOK_POOL, JIMOK_OTHER, RULES_VERSION,
+from server.domain.engine import analyze
+from server.domain.land import (ZONE_POOL, JIMOK_POOL, JIMOK_OTHER, RULES_VERSION,
     classify_zone, classify_jimok, classify_transaction_zone, classify_transaction_jimok)
 from test_engine import fixture, parcel_evidence, add_boundary
 
