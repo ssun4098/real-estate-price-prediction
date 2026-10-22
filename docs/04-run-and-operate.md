@@ -24,9 +24,14 @@
    - `VWORLD_API_KEY`, `DATA_GO_KR_API_KEY`, `JUSO_API_KEY`: 발급받은 키
 4. **켜기** (둘 중 하나)
    ```powershell
-   docker compose up -d --build        # Docker로
-   .venv\Scripts\python.exe -m server     # Docker 없이 PC에서 바로
+   docker compose up -d --build           # Docker로
    ```
+   ```powershell
+   python -m venv .venv                                           # Docker 없이: 처음 한 번
+   .venv\Scripts\python.exe -m pip install -r requirements.txt   # Docker 없이: 처음 한 번
+   .venv\Scripts\python.exe -m server                            # Docker 없이 켜기
+   ```
+   Docker 없이 켤 때는 `.env`의 `MYSQL_HOST=127.0.0.1`, `MYSQL_PORT`=`docker ps`의 PORTS 칸 왼쪽 번호를 씁니다.
 5. **접속:** 브라우저에서 `http://127.0.0.1:4175/`
 6. **끄기:** `docker compose down` (또는 Ctrl+C). MySQL 컨테이너와 자료는 그대로 남습니다.
 
@@ -37,6 +42,7 @@
 | 상태 확인 | `docker compose ps` |
 | 서버 로그 보기 (테이블 준비 결과 포함) | `docker compose logs api` |
 | 코드 수정 후 반영 | `docker compose up -d --build` |
+| 테스트 | `.venv\Scripts\python.exe tests/run_tests.py` |
 | 재시작 | `docker compose restart api` |
 
 `docker compose down -v`를 해도 이 프로젝트에는 MySQL 볼륨이 없으므로 기존 자료는 지워지지 않습니다. MySQL 컨테이너 자체는 따로 관리합니다.

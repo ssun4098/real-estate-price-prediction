@@ -10,4 +10,4 @@
 | 4 | [실행과 운영](04-run-and-operate.md) | 켜고 끄는 법, 설정, 문제 해결 | 5분 |
 | 5 | [용어집과 앞으로의 계획](05-glossary.md) | 낯선 용어 풀이, 학습 모델 추가 계획 | 2분 |
 
-개발자용 기술 요약은 프로젝트 루트의 [CLAUDE.md](../CLAUDE.md), 기능·API 키 발급 안내는 [README.md](../README.md)에 있습니다.
+실행 방법·API 키 발급 안내는 [README.md](../README.md), 코드를 고칠 때 볼 코드 지도는 [server/README.md](../server/README.md)에 있습니다.

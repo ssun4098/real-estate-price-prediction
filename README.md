@@ -2,11 +2,145 @@
 
 Made by 최태영
 
-선택 필지의 토지·건축물·규제·주변 입지를 살펴보고, 분양 비교사례와 토지 실거래 자료로 개발사업 수지를 검토하는 웹 프로젝트다. React 화면(빌드 완료본 `frontend/build/V6.template.html`)과 Python FastAPI 서버(`server/`)로 구성되고, 저장소는 MySQL이다. 안산 장상동 27필지의 저장 예시가 포함되어 있다.
+땅(필지)을 고르면 토지·건축물·규제·주변 입지 정보를 모으고, 토지 실거래·분양 사례로 **개발해서 팔면 이익이 남는지(사업성)** 계산해 주는 웹 프로그램이다. 안산 장상동 27필지의 저장 예시가 들어 있다.
 
-인증키는 **프로세스 환경변수 → 이 프로젝트 폴더의 `.env`** 순서로 읽는다. 키를 코드, HTML, React의 `VITE_*` 변수 또는 분석 JSON에 넣지 않는다. 화면은 Python 서버에 요청하고, 서버가 인증키를 붙여 외부 API를 호출한다.
+```
+브라우저 (React 화면)
+   │
+   ▼
+server/  ── Python FastAPI 서버 ──►  정부 공공 API (브이월드·공공데이터포털·도로명주소)
+   │
+   ▼
+MySQL (PC에 이미 떠 있는 land-mysql 컨테이너)
+```
 
-## 1. 발급받아야 하는 API 키
+처음 보는 사람은 [docs/](docs/README.md)를 순서대로 읽으면 30분 안에 전체 그림을 잡을 수 있다. 코드를 고칠 사람은 [server/README.md](server/README.md)의 코드 지도부터 본다.
+
+## 1. 빠른 시작 (Windows PowerShell)
+
+준비물: Docker Desktop, 이미 떠 있는 MySQL 컨테이너(`land-mysql`), 공공 API 키 3종([부록](#부록-발급받아야-하는-api-키)). 키가 없어도 저장된 예시는 볼 수 있다.
+
+### 처음 한 번
+
+```powershell
+# ① api 컨테이너가 land-mysql 을 이름으로 찾도록 같은 네트워크에 묶기 (MySQL 재시작 없음, 자료 영향 없음)
+docker network create v6_mysql
+docker network connect v6_mysql land-mysql
+
+# ② 이 앱의 테이블을 둘 데이터베이스 만들기
+docker exec -it land-mysql mysql -uroot -p
+```
+
+```sql
+CREATE DATABASE IF NOT EXISTS v6 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- 분석 문서가 최대 64MB라 MySQL 기본값(64MB)보다 크게. 컨테이너를 다시 켜도 유지됨
+SET PERSIST max_allowed_packet = 134217728;
+```
+
+```powershell
+# ③ 설정 파일: MYSQL_USER / MYSQL_PASSWORD / MYSQL_DATABASE 와 API 키 입력
+Copy-Item .env.example .env
+notepad .env
+```
+
+### 켜고 끄기
+
+```powershell
+docker compose up -d --build      # 켜기 → http://127.0.0.1:4175/
+docker compose logs -f api        # 로그 ("MySQL 테이블 준비 완료" 가 보이면 정상)
+docker compose down               # 끄기 (MySQL 컨테이너와 자료는 그대로)
+```
+
+Docker 없이 PC에서 바로 켤 수도 있다. 코드를 고치며 확인할 때 편하다. 이때는 `.env`의 `MYSQL_HOST=127.0.0.1`, `MYSQL_PORT`=`docker ps`의 PORTS 칸 왼쪽 번호를 쓴다.
+
+```powershell
+python -m venv .venv                                           # 처음 한 번 (Python 3.11 이상)
+.venv\Scripts\python.exe -m pip install -r requirements.txt   # 처음 한 번
+.venv\Scripts\python.exe -m server                            # 켜기 (끄기: Ctrl+C)
+```
+
+## 2. 폴더 구조
+
+```
+V6_team_share/
+├─ README.md            지금 읽는 문서
+├─ CLAUDE.md            AI 도우미(Claude Code)용 기술 요약
+├─ docker-compose.yml   api 컨테이너 하나를 켜는 설정 (MySQL은 새로 띄우지 않음)
+├─ Dockerfile           api 이미지 만드는 방법
+├─ requirements.txt     Python 라이브러리 목록
+├─ .env.example         설정 양식 (복사해서 .env 로 사용. .env 는 git 제외)
+│
+├─ server/              ★ Python 코드 전부 → 자세한 지도는 server/README.md
+│   ├─ main.py  settings.py  env.py  web.py  db.py     조립·설정·공통 규칙·DB
+│   ├─ features/        URL 창구 + 업무 규칙 + DB (기능별 파일 하나씩)
+│   └─ domain/          계산 엔진·공공 API 연결 (웹·DB를 모름)
+│       └─ analysis/        사업성 계산 analyze() (계산 단계별 파일)
+│
+├─ frontend/            React 화면 원본 소스 (보호 파일 규칙: frontend/AGENTS.md)
+│   └─ build/V6.template.html   빌드된 화면. 서버가 이 파일을 브라우저로 보낸다
+├─ data/
+│   ├─ samples/         기본 제공 예시 분석 (default.json 이 기본 예시를 지정)
+│   └─ models/          학습 모델 넣는 곳 (지금은 비어 있음 → data/models/README.md)
+├─ tests/               자동 테스트 (python tests/run_tests.py)
+└─ docs/                쉬운 설명 문서 5편
+```
+
+## 3. 저장과 기존 자료 보호
+
+이 앱은 다음을 MySQL에 저장한다.
+
+| 테이블 | 내용 |
+|---|---|
+| `analysis_snapshots` | 화면에서 "저장"한 분석 (`/api/save`, `/api/export-json` 둘 다 여기) |
+| `portfolio_samples` | 샘플 선반: 한 번 보관하면 바뀌지 않는 분석 |
+| `app_settings` | 화면을 열 때 보여줄 기본 샘플 |
+| `land_complete`, `land_pages`, `land_errors` | 토지 실거래 조회 캐시 (최근 달 1시간, 지난 달 30일 재사용) |
+
+`land-mysql`에는 직접 쌓은 실거래 자료도 있으므로, 서버는 시작할 때(`server/db.py`) 다음만 한다.
+
+- 위 6개 중 **없는 테이블만 새로 만든다.**
+- 이미 있는 테이블은 **지우거나 구조를 바꾸지 않는다.**
+- 같은 이름인데 구조가 다른 테이블이 있으면 **아무것도 하지 않고 시작을 멈춘다.** 이때는 `.env`의 `MYSQL_DATABASE`를 다른 DB로 바꾼다.
+
+그 밖의 규칙
+
+- 저장할 때 화면이 보낸 계산값은 믿지 않고 서버가 다시 계산한다.
+- 응답·저장 자료에 API 키나 DB 비밀번호가 섞이면 보내지(저장하지) 않는다.
+- 웹은 `127.0.0.1`에서만 열린다. 다른 주소로 접속하게 하려면 `.env`의 `ALLOWED_HOSTS`에 `호스트:포트`를 추가한다.
+- 새 분석을 저장해도 기본 예시는 저절로 바뀌지 않는다. 화면에서 직접 지정해야 한다.
+
+## 4. 개발할 때
+
+```powershell
+.venv\Scripts\python.exe tests/run_tests.py     # 전체 테스트 (인증키·외부 API·MySQL 없이, SQLite로 대신)
+docker compose up -d --build                     # 코드 고친 뒤 반영
+```
+
+| 하고 싶은 일 | 볼 곳 |
+|---|---|
+| 새 API(URL) 추가 | `server/features/`에 파일 하나 + `server/main.py`에 한 줄 ([server/README.md](server/README.md)) |
+| 계산식 수정 | `server/domain/analysis/`의 해당 단계 파일 (예: 공사비 → `costs.py`) |
+| 공공 API 호출 수정 | `server/domain/public_api.py`의 `Collector` |
+| 설정 항목 추가 | `server/settings.py` + `server/env.py`의 `APP_NAMES` + `.env.example` |
+| 학습 모델 연결 | [data/models/README.md](data/models/README.md) |
+| 화면 수정 | `frontend/`에서 `npm ci`, `npm run build` → `dist/index.html`을 `frontend/build/V6.template.html`로 복사 |
+
+테이블 구조를 바꿔야 할 일이 생기면 그때 DB 변경 이력 도구(Alembic) 도입이 필요하다. 지금은 시작할 때 없는 테이블만 만든다.
+
+## 5. 자주 생기는 문제
+
+| 증상 | 확인할 것 |
+|---|---|
+| `인증 미준비` / `키 미입력` | `.env` 변수 이름 확인 후 서버 재시작 |
+| 인증 오류 / 권한 오류 | 해당 서비스 활용신청 승인, 키 종류, VWorld 등록 주소·서비스 권한 |
+| 주소 검색만 되고 좌표가 없음 | VWorld Geocoder 권한 또는 전용 키 |
+| 주변시설 조회 실패 | VWorld Search 권한 또는 전용 키 |
+| 자료 없음·산정 보류 | 키 문제와 구분해서 화면의 누락 면적·조회 실패·비교자료 상태 확인. 없는 값을 임의로 채우지 않는다 |
+| MySQL 연결·시작 오류 | [docs/04-run-and-operate.md](docs/04-run-and-operate.md)의 문제 해결 표 |
+
+인증키는 **프로세스 환경변수 → `.env`** 순서로 읽는다. 키를 코드·HTML·React의 `VITE_*` 변수·분석 JSON에 넣지 않는다. 화면은 서버에 요청하고, 서버가 키를 붙여 외부 API를 부른다.
+
+## 부록. 발급받아야 하는 API 키
 
 여러 데이터 조회 주소를 쓴다고 해서 주소마다 별도의 키를 발급받는 것은 아니다. 핵심 기능의 발급처는 아래 **3곳**이다. 발급된 키의 서비스 권한과 활용신청 승인 여부도 확인해야 한다.
 
@@ -44,127 +178,3 @@ Geocoder와 Search를 별도 키로 발급받았다면 다음 두 값에 입력�
 선택 항목은 저장 예시 열람과 핵심 토지·분양 수지분석의 필수 키가 아니다. 키만 입력한다고 현재 모든 화면에 통계가 자동으로 채워지는 것은 아니다. 법정동 코드 목록은 내장 자료와 공개 내려받기를 사용하며 별도 인증키를 요구하지 않는다.
 
 이 목록은 포함된 V6 코드에서 확인한 호출 기준이다. 과거 검토한 전국 철도역·공원·대학교·폐기물처리시설 데이터는 이 공유본에 새로 연결하지 않았다. 주변시설 장소검색 결과를 전국 시설 전수 통계로 해석하면 안 된다.
-
-## 2. 실행
-
-Python 서버를 Docker로 띄우거나(방법 A), PC에서 바로 띄운다(방법 B). 어느 쪽이든 MySQL은 **PC에 이미 떠 있는 MySQL 컨테이너**를 쓴다. 이 프로젝트는 MySQL을 새로 띄우지 않는다.
-
-### 2-1. 기존 MySQL 컨테이너(land-mysql) 연결 준비 (처음 한 번)
-
-api 컨테이너가 `land-mysql` 컨테이너를 이름으로 찾을 수 있게 같은 Docker 네트워크에 묶는다. MySQL 컨테이너를 다시 만들거나 재시작하지 않으므로 자료는 그대로다.
-
-```powershell
-docker network create v6_mysql
-docker network connect v6_mysql land-mysql
-docker inspect land-mysql --format "{{json .NetworkSettings.Networks}}"   # v6_mysql 이 보이면 성공
-```
-
-앱 테이블을 둘 데이터베이스를 만든다 (기존 토지 실거래 DB와 같은 곳을 써도 된다. 아래 '보호 규칙' 참고).
-
-```powershell
-docker exec -it land-mysql mysql -uroot -p
-```
-
-```sql
-CREATE DATABASE IF NOT EXISTS v6 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
--- 분석 문서가 최대 64MB라 기본값(64MB)보다 크게. 컨테이너를 다시 켜도 유지됨
-SET PERSIST max_allowed_packet = 134217728;
-```
-
-`.env`에 `MYSQL_CONTAINER=land-mysql`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`를 적는다.
-
-### 2-2. 실행
-
-```powershell
-Copy-Item .env.example .env          # MYSQL_* 와 API 키 입력
-
-# 방법 A: Docker로 api만 띄우기 (land-mysql 컨테이너에 이름으로 접속)
-docker compose up -d --build
-
-# 방법 B: Docker 없이 PC에서 바로 (MYSQL_HOST=127.0.0.1, MYSQL_PORT=docker ps 의 PORTS 왼쪽 번호)
-python -m venv .venv                                      # 처음 한 번 (Python 3.11 이상)
-.venv\Scripts\python.exe -m pip install -r requirements.txt   # 처음 한 번
-.venv\Scripts\python.exe -m server
-```
-
-브라우저에서 `http://127.0.0.1:4175/`로 접속한다. `network v6_mysql declared as external, but could not be found` 오류가 나면 2-1의 `docker network create`를 안 한 것이다.
-
-### 2-3. 기존 자료 보호 규칙
-
-시작할 때 `server/db.py`가 다음만 한다. 로그에 `새로 만듦: … / 기존 유지: …`가 찍힌다.
-
-- 이 앱의 테이블 6개(`analysis_snapshots`, `portfolio_samples`, `app_settings`, `land_complete`, `land_pages`, `land_errors`) 중 **없는 것만 새로 만든다.**
-- 이미 있는 테이블(직접 적재한 실거래 테이블 포함)은 **지우거나 구조를 바꾸지 않는다.**
-- 같은 이름인데 구조가 다른 테이블이 있으면 **아무것도 하지 않고 시작을 멈춘다.** 이때는 `MYSQL_DATABASE`를 다른 DB로 지정한다.
-
-### 2-4. 사용·저장 방식
-
-- 키 없이도 저장된 안산 장상동 예시를 볼 수 있다. 새 검색·실시간 데이터 조회는 해당 키와 서비스 승인이 필요하다.
-- 기본 예시는 `data/samples/default.json`이 지정한다. 새 분석을 저장하는 것만으로 기본 예시가 자동 교체되지는 않는다.
-- 분석 저장본·샘플 선반·기본 샘플·토지 실거래 캐시는 MySQL에 들어간다. `/api/save`와 `/api/export-json`은 같은 레코드를 저장하며, 화면 HTML은 요청마다 DB에서 만든다.
-- 화면의 PDF 기능은 기본조사 4개 탭과 수지분석 화면을 A4 가로 5장으로 출력한다.
-- 접속 주소를 바꾸면 `.env`의 `ALLOWED_HOSTS`에 `호스트:포트`를 추가해야 한다(Host/Origin 검사).
-- 학습 모델: 아직 없어도 기동한다. 추가 방법은 [data/models/README.md](data/models/README.md).
-
-## 3. 코드 구조
-
-```
-server/
-├─ main.py          앱 조립: 설정 → MySQL 연결 → 기능 객체 생성 → URL 등록
-├─ settings.py      .env(환경변수) → Settings
-├─ env.py           .env 파일 읽기, 공공 API 키 형식 검사
-├─ web.py           공통 규칙: 오류 응답 모양, JSON 본문 검사, 접속 주소 검사, 인증키 유출 차단
-├─ db.py            테이블 정의 + 연결 + 기존 테이블 보호
-├─ features/        기능별 파일. 한 파일 안에 "URL → 업무 규칙 → DB" 가 위에서 아래로
-│  ├─ pages.py             대시보드 HTML
-│  ├─ system.py            /healthz, /api/status
-│  ├─ public_data.py       공공 API 조회 (동시 4건 제한)
-│  ├─ land_store_mysql.py  토지 실거래 캐시 MySQL 보관
-│  ├─ snapshots.py         /api/analyze, 분석 저장본
-│  ├─ portfolio.py         샘플 선반
-│  └─ model.py             학습 모델 자리
-└─ domain/          계산 엔진·공공 API 연결 (웹·DB를 모름)
-   ├─ analysis/            사업성 계산 analyze()  (주제별로 나뉨)
-   │   ├─ engine.py            전체 순서
-   │   ├─ development.py       개발 규모
-   │   ├─ comparables.py       비교사례 고르는 규칙
-   │   ├─ revenue.py           분양 수입
-   │   ├─ land_price.py        토지 매입가
-   │   ├─ costs.py             사업비
-   │   ├─ cashflow.py          현금흐름
-   │   └─ common.py            공통 도구
-   ├─ public_api.py        공공 API 호출 창구 Collector
-   ├─ survey.py            입지 조사
-   ├─ land.py  boundary.py  regions.py   토지 분류·경계 배분·지역 목록
-   ├─ persistence.py       저장할 때 빼야 할 자료 정리
-   ├─ land_store.py        토지 실거래 캐시 규칙
-   └─ geometry.py          도형 계산 라이브러리 불러오기
-```
-
-부르는 방향은 `features → domain` 한쪽뿐이다. 하나의 기능을 고칠 때는 `features/` 안의 파일 하나만 열면 된다. Spring으로 치면 Controller·Service·Repository가 한 파일 안에 차례로 들어 있는 모양이고, `domain/`은 가져다 쓰는 계산 라이브러리다.
-
-- 저장 위치: 분석 저장본·샘플 선반·기본 샘플·토지 실거래 캐시가 MySQL에 들어간다. `/api/save`와 `/api/export-json`은 같은 레코드를 저장하며 `V6.html` 파일은 쓰지 않는다(페이지는 요청마다 DB에서 만든다).
-- 학습 모델: 아직 없어도 기동한다. 추가 방법은 [data/models/README.md](data/models/README.md). 상태는 `GET /api/model/status`, 추론은 `POST /api/model/predict`.
-- 접속 주소를 바꾸면 `.env`의 `ALLOWED_HOSTS`에 `호스트:포트`를 추가해야 한다(Host/Origin 검사).
-- 테이블 구조를 바꿔야 할 일이 생기면 그때 Alembic(DB 구조 변경 이력 도구) 도입이 필요하다.
-
-## 4. 테스트
-
-```powershell
-.venv\Scripts\python.exe tests/run_tests.py
-```
-
-실제 인증키·외부 API·MySQL 없이 실행된다(MySQL 대신 SQLite 사용). 환경변수 처리, 응답의 비밀값 차단, `.env` 접근 차단, 계산, 저장 규칙, 기존 테이블 보호를 검사한다.
-
-프런트엔드 소스 재빌드는 별도 작업이다. `frontend/`에서 `npm ci`, `npm run build`를 수행하면 `dist/index.html`이 생성되며, 이를 `frontend/build/V6.template.html`로 복사한다. 보호된 파일 규칙은 `frontend/AGENTS.md`를 따른다.
-
-## 5. 자주 생기는 문제
-
-| 증상 | 확인할 항목 |
-|---|---|
-| `인증 미준비` / `키 미입력` | `.env` 변수 이름 확인 후 서버 재시작 |
-| 인증 오류 / 권한 오류 | 해당 서비스 활용신청 승인, 키 종류, VWorld 등록 주소·서비스 권한 확인 |
-| 주소 검색만 되고 좌표가 없음 | VWorld Geocoder 권한 또는 전용 키 확인 |
-| 주변시설 조회 실패 | VWorld Search 권한 또는 전용 키 확인 |
-| 자료 없음·산정 보류 | 키 문제와 구분하여 화면의 누락 면적·조회 실패·비교자료 상태 확인. 미확보 값을 임의로 채우지 않음 |
-| MySQL 연결 관련 | [docs/04-run-and-operate.md](docs/04-run-and-operate.md)의 문제 해결 표 |

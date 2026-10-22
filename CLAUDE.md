@@ -26,6 +26,8 @@ python -m unittest test_engine        # one file, from the project root with PYT
 
 ## Architecture of `server/`
 
+`server/README.md` is the human-facing code map (Spring analogies, how to add a feature); keep it in sync when files move.
+
 Organised **by feature**, so one feature reads top to bottom in one file. The user found the previous strict layering (api/services/repositories/db/core/container, ~35 files) too hard to follow; don't reintroduce per-layer packages.
 
 - `main.py` — `create_app()`: lifespan builds everything (DB → `Collector` + `MySqlLandStore` → feature objects) and stores it on `app.state`; registers the `guard` middleware and the routers. Run with `uvicorn server.main:create_app --factory` (no module-level `app`).
@@ -54,7 +56,7 @@ App tables (`server/db.py`) hold documents as LONGTEXT JSON strings (preserves k
 
 ## `server/domain/`
 
-Calculation and public-API modules (formerly `backend/pf_*.py`; renamed, contents unchanged): `analysis/` (the calculation engine, split by topic from the old 1,500-line `engine.py` with function bodies unchanged: `engine` = `analyze`/`validate_snapshot` orchestration, `development`, `comparables`, `revenue`, `land_price`, `costs`, `cashflow`, `common`; import `analyze`/`validate_snapshot` from the package, private helpers from their module), `public_api` (`Collector`: all upstream HTTP, caches, comparables; `ApiError`), `survey` (site survey, parcel enrichment), `land`/`boundary`/`regions` (land classification, parcel boundary allocation, region catalog), `persistence` (export rules), `land_store` (SQLite land cache; base class of `MySqlLandStore`), `geometry` (lazy shapely/pyproj import). Standard library plus shapely/pyproj only — do not add dependencies here. Export policy: Geocoder-derived/real-time revenue data is stripped from saved snapshots and must be re-queried (`exportPolicy: v5-geocoder-requery`).
+Calculation and public-API modules (formerly `backend/pf_*.py`; renamed, contents unchanged): `analysis/` (the calculation engine, split by topic from the old 1,500-line `engine.py` with function bodies unchanged: `engine` = `analyze`/`validate_snapshot` orchestration, `development`, `comparables`, `revenue`, `land_price`, `costs`, `cashflow`, `common`; import `analyze`/`validate_snapshot` from the package, private helpers from their module), `public_api` (`Collector`: all upstream HTTP, caches, comparables; `ApiError` — intentionally kept as one class; the user decided not to split it by agency), `survey` (site survey, parcel enrichment), `land`/`boundary`/`regions` (land classification, parcel boundary allocation, region catalog), `persistence` (export rules), `land_store` (SQLite land cache; base class of `MySqlLandStore`), `geometry` (lazy shapely/pyproj import). Standard library plus shapely/pyproj only — do not add dependencies here. Export policy: Geocoder-derived/real-time revenue data is stripped from saved snapshots and must be re-queried (`exportPolicy: v5-geocoder-requery`).
 
 ## Configuration
 
