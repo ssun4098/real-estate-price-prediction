@@ -1,0 +1,35 @@
+.v5-boundary-allocation{color:#bec5d0;line-height:1.55;min-width:0}
+.v5-boundary-allocation p{margin:10px 0}.v5-boundary-allocation strong{color:#eef3f7}
+.v5-boundary-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.v5-boundary-checks{display:grid;gap:10px;margin:16px 0}
+.v5-boundary-checks article{border:1px solid #46515e;border-left:3px solid #83bfa8;padding:12px;background:#1c232c;min-width:0}
+.v5-boundary-checks article.is-held{border-left-color:#e1b870}.v5-boundary-checks article.is-held>div>strong{color:#e1b870}
+.v5-boundary-checks article>div:first-child{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.v5-boundary-checks h3{font-size:15px;margin:0;overflow-wrap:anywhere}
+.v5-boundary-checks dl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:12px 0}
+.v5-boundary-checks dt{font-size:11px;color:#aab7c6}.v5-boundary-checks dd{margin:2px 0 0;color:#f1f4f8;font-variant-numeric:tabular-nums}
+.v5-boundary-checks small{font-size:11px;overflow-wrap:anywhere}
+.v5-boundary-sources{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;font-size:12px}
+.v5-boundary-sources a{color:#a8cfe9;text-decoration:underline}.v5-boundary-sources button{margin-left:auto}
+.v5-boundary-cell-sub{display:block;font-size:10px;color:#aeb9c6;white-space:normal;overflow-wrap:anywhere}
+.v5-boundary-zone>i,.v5-boundary-map-detail i{display:inline-block;width:9px;height:9px;margin-right:5px;flex:none}
+.v5-boundary-allocation td{font-variant-numeric:tabular-nums}.v5-boundary-allocation td:nth-child(n+3):nth-child(-n+7),.v5-boundary-allocation th:nth-child(n+3):nth-child(-n+7){text-align:right}
+.v5-boundary-allocation table{min-width:980px}
+.v5-boundary-allocation th:first-child,.v5-boundary-allocation td:first-child{min-width:130px;text-align:left}
+.v5-boundary-allocation th:nth-child(2),.v5-boundary-allocation td:nth-child(2){min-width:190px}
+.v5-boundary-allocation td:nth-child(n+3):nth-child(-n+7){white-space:nowrap;min-width:90px}
+.v5-boundary-allocation h2{font-size:20px}
+.v5-boundary-footnote{font-size:12px;border-top:1px solid #414650;padding-top:10px}
+.v5-boundary-empty{padding:24px;text-align:center;background:#1c232c}
+.v5-boundary-map-status{display:flex;align-items:center;justify-content:space-between;flex:none;gap:4px;padding:4px 6px;border-top:1px solid #414650;font-size:10px;min-width:0;background:#17212a}
+.pf-v3-page .v3-workbench .v5-boundary-map-status button{font-size:10px;min-height:23px;padding:3px 5px;white-space:nowrap}
+.v5-boundary-map-detail{position:absolute;left:8px;top:8px;max-width:calc(100% - 68px);padding:8px 10px;display:flex;flex-direction:column;gap:4px;background:#101923ed;border:1px solid #7590a3;z-index:4;pointer-events:auto;color:#edf4f9;font-size:11px}
+.v5-boundary-map-detail strong{font-size:14px}.v5-boundary-map-detail small{font-size:10px;color:#bacbda}
+.pf-v3-page .v3-workbench .v5-boundary-map-detail button{min-height:21px;font-size:10px;padding:2px 5px;align-self:flex-end}
+.v5-boundary-map-controls{display:flex;flex-direction:column;gap:5px;padding:7px 8px;border-bottom:1px solid #414650;font-size:10px}
+.v5-boundary-map-controls label{display:flex;align-items:center;gap:5px}.v5-boundary-map-legend{display:flex;flex-direction:column;gap:4px}
+.pf-v3-page .v3-workbench .v5-boundary-map-legend button{font-size:10px;text-align:left;padding:4px 6px;min-height:25px;border-left:3px solid var(--zone-color)}
+.v5-boundary-shape{vector-effect:non-scaling-stroke}.v5-boundary-shape:focus{outline:none;stroke:#fff;stroke-width:4}
+.v5-boundary-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+@media(max-width:820px){.v5-boundary-checks dl{grid-template-columns:repeat(2,minmax(0,1fr))}.v5-boundary-checks dd{overflow-wrap:anywhere}.v5-boundary-heading>button{width:100%}}
+@media print{.v5-boundary-allocation{color:#222}.v5-boundary-allocation table{min-width:0;width:100%;font-size:9px}.v5-boundary-allocation th,.v5-boundary-allocation td{min-width:0!important;white-space:normal!important}.v5-boundary-allocation strong,.v5-boundary-checks dd{color:#111}.v5-boundary-checks article{background:#fff;break-inside:avoid}.v5-boundary-checks dt,.v5-boundary-cell-sub{color:#444}.v5-boundary-allocation a{color:#222}}

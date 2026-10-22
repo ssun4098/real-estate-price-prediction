@@ -1,0 +1,22 @@
+.v5-facility-bands{display:flex;flex-direction:column;min-height:0;container-type:inline-size;gap:6px}
+.v5-facility-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.v5-facility-heading h3{margin:0!important}
+.v5-facility-heading>span,.v5-facility-band-heading>span{font-size:11px;color:#b5c7d6}
+.v5-facility-band-list{min-height:0;flex:1;display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:7px}
+.v5-facility-band{height:100%;min-height:0;display:flex;flex-direction:column;border-top:1px solid #424954;padding-top:6px}
+.v5-facility-band-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.pf-v3-page .v5-facility-band-heading h4{font-size:12px;line-height:1.25;margin:0}
+.v5-facility-count-chart{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;flex:1;min-height:58px;margin-top:4px}
+.v5-facility-count-column{display:flex;flex-direction:column;align-items:center;min-width:0;min-height:0}
+.v5-facility-count-value{font-size:12px;line-height:15px;font-variant-numeric:tabular-nums;color:#f2f5f8}
+.v5-facility-count-value.is-missing{font-size:10px;color:#a8b9c9}
+.v5-facility-count-track{flex:1;min-height:12px;display:flex;align-items:flex-end;justify-content:center;width:100%;border-bottom:1px solid #7c8b9b}
+.v5-facility-count-track>span{display:block;width:40%;max-width:30px;min-width:8px}
+.v5-facility-count-label{font-size:11px;line-height:15px;text-align:center;color:#cbd7e4;white-space:nowrap;margin-top:3px;display:flex;align-items:center;justify-content:center;gap:3px}
+.v5-facility-count-label .v5-facility-icon{flex:none}
+.v5-facility-band-note{font-size:10px!important;line-height:1.45!important;color:#b5c7d6;margin:2px 0 0!important}
+.v5-facility-query-status{font-size:10px!important;line-height:1.45!important;color:#f1c982;margin:0!important;overflow-wrap:anywhere}
+.v5-facility-retry{align-self:flex-end;font-size:11px}
+@container (min-width:700px){.v5-facility-band-list{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}.v5-facility-band-heading{display:block}.v5-facility-count-chart{gap:4px}}
+@container (max-width:500px){.v5-facility-count-label{flex-direction:column;gap:0;font-size:10px}}
+@media(max-width:760px){.v5-facility-bands{min-height:430px}.v5-facility-band-list{flex:auto;grid-template-rows:repeat(3,minmax(92px,1fr))}.v5-facility-count-label{gap:1px}.v5-facility-count-label .v5-facility-icon{width:12px;height:12px}}

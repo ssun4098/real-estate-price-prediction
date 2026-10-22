@@ -1,0 +1,81 @@
+"""앱 조립. 실행: uvicorn app.main:create_app --factory
+
+요청 하나가 지나가는 길
+    브라우저 → guard(접속 주소 검사) → features/*.py 의 라우터 함수 → backend 엔진 / MySQL → ok() 응답
+    어디서든 예외가 나면 guard 가 받아서 web.error_response() 로 표준 오류 응답을 만든다.
+"""
+from __future__ import annotations
+
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException
+
+from app import db
+from app.features import model, pages, portfolio, public_data, snapshots, system
+from app.features.land_store import MySqlLandStore
+from app.settings import Settings
+from app.web import SafeJSONResponse, add_security_headers, check_host, error_response, set_secrets
+from pf_api import Collector
+
+# 요청 URL에 주소·인증키가 섞이므로 접속 로그는 끈다 (예전 서버와 같음).
+logging.getLogger("uvicorn.access").disabled = True
+
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or Settings.from_env()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # --- 시작할 때 한 번: 여기서 만든 객체를 app.state 에 두고 라우터가 꺼내 쓴다 ---
+        set_secrets(settings.secrets)
+        sessions = db.connect(settings.database_url, settings.db_connect_retries)
+
+        collector = Collector(settings.keys, settings.vworld_domain)
+        collector.land_store = MySqlLandStore(sessions, secrets=settings.secrets)
+
+        bundled, bundled_default = portfolio.load_bundled_samples(settings.samples_dir)
+        holder = model.ModelHolder(settings.model_dir, settings.model_entrypoint)
+        holder.load()
+
+        app.state.sessions = sessions
+        app.state.template = settings.template_path.read_text("utf-8")
+        app.state.public_data = public_data.PublicData(collector)
+        app.state.snapshots = snapshots.SnapshotService(sessions)
+        app.state.portfolio = portfolio.PortfolioService(sessions, bundled, bundled_default)
+        app.state.model = holder
+        try:
+            yield
+        finally:
+            # --- 끌 때 ---
+            db.close(sessions)
+            collector.keys.clear()
+
+    app = FastAPI(
+        title="개발사업성 분석 V6",
+        version="6.0.0",
+        lifespan=lifespan,
+        default_response_class=SafeJSONResponse,
+        docs_url="/api/docs" if settings.enable_docs else None,
+        openapi_url="/api/openapi.json" if settings.enable_docs else None,
+        redoc_url=None,
+    )
+
+    @app.middleware("http")
+    async def guard(request: Request, call_next):
+        try:
+            check_host(request, settings.allowed_hosts)
+            response = await call_next(request)
+        except Exception as exc:  # noqa: BLE001 - 모든 예외를 표준 오류로 (상세 내용은 기록·노출하지 않음)
+            return error_response(exc)
+        return add_security_headers(response)
+
+    # FastAPI가 직접 처리하는 오류(404, 405, 입력 형식 오류)도 같은 모양으로.
+    app.add_exception_handler(HTTPException, lambda _request, exc: error_response(exc))
+    app.add_exception_handler(RequestValidationError, lambda _request, exc: error_response(exc))
+
+    for feature in (pages, system, public_data, snapshots, portfolio, model):
+        app.include_router(feature.router)
+    return app

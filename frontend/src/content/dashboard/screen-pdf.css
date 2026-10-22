@@ -1,0 +1,46 @@
+/* Only the authored export surface is sized. Shared application chrome is untouched. */
+.pf-v3-page .v6-pdf-progress{position:fixed;z-index:10000;top:80px;left:50%;transform:translateX(-50%);padding:14px 22px;border:1px solid #7baed6;background:#1b1e23;color:#f3f5f8;box-shadow:0 4px 20px #0008;font-size:14px;text-align:center;pointer-events:none}
+.pf-v3-page .v6-pdf-progress small{display:block;margin-top:4px;font-size:11px}
+.pf-v3-page.v6-pdf-capture .live-toast{display:none}
+.pf-v3-page.v6-pdf-capture button:disabled,.pf-v3-page.v6-pdf-capture input:disabled,.pf-v3-page.v6-pdf-capture select:disabled{opacity:1}
+.pf-v3-page.v6-pdf-capture .v3-workbench{height:100%;min-height:0}
+.pf-v3-page.v6-pdf-capture *{animation:none!important;transition:none!important;caret-color:transparent!important}
+/* A narrow browser still exports the same desktop arrangement on landscape paper. */
+.pf-v3-page.v6-pdf-desktop .v3-topbar{gap:14px;flex-wrap:nowrap}
+.pf-v3-page.v6-pdf-desktop .v3-main-tabs{width:auto}
+.pf-v3-page.v6-pdf-desktop .v3-main-tabs button{flex:none;font-size:13px;padding:6px 11px}
+.pf-v3-page.v6-pdf-desktop .v3-toolbar{margin-left:auto}
+.pf-v3-page.v6-pdf-desktop .v3-mode{display:inline}
+.pf-v3-page.v6-pdf-desktop .v3-contextbar{gap:5px 10px}
+.pf-v3-page.v6-pdf-desktop .v6-samples-bar{flex:1 1 320px;flex-wrap:nowrap}
+.pf-v3-page.v6-pdf-desktop .v6-samples-message{max-width:110px;flex:0 1 110px;white-space:nowrap;text-align:left}
+.pf-v3-page.v6-pdf-desktop .v6-samples-library{max-width:55%}
+.pf-v3-page.v6-pdf-desktop .v3-workspace{grid-template-columns:minmax(0,1fr) minmax(0,2fr);flex:1}
+.pf-v3-page.v6-pdf-desktop .v3-map-panel{height:auto}
+.pf-v3-page.v6-pdf-desktop .v3-right-pane,.pf-v3-page.v6-pdf-desktop .v3-survey-panel{min-height:0}
+.pf-v3-page.v6-pdf-desktop .v3-survey-charts{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-rows:auto}
+.pf-v3-page.v6-pdf-desktop .v3-survey-regulation{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+.pf-v3-page.v6-pdf-desktop .v3-survey-location{grid-template-columns:minmax(150px,.65fr) minmax(0,1.65fr);grid-template-rows:minmax(0,1fr)}
+.pf-v3-page.v6-pdf-desktop .v3-survey-development{grid-template-rows:minmax(0,.88fr) minmax(0,1.12fr)}
+.pf-v3-page.v6-pdf-desktop .v5-development-units{min-height:0}
+.pf-v3-page.v6-pdf-desktop .v5-unit-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-rows:auto;gap:15px}
+.pf-v3-page.v6-pdf-desktop .v5-unit-distribution{padding-right:12px;padding-bottom:0;border-right:1px solid #414650;border-bottom:0}
+.pf-v3-page.v6-pdf-desktop .v5-unit-calculation{justify-content:center}
+.pf-v3-page.v6-pdf-desktop .v5-facility-bands{min-height:0}
+.pf-v3-page.v6-pdf-desktop .v5-facility-band-list{flex:1;grid-template-rows:repeat(3,minmax(0,1fr))}
+.pf-v3-page.v6-pdf-desktop .v3-finance-panel{height:100%}
+.pf-v3-page.v6-pdf-desktop .v3-finance-sliders{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.pf-v3-page.v6-pdf-desktop .v3-kpis strong{font-size:23px}
+.pf-v3-page.v6-pdf-desktop .v3-finance-content{min-height:0}
+.pf-v3-page.v6-pdf-desktop .v3-finance-body{grid-template-columns:minmax(0,.85fr) minmax(0,1.65fr)}
+.pf-v3-page.v6-pdf-desktop .v3-finance-plots{overflow:auto}
+.pf-v3-page.v6-pdf-desktop .v3-finance-plots .live-box-grid{grid-template-columns:1fr;grid-template-rows:repeat(2,minmax(0,1fr));height:100%;min-height:0}
+.pf-v3-page.v6-pdf-desktop .v3-finance-plots .live-panel{min-height:0}
+.pf-v3-page.v6-pdf-desktop .v3-budget-editor{overflow:auto}
+.pf-v3-page.v6-pdf-desktop .v3-finance-row{grid-template-columns:minmax(80px,1.05fr) 64px minmax(90px,1.2fr) minmax(49px,.6fr);gap:6px}
+.pf-v3-page.v6-pdf-desktop .v3-expense-rows>.v3-finance-row{min-height:29px}
+.pf-v3-page.v6-pdf-desktop .v3-row-input input:not([type=range]){width:53px;flex-basis:53px}
+.pf-v3-page.v6-pdf-desktop .v3-bottom{flex-wrap:nowrap}
+.pf-v3-page .v6-pdf-ready{position:fixed;right:16px;bottom:64px;z-index:1000;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:10px 12px;border:1px solid #7cafd0;background:#202832;color:#fff;box-shadow:0 3px 18px #0005;font-size:12px;flex-wrap:wrap}
+.pf-v3-page .v6-pdf-ready a{padding:6px 10px;background:#e6f1f8;color:#142635;font-weight:700;text-decoration:none}
+.pf-v3-page .v6-pdf-ready button{padding:5px 8px;color:#d2deea;background:#323c47;border:1px solid #596571}

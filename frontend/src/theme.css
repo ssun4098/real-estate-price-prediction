@@ -1,0 +1,61 @@
+:root {
+  color-scheme: dark;
+  --adaptive-theme: 0;
+  --font-sans-default: Inter, 'Noto Sans KR', -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: var(--font-sans-default);
+  --background: #000;
+  --surface: #1a1a1a;
+  --surface-raised: #262626;
+  --muted: #1a1a1a;
+  --control: #0d0d0d;
+  --control-hover: #262626;
+  --interaction-hover: #262626;
+  --interaction-active: #333;
+  --text: #eee;
+  --secondary: #aaa;
+  --border: #3c3c3c;
+  --border-strong: #666;
+  --accent: #eee;
+  --positive: #a8c5b3;
+  --negative: #e7b09b;
+  --chart-1: #afc5d2;
+  --chart-2: #cbbd9f;
+  --chart-3: #a8c5b3;
+  --chart-4: #c9a9a4;
+  --chart-5: #c0b4d1;
+  --chart-6: #d4cdab;
+  --chart-7: #adbbbb;
+  --chart-8: #8f8f8f;
+  --chart-neutral-fill: #242424;
+  --ranked-list-fill: #333;
+  --ranked-list-fill-hover: #444;
+  --movement-positive: #a8c5b3;
+  --movement-negative: #e7b09b;
+  --movement-total: #aaa;
+  --card-radius: 0px;
+  --data-card-radius: 0px;
+  --data-card-background: #1a1a1a;
+  --control-radius: 0px;
+  --mark-radius: 0;
+  --card-shadow: none;
+  --shadow: none;
+  --data-app-chrome-background: #000;
+  --data-app-chrome-text: #eee;
+  --dashboard-background: #000;
+}
+
+/* Printed output uses the same runtime with a light page palette. */
+@media print {
+  :root {
+    color-scheme: light;
+    --background: #fff;
+    --dashboard-background: #fff;
+    --surface: #fff;
+    --surface-raised: #fff;
+    --data-card-background: #fff;
+    --text: #171717;
+    --secondary: #555;
+    --data-app-chrome-background: #fff;
+    --data-app-chrome-text: #171717;
+  }
+}

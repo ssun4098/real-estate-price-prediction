@@ -1,0 +1,38 @@
+# api 컨테이너 하나만 띄웁니다. MySQL은 전에 만든 컨테이너(land-mysql)를 그대로 씁니다.
+# 이 파일은 MySQL을 새로 만들거나 재시작하지 않으므로, 그 안의 자료는 그대로 남습니다.
+#
+# 처음 한 번 (api와 land-mysql 컨테이너를 같은 네트워크에 묶기. MySQL 재시작 없음):
+#   docker network create v6_mysql
+#   docker network connect v6_mysql land-mysql
+# 실행:
+#   docker compose up -d --build      → http://127.0.0.1:4175/
+name: v6
+
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    # API 키·DB 계정은 .env 에서만 받는다. 이미지 안에는 넣지 않는다.
+    env_file: .env
+    environment:
+      # 같은 네트워크 안에서는 컨테이너 이름이 곧 주소다. 포트도 MySQL 컨테이너 내부 포트(3306).
+      # (.env 의 MYSQL_HOST / MYSQL_PORT 는 Docker 없이 python -m app 으로 켤 때만 쓰인다)
+      MYSQL_HOST: ${MYSQL_CONTAINER:-land-mysql}
+      MYSQL_PORT: "3306"
+      MODEL_DIR: /app/models
+    networks: [mysql]
+    ports:
+      # 내 PC에서만 접속 가능. 다른 기기에서 열려면 왼쪽을 바꾸고 .env 의 ALLOWED_HOSTS 에도 추가.
+      - "127.0.0.1:${PUBLIC_PORT:-4175}:${PUBLIC_PORT:-4175}"
+    volumes:
+      - ./models:/app/models:ro   # 학습 모델 파일 (읽기 전용)
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  mysql:
+    # 이미 있는 네트워크를 빌려 쓴다 (compose가 만들거나 지우지 않음). 위 '처음 한 번' 명령으로 만든다.
+    external: true
+    name: ${MYSQL_NETWORK:-v6_mysql}

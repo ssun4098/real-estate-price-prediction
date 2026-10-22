@@ -1,0 +1,135 @@
+{
+  "surface": "dashboard",
+  "title": "개발사업성 분석 V6",
+  "description": "필지·용도지역 경계의 자동 면적 배분과 최근 60개월 비교사례",
+  "generatedAt": "2026-10-10T21:07:32.309272+09:00",
+  "status": "reviewed",
+  "queries": {
+    "liveParcels": {
+      "rows": [],
+      "source": {
+        "label": "브이월드 필지·토지 속성",
+        "classification": "runtime-api-and-user-input",
+        "links": [
+          {
+            "label": "공식 출처",
+            "url": "https://www.data.go.kr/data/15123899/openapi.do"
+          }
+        ],
+        "period": "사용자가 지정한 지역·기간 · 실행 결과에 기록",
+        "caveats": [
+          "인증키는 보관하지 않습니다. 저장한 분석은 조회 당시 자료이며, 최신 자료는 Python 연결 후 다시 조회해야 합니다.",
+          "공시지가는 기본조사 참고값이며 사업수지 가격으로 대체하지 않습니다."
+        ],
+        "evidenceFlow": [
+          {
+            "title": "데이터 흐름",
+            "detail": "지도의 범위를 조회한 뒤 선택 PNU의 속성·면적·기준일을 연결. EPSG:4326 도형을 EPSG:3857로 투영. 공시지가는 기본조사 참고용으로만 표시."
+          }
+        ]
+      }
+    },
+    "liveRevenue": {
+      "rows": [],
+      "source": {
+        "label": "청약홈 신규 민영 APT 주택형별 모집공고",
+        "classification": "runtime-api-and-user-input",
+        "links": [
+          {
+            "label": "공식 출처",
+            "url": "https://www.data.go.kr/data/15098547/openapi.do"
+          }
+        ],
+        "period": "필지 선택 후 조회 · 한국시간 이번 달 1일 제외 직전 60개월 · 모집공고일 기준",
+        "caveats": [
+          "인증키는 보관하지 않습니다. 저장한 분석은 조회 당시 자료이며, 최신 자료는 Python 연결 후 다시 조회해야 합니다.",
+          "공시지가는 기본조사 참고값이며 사업수지 가격으로 대체하지 않습니다."
+        ],
+        "evidenceFlow": [
+          {
+            "title": "데이터 흐름",
+            "detail": "주택관리번호·공고번호·모델번호로 연결. 최고금액 만원×10000/공급㎡. 단지 내 중앙 단가×계획 공급면적의 사례 분포. 단지별 동일 가중."
+          },
+          {
+            "title": "V4 조회기간",
+            "detail": "조회 시 한국시간 현재 월의 1일을 종료 경계로 하고 그날은 제외. 시작일은 종료 경계에서 5년 전 같은 월 1일. 필지 미선택·지역코드 미확정 시 비교자료 호출 보류. 기존 저장본은 원래 기간으로 열람하며 최신 기간 수집 완료로 표시하지 않음."
+          }
+        ]
+      }
+    },
+    "liveLand": {
+      "rows": [],
+      "source": {
+        "label": "국토교통부 토지 매매 실거래가",
+        "classification": "runtime-api-and-user-input",
+        "links": [
+          {
+            "label": "공식 출처",
+            "url": "https://www.data.go.kr/data/15126466/openapi.do"
+          }
+        ],
+        "period": "필지 선택 후 조회 · 한국시간 이번 달 1일 제외 직전 60개월 · 계약일 기준",
+        "caveats": [
+          "인증키는 보관하지 않습니다. 저장한 분석은 조회 당시 자료이며, 최신 자료는 Python 연결 후 다시 조회해야 합니다.",
+          "공시지가는 기본조사 참고값이며 사업수지 가격으로 대체하지 않습니다."
+        ],
+        "evidenceFlow": [
+          {
+            "title": "비교그룹별 계산",
+            "detail": "사용자가 지정한 법정동 또는 명시적 시군구 범위에서 용도지역 그룹과 지목 그룹을 함께 대조. 취소·지분·날짜·단위 오류는 제외하고 원자료와 사유 보존. 그룹별 적합 거래 단가의 평균 또는 중앙값 × 해당 그룹 선택 면적."
+          },
+          {
+            "title": "V4 조회기간",
+            "detail": "조회 시 한국시간 현재 월의 1일을 종료 경계로 하고 그날은 제외. 시작일은 종료 경계에서 5년 전 같은 월 1일. 필지 미선택·지역코드 미확정 시 비교자료 호출 보류. 기존 저장본은 원래 기간으로 열람하며 최신 기간 수집 완료로 표시하지 않음."
+          }
+        ]
+      }
+    },
+    "scenarioInputs": {
+      "rows": [],
+      "source": {
+        "label": "사용자 사업 조건과 Python 계산 결과",
+        "classification": "runtime-api-and-user-input",
+        "links": [
+          {
+            "label": "공식 출처",
+            "url": "https://www.kdi.re.kr/research/focusView?pub_no=18876"
+          }
+        ],
+        "period": "사용자가 지정한 지역·기간 · 실행 결과에 기록",
+        "caveats": [
+          "인증키는 보관하지 않습니다. 저장한 분석은 조회 당시 자료이며, 최신 자료는 Python 연결 후 다시 조회해야 합니다.",
+          "공시지가는 기본조사 참고값이며 사업수지 가격으로 대체하지 않습니다."
+        ],
+        "evidenceFlow": [
+          {
+            "title": "데이터 흐름",
+            "detail": "기준안과 목표 이익률·독립 비용을 구분. 지급일별 현금·차입·이자·만기상환 계산. Exit는 지정된 잔여 계약·수납 경로를 전제로 한 프로젝트 계산."
+          }
+        ]
+      }
+    },
+    "liveSurvey": {
+      "rows": [],
+      "source": {
+        "label": "공공 토지속성·주변시설·통계",
+        "classification": "runtime-api-and-user-input",
+        "links": [
+          {
+            "label": "브이월드",
+            "url": "https://www.vworld.kr/"
+          }
+        ],
+        "caveats": [
+          "인증키는 보관하지 않습니다. 저장한 분석은 조회 당시 자료이며, 최신 자료는 Python 연결 후 다시 조회해야 합니다.",
+          "공시지가는 기본조사 참고값이며 사업수지 가격으로 대체하지 않습니다."
+        ],
+        "boundaryMethod": "PNU별 연속지적도 LP_PA_CBND_BUBUN × 용도지역 LT_C_UQ111~114, EPSG:5179 교차면적 / 필지도형면적 × 현재 대장면적. 원자료와 페이지완료 근거 보관.",
+        "boundaryOfficialUrl": "https://www.data.go.kr/data/15123899/openapi.do"
+      }
+    }
+  },
+  "id": "dashboard:pf-study-v5-boundary",
+  "buildStatus": "complete",
+  "subtitle": "사업 기본조사 · 사업 수지분석"
+}

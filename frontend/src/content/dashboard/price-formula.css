@@ -1,0 +1,9 @@
+.v5-price-formula{display:grid;gap:3px;margin:6px 0;padding:6px 0;border-top:1px solid var(--pf-border,#454c56);border-bottom:1px solid var(--pf-border,#454c56);font-size:11px;line-height:1.4}
+.v5-formula-term{display:flex;gap:4px 8px;justify-content:space-between;flex-wrap:wrap}
+.v5-formula-term>span,.v5-price-formula>small{color:var(--pf-muted,#b9c7d5)}
+.v5-formula-term strong{font-variant-numeric:tabular-nums;font-size:12px}
+.pf-live-page .v5-formula-term small{display:inline;font-size:10px;font-weight:400}
+.v5-formula-result{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.v5-price-formula details{font-size:10px;color:var(--pf-muted,#b9c7d5);overflow-wrap:anywhere}
+.v5-price-formula summary{cursor:pointer}
+.pf-live-page .v5-price-formula details small{font-size:10px}

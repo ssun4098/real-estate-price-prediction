@@ -1,0 +1,27 @@
+# Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.bin
+*credentials*
+# Local execution and user results
+runtime/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite*
+*.db
+*.log
+.pytest_cache/
+.DS_Store
+Thumbs.db
+*.zip
+# Frontend build/dependency state
+node_modules/
+dist/
+.data-app-offline/
+.vite/

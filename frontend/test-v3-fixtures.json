@@ -1,0 +1,5460 @@
+[
+  {
+    "name": "residential-and-jimok",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "custom-pool",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "임야",
+                  "lndcgrCode": "05",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "농림지역",
+                  "prposAreaDstrcCode": "UQC001",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQC001",
+                "zoneName": "농림지역",
+                "zoneCode": "UQC001",
+                "zoneMatchKey": "녹지·관리·농림·자연환경보전",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "농림지역",
+                  "zoneCode": "UQC001"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQC001",
+                  "prposAreaDstrcCodeNm": "농림지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "05",
+                  "lndcgrCodeNm": "임야",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "9c37917e004ccbac"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "계획관리지역",
+            "jimok": "전",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "자연녹지지역",
+            "jimok": "답",
+            "priceManwon": 20000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "자연환경보전",
+            "jimok": "임야",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "제2종일반주거지역",
+            "jimok": "임야",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "multi-group",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        },
+        {
+          "pnu": "1168010100100020000",
+          "areaM2": 500,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "학교용지",
+                  "lndcgrCode": "10",
+                  "lndpclAr": "500"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "일반상업지역",
+                  "prposAreaDstrcCode": "UQA220",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100020000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100020000:UQA220",
+                "zoneName": "일반상업지역",
+                "zoneCode": "UQA220",
+                "zoneMatchKey": "상업",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 500.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100020000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "일반상업지역",
+                  "zoneCode": "UQA220"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100020000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA220",
+                  "prposAreaDstrcCodeNm": "일반상업지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "500",
+                  "lndcgrCode": "10",
+                  "lndcgrCodeNm": "학교용지",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 500.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 500.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -303.86612558986604,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "cf8dc1adaf48db75"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "중심상업지역",
+            "jimok": "학교용지",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "partial-group",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        },
+        {
+          "pnu": "1168010100100020000",
+          "areaM2": 500,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "학교용지",
+                  "lndcgrCode": "10",
+                  "lndpclAr": "500"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "일반상업지역",
+                  "prposAreaDstrcCode": "UQA220",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100020000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100020000:UQA220",
+                "zoneName": "일반상업지역",
+                "zoneCode": "UQA220",
+                "zoneMatchKey": "상업",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 500.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100020000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "일반상업지역",
+                  "zoneCode": "UQA220"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100020000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA220",
+                  "prposAreaDstrcCodeNm": "일반상업지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "500",
+                  "lndcgrCode": "10",
+                  "lndcgrCodeNm": "학교용지",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 500.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 500.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -303.86612558986604,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "cf8dc1adaf48db75"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "scope-dong",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "삼성동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 20000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": [],
+            "cancelled": true
+          },
+          {
+            "id": "D",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 20000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": [],
+            "shareTrade": true
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "scope-sgg",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "sgg",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "삼성동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 20000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": [],
+            "cancelled": true
+          },
+          {
+            "id": "D",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 20000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": [],
+            "shareTrade": true
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "legacy-no-evidence",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동"
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "malformed-register-null",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                null
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "held",
+            "reasons": [
+              "현재 대장 면적 미확보 또는 충돌"
+            ],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": null
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": []
+            },
+            "registerAreaM2": null,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": null,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "117c387008687898"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "malformed-plan-null",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                null
+              ]
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "malformed-plan-container",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": {
+                "bad": "shape"
+              }
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "partial-query-metadata",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "landQuery": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08",
+          "collectionStatus": "partial"
+        }
+      },
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "partial-query-conflicts-source",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "prposAreaDstrcCode": "UQA122",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127.0,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5001
+                ],
+                [
+                  127.0,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA122",
+                "zoneName": "제2종일반주거지역",
+                "zoneCode": "UQA122",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 196.13387441013396,
+                "ratio": 1.0,
+                "allocatedAreaM2": 1000.0
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127.0,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5001
+                  ],
+                  [
+                    127.0,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127.0,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5001
+                    ],
+                    [
+                      127.0,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5001
+                      ],
+                      [
+                        127.0,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제2종일반주거지역",
+                  "zoneCode": "UQA122"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA122",
+                  "prposAreaDstrcCodeNm": "제2종일반주거지역",
+                  "cnflcAt": "1",
+                  "cnflcAtNm": "포함",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.13387441013396,
+            "coverageRatio": 1.0,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.866125589866,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "8437c579ba42f7f8"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "landQuery": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08",
+          "collectionStatus": "partial"
+        }
+      },
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ]
+    }
+  },
+  {
+    "name": "boundary-mixed-single-parcel",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCode": "UQA121",
+                  "prposAreaDstrcCodeNm": "제1종일반주거지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉"
+                },
+                {
+                  "prposAreaDstrcCode": "UQA430",
+                  "prposAreaDstrcCodeNm": "자연녹지지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127,
+                  37.5
+                ],
+                [
+                  127.0001,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0001,
+                  37.5001
+                ],
+                [
+                  127,
+                  37.5001
+                ],
+                [
+                  127,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA121",
+                "zoneName": "제1종일반주거지역",
+                "zoneCode": "UQA121",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.0001,
+                        37.500099999999996
+                      ],
+                      [
+                        127.0001,
+                        37.49999999999999
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 98.06693814095144,
+                "ratio": 0.5000000047426789,
+                "allocatedAreaM2": 500.0000047426789
+              },
+              {
+                "allocationId": "1168010100100010000:UQA430",
+                "zoneName": "자연녹지지역",
+                "zoneCode": "UQA430",
+                "zoneMatchKey": "녹지·관리·농림·자연환경보전",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0001,
+                        37.49999999999999
+                      ],
+                      [
+                        127.0001,
+                        37.500099999999996
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.0001,
+                        37.49999999999999
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 98.06693628055149,
+                "ratio": 0.49999999525732125,
+                "allocatedAreaM2": 499.99999525732125
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 2,
+                  "totalCount": 2,
+                  "uniqueCount": 2
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127,
+                    37.5
+                  ],
+                  [
+                    127.0001,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0001,
+                    37.5001
+                  ],
+                  [
+                    127,
+                    37.5001
+                  ],
+                  [
+                    127,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127,
+                      37.5
+                    ],
+                    [
+                      127.0001,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0001,
+                      37.5001
+                    ],
+                    [
+                      127,
+                      37.5001
+                    ],
+                    [
+                      127,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127,
+                        37.5
+                      ],
+                      [
+                        127.0001,
+                        37.5
+                      ],
+                      [
+                        127.0001,
+                        37.5001
+                      ],
+                      [
+                        127,
+                        37.5001
+                      ],
+                      [
+                        127,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제1종일반주거지역",
+                  "zoneCode": "UQA121"
+                }
+              },
+              {
+                "type": "Feature",
+                "id": "1",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0001,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0001,
+                        37.5001
+                      ],
+                      [
+                        127.0001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "자연녹지지역",
+                  "zoneCode": "UQA430"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA121",
+                  "prposAreaDstrcCodeNm": "제1종일반주거지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉",
+                  "lastUpdtDt": null
+                },
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA430",
+                  "prposAreaDstrcCodeNm": "자연녹지지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.1338744215029,
+            "coverageRatio": 1.0000000000000002,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0000000000002,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.8661255784971,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "0be7a9750f2a9c4d"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "G",
+            "date": "2025-04-01",
+            "areaM2": 100,
+            "priceManwon": 10000,
+            "landUse": "자연녹지지역",
+            "jimok": "대",
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "sourceEligible": true
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  },
+  {
+    "name": "boundary-same-group-split",
+    "input": {
+      "project": {
+        "asOf": "2026-10-08"
+      },
+      "parcels": [
+        {
+          "pnu": "1168010100100010000",
+          "areaM2": 1000,
+          "legalDongName": "서울특별시 강남구 역삼동",
+          "legalDongCode": "1168010100",
+          "dong": "역삼동",
+          "attributes": {
+            "landRegister": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "lndcgrCodeNm": "대",
+                  "lndcgrCode": "08",
+                  "lndpclAr": "1000"
+                }
+              ]
+            },
+            "landUse": {
+              "status": "호출 확인",
+              "queriedAt": "2026-10-08",
+              "rows": [
+                {
+                  "prposAreaDstrcCode": "UQA121",
+                  "prposAreaDstrcCodeNm": "제1종일반주거지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉"
+                },
+                {
+                  "prposAreaDstrcCode": "UQA123",
+                  "prposAreaDstrcCodeNm": "제3종일반주거지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉"
+                }
+              ]
+            }
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  127,
+                  37.5
+                ],
+                [
+                  127.0001,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5
+                ],
+                [
+                  127.0002,
+                  37.5001
+                ],
+                [
+                  127.0001,
+                  37.5001
+                ],
+                [
+                  127,
+                  37.5001
+                ],
+                [
+                  127,
+                  37.5
+                ]
+              ]
+            ]
+          },
+          "boundaryAllocation": {
+            "version": "boundary-overlay-v1",
+            "pnu": "1168010100100010000",
+            "status": "ready",
+            "reasons": [],
+            "parts": [
+              {
+                "allocationId": "1168010100100010000:UQA121",
+                "zoneName": "제1종일반주거지역",
+                "zoneCode": "UQA121",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.00000000000001,
+                        37.5
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5001
+                      ],
+                      [
+                        127.0001,
+                        37.500099999999996
+                      ],
+                      [
+                        127.0001,
+                        37.49999999999999
+                      ],
+                      [
+                        127.00000000000001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 98.06693814095144,
+                "ratio": 0.5000000047426789,
+                "allocatedAreaM2": 500.0000047426789
+              },
+              {
+                "allocationId": "1168010100100010000:UQA123",
+                "zoneName": "제3종일반주거지역",
+                "zoneCode": "UQA123",
+                "zoneMatchKey": "주거",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0001,
+                        37.49999999999999
+                      ],
+                      [
+                        127.0001,
+                        37.500099999999996
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5001
+                      ],
+                      [
+                        127.00020000000002,
+                        37.5
+                      ],
+                      [
+                        127.0001,
+                        37.49999999999999
+                      ]
+                    ]
+                  ]
+                },
+                "geometryAreaM2": 98.06693628055149,
+                "ratio": 0.49999999525732125,
+                "allocatedAreaM2": 499.99999525732125
+              }
+            ],
+            "source": {
+              "complete": true,
+              "crs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "parcelLayer": "LP_PA_CBND_BUBUN",
+              "zoningLayers": [
+                "LT_C_UQ111",
+                "LT_C_UQ112",
+                "LT_C_UQ113",
+                "LT_C_UQ114"
+              ],
+              "queriedAt": "2026-10-10",
+              "pages": [
+                {
+                  "layer": "LP_PA_CBND_BUBUN",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 1,
+                  "totalCount": 1,
+                  "uniqueCount": 1
+                },
+                {
+                  "layer": "LT_C_UQ111",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 2,
+                  "totalCount": 2,
+                  "uniqueCount": 2
+                },
+                {
+                  "layer": "LT_C_UQ112",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ113",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                },
+                {
+                  "layer": "LT_C_UQ114",
+                  "complete": true,
+                  "pageCount": 1,
+                  "rawCount": 0,
+                  "totalCount": 0,
+                  "uniqueCount": 0
+                }
+              ]
+            },
+            "sources": [],
+            "queriedAt": "2026-10-10",
+            "policy": {
+              "absoluteToleranceM2": 0.01,
+              "relativeTolerance": 1e-08,
+              "inputCrs": "EPSG:4326",
+              "areaCrs": "EPSG:5179",
+              "allocationBasis": "대장 면적 × 경계 교차면적 / 필지 경계면적",
+              "gapNormalization": false,
+              "invalidGeometryRepair": false
+            },
+            "parcelGeometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    127,
+                    37.5
+                  ],
+                  [
+                    127.0001,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5
+                  ],
+                  [
+                    127.0002,
+                    37.5001
+                  ],
+                  [
+                    127.0001,
+                    37.5001
+                  ],
+                  [
+                    127,
+                    37.5001
+                  ],
+                  [
+                    127,
+                    37.5
+                  ]
+                ]
+              ]
+            },
+            "parcelFeature": {
+              "type": "Feature",
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [
+                      127,
+                      37.5
+                    ],
+                    [
+                      127.0001,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5
+                    ],
+                    [
+                      127.0002,
+                      37.5001
+                    ],
+                    [
+                      127.0001,
+                      37.5001
+                    ],
+                    [
+                      127,
+                      37.5001
+                    ],
+                    [
+                      127,
+                      37.5
+                    ]
+                  ]
+                ]
+              },
+              "properties": {
+                "pnu": "1168010100100010000"
+              }
+            },
+            "sourceFeatures": [
+              {
+                "type": "Feature",
+                "id": "0",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127,
+                        37.5
+                      ],
+                      [
+                        127.0001,
+                        37.5
+                      ],
+                      [
+                        127.0001,
+                        37.5001
+                      ],
+                      [
+                        127,
+                        37.5001
+                      ],
+                      [
+                        127,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제1종일반주거지역",
+                  "zoneCode": "UQA121"
+                }
+              },
+              {
+                "type": "Feature",
+                "id": "1",
+                "sourceLayer": "LT_C_UQ111",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [
+                    [
+                      [
+                        127.0001,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5
+                      ],
+                      [
+                        127.0002,
+                        37.5001
+                      ],
+                      [
+                        127.0001,
+                        37.5001
+                      ],
+                      [
+                        127.0001,
+                        37.5
+                      ]
+                    ]
+                  ]
+                },
+                "properties": {
+                  "uname": "제3종일반주거지역",
+                  "zoneCode": "UQA123"
+                }
+              }
+            ],
+            "attributeBasis": {
+              "pnu": "1168010100100010000",
+              "landUse": [
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA121",
+                  "prposAreaDstrcCodeNm": "제1종일반주거지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉",
+                  "lastUpdtDt": null
+                },
+                {
+                  "pnu": null,
+                  "prposAreaDstrcCode": "UQA123",
+                  "prposAreaDstrcCodeNm": "제3종일반주거지역",
+                  "cnflcAt": "2",
+                  "cnflcAtNm": "저촉",
+                  "lastUpdtDt": null
+                }
+              ],
+              "landRegister": [
+                {
+                  "pnu": null,
+                  "lndpclAr": "1000",
+                  "lndcgrCode": "08",
+                  "lndcgrCodeNm": "대",
+                  "lastUpdtDt": null
+                }
+              ]
+            },
+            "registerAreaM2": 1000.0,
+            "parcelGeometryAreaM2": 196.1338744215029,
+            "coverageRatio": 1.0000000000000002,
+            "overlapAreaM2": 0.0,
+            "gapAreaM2": 0.0,
+            "toleranceM2": 0.01,
+            "allocatedAreaM2": 1000.0000000000002,
+            "note": "연속지적도·용도지역 경계를 이용한 사업성 검토 참고값이며 법적 측량성과가 아닙니다.",
+            "geometryRegisterDifferenceM2": -803.8661255784971,
+            "evidenceBinding": {
+              "algorithm": "fnv1a64-ieee754-v1",
+              "value": "5a92dd7845b7e4cf"
+            }
+          }
+        }
+      ],
+      "comparisonFilters": {
+        "sgg": "11680",
+        "dong": "역삼동",
+        "legalDongCode": "1168010100",
+        "start": "2025-01",
+        "end": "2025-12",
+        "landScope": "dong",
+        "landRawScope": "sgg",
+        "asOf": "2026-10-08"
+      },
+      "comparables": {
+        "query": {
+          "sgg": "11680",
+          "dong": "역삼동",
+          "legalDongCode": "1168010100",
+          "start": "2025-01",
+          "end": "2025-12",
+          "landScope": "dong",
+          "landRawScope": "sgg",
+          "asOf": "2026-10-08"
+        },
+        "landCases": [
+          {
+            "id": "A",
+            "landUse": "제1종일반주거지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "B",
+            "landUse": "준주거지역",
+            "jimok": "대",
+            "priceManwon": 30000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "C",
+            "landUse": "준주거지역",
+            "jimok": "학교용지",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          },
+          {
+            "id": "D",
+            "landUse": "일반상업지역",
+            "jimok": "대",
+            "priceManwon": 10000,
+            "areaM2": 100,
+            "sggCode": "11680",
+            "dong": "역삼동",
+            "date": "2025-05-10",
+            "sourceEligible": true,
+            "sourceExclusionReasons": []
+          }
+        ],
+        "revenueCases": [],
+        "collectionStatus": "complete"
+      },
+      "sources": [
+        {
+          "id": "land",
+          "collectionStatus": "complete"
+        }
+      ],
+      "assumptions": {
+        "landMethod": "median",
+        "landAdjustmentPct": 0,
+        "targetMarginPct": 15
+      }
+    }
+  }
+]

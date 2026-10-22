@@ -1,0 +1,35 @@
+.v5-land-plot .v3-land-group-control select{max-width:100%}
+.v5-land-reference-title{display:block;font-size:11px;margin:3px 0;color:var(--pf-text,#eef2f7)}
+.v5-land-reference-legend{display:flex;gap:4px 9px;flex-wrap:wrap;font-size:10px;line-height:1.5}
+.v5-land-reference-legend span{display:inline-flex;align-items:center;gap:4px}
+.v5-land-reference-legend i{width:7px;height:7px;border-radius:50%;display:inline-block;background:#7eb4d3}
+.v5-land-reference-legend i.missing{background:#efb65e}
+.v5-land-reference-frame{position:relative;width:100%;max-width:277px;aspect-ratio:270/141;margin-inline:auto}
+.v5-land-reference-frame svg{display:block;width:100%;height:100%}
+.pf-v3-page .v5-land-reference-frame .v5-land-reference-mark{position:absolute;display:block;width:12px;height:12px;min-width:0;min-height:0;max-width:none;padding:0;margin:0;border:0;border-radius:50%;background:transparent;box-shadow:none;transform:translate(-50%,-50%);cursor:pointer}
+.pf-v3-page .v5-land-reference-frame .v5-land-reference-mark:hover{background:#ffffff18}
+.pf-v3-page .v5-land-reference-frame .v5-land-reference-mark:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.v5-land-reference svg text{font-size:9px;fill:currentColor}
+.v5-land-reference .grid{stroke:#77808a;opacity:.25}
+.v5-land-reference .whisker{stroke:#c9deeb;stroke-width:1}
+.v5-land-reference .box{fill:#7eb4d322;stroke:#c9deeb;stroke-width:1}
+.v5-land-reference .median{stroke:#fff;stroke-width:1.5}
+.v5-land-reference .known-zone{fill:#7eb4d3;stroke:#14212b;stroke-width:.5}
+.v5-land-reference .missing-zone{fill:#efb65e;stroke:#34250f;stroke-width:.5}
+.v5-land-reference .mean{fill:none;stroke:#e7b376}
+.v5-land-reference-note,.v5-land-hold{display:block;font-size:10px;line-height:1.5;margin-top:5px;overflow-wrap:anywhere}
+.v5-land-hold{color:#efb65e;border-top:1px solid #54515a;padding-top:5px}
+.v5-reference-case-badge{display:inline-block;color:#efb65e;border:1px solid #efb65e88;padding:2px 5px;font-size:11px}
+.v5-land-completeness{display:grid;gap:3px;margin:3px 0 7px;padding-bottom:6px;border-bottom:1px solid #54515a;font-size:11px;line-height:1.45}
+.v5-land-completeness strong{color:#efb65e}.v5-land-completeness small{font-size:10px;color:var(--pf-muted,#b9c7d5)}
+.v5-land-unit-value{overflow-wrap:anywhere;line-height:1.35}
+.v5-land-total-amount{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-top:5px;font-size:11px}
+.v5-land-total-amount strong{font-variant-numeric:tabular-nums}
+.v5-land-completeness summary{cursor:pointer;color:#efb65e}
+.v5-land-completeness>span,.v5-land-completeness>small{display:block;margin-top:4px}
+.v6-land-fallback{padding:7px;margin-top:5px;border:1px solid #8b7752;background:#efb65e0b;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.v6-land-fallback>strong,.v6-land-fallback-note{color:#efc47e;font-size:10px;line-height:1.5}
+.v6-land-fallback small{display:block;font-size:10px;margin-top:3px}
+.v6-land-fallback summary{cursor:pointer;margin-top:5px}
+.v6-land-fallback details .live-text-button{display:block;font-size:10px;text-align:left;max-width:100%;white-space:normal}
+.v6-land-fallback-note{display:block;margin-top:4px}

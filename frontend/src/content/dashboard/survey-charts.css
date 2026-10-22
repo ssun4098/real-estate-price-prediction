@@ -1,0 +1,21 @@
+.pf-v3-page .v4-floor-card{min-height:0}
+.pf-v3-page .v4-floor-body{flex:1;min-height:90px;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,.9fr);gap:4px;align-items:stretch}
+.pf-v3-page .v4-floor-plot{min-height:0;min-width:0;align-self:stretch;container-type:inline-size}
+.pf-v3-page .v4-floor-plot .chart-donut-center>text:first-child{font-size:clamp(10px,14cqw,18px);transform:translateY(1px)}
+.pf-v3-page .v4-floor-plot .chart-donut-center>text:nth-child(2){font-size:clamp(7px,6.5cqw,9px);transform:translateY(-7px)}
+.pf-v3-page .v4-floor-legend{display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0}
+.pf-v3-page .v4-floor-legend-row{display:grid;grid-template-columns:auto 1fr;gap:6px;font-size:12px;align-items:center}
+.pf-v3-page .v4-floor-legend-row>span{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.pf-v3-page .v4-floor-legend-row i{width:8px;height:8px;display:inline-block;flex:none}
+.pf-v3-page .v4-floor-legend-row strong{font-size:12px;text-align:right;white-space:nowrap;font-weight:600}
+.pf-v3-page .v4-floor-legend-row small{font-size:11px;font-weight:400;color:var(--secondary)}
+.pf-v3-page .v4-floor-footnote{display:flex;gap:7px;align-items:flex-start;justify-content:space-between;min-width:0}
+.pf-v3-page .v4-floor-footnote>small{font-size:10px;line-height:1.45}
+.pf-v3-page .v4-chart-detail-button{border:0;padding:0;min-height:0;background:transparent;color:#b6d4eb;text-decoration:underline;font-size:10px;line-height:1.45;white-space:nowrap;cursor:pointer}
+.v4-survey-detail{padding:18px;line-height:1.55;color:var(--text);overflow:auto}
+.v4-survey-detail p{font-size:13px;margin:0 0 12px}
+.v4-survey-detail table{width:100%;border-collapse:collapse;font-size:12px}
+.v4-survey-detail th,.v4-survey-detail td{text-align:left;padding:8px;border-bottom:1px solid var(--border);vertical-align:top}
+.v4-survey-detail td small{display:block;font-size:10px}
+.v4-survey-detail h3{font-size:14px;margin:20px 0 8px}
+@media(max-width:1100px) and (min-width:821px){.pf-v3-page .v4-floor-body{grid-template-columns:minmax(0,1fr) minmax(103px,.9fr)}.pf-v3-page .v4-floor-legend-row{font-size:11px;gap:4px}.pf-v3-page .v4-floor-legend-row strong{font-size:11px}.pf-v3-page .v4-floor-legend-row strong small{display:block}}
