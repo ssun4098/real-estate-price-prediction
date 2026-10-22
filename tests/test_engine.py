@@ -2,7 +2,10 @@
 import copy
 import unittest
 
-from server.domain.engine import analyze, calculate_cashflow, statistics, validate_snapshot, COST_LABELS
+from server.domain.analysis import analyze, validate_snapshot
+from server.domain.analysis.cashflow import calculate_cashflow
+from server.domain.analysis.common import statistics
+from server.domain.analysis.costs import COST_LABELS
 from test_boundary_fixture import add_boundary
 
 

@@ -20,7 +20,7 @@ from sqlalchemy import select
 
 from server.db import SnapshotRow, db_errors
 from server.web import ApiError, json_body, ok, reject_secrets
-from server.domain.engine import analyze, validate_snapshot
+from server.domain.analysis import analyze, validate_snapshot
 from server.domain.persistence import export_snapshot
 
 router = APIRouter()

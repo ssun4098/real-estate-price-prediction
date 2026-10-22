@@ -3,7 +3,7 @@ import copy
 import json
 import unittest
 
-from server.domain.engine import analyze, validate_snapshot
+from server.domain.analysis import analyze, validate_snapshot
 from server.domain.land import classify_zone, classify_jimok, parcel_profile, ZONE_POOL, JIMOK_POOL
 from server.domain.persistence import export_snapshot
 from server.domain.public_api import Collector

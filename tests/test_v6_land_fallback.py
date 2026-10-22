@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from server.domain.engine import analyze, validate_snapshot
+from server.domain.analysis import analyze, validate_snapshot
 from server.domain.land import RULES_VERSION
 from test_engine import add_boundary, parcel_evidence
 from test_v3_land import v3_fixture

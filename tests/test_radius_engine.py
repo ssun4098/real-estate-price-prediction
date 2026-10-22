@@ -1,7 +1,8 @@
 """Synthetic locations only; verify that imported/stale rows cannot bypass radius rules."""
 import copy
 import unittest
-from server.domain.engine import analyze, _geo_distance_km
+from server.domain.analysis import analyze
+from server.domain.analysis.comparables import _geo_distance_km
 from test_engine import fixture
 
 

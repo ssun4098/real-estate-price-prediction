@@ -1,7 +1,7 @@
 """Reference unit distributions must not relax acquisition eligibility."""
 import copy
 import unittest
-from server.domain.engine import analyze
+from server.domain.analysis import analyze
 from test_v3_land import v3_fixture
 from server.domain.persistence import export_snapshot
 

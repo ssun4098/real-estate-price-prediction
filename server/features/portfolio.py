@@ -26,7 +26,8 @@ from sqlalchemy import select
 
 from server.db import PortfolioSampleRow, SettingRow, db_errors
 from server.web import ApiError, json_body, ok, reject_secrets
-from server.domain.engine import _safe_tree, validate_snapshot
+from server.domain.analysis.common import _safe_tree
+from server.domain.analysis import validate_snapshot
 from server.domain.persistence import PORTFOLIO_POLICY, portfolio_capture_tree
 
 router = APIRouter()

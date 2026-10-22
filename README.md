@@ -124,7 +124,15 @@ server/
 │  ├─ portfolio.py         샘플 선반
 │  └─ model.py             학습 모델 자리
 └─ domain/          계산 엔진·공공 API 연결 (웹·DB를 모름)
-   ├─ engine.py            사업성 계산 analyze()
+   ├─ analysis/            사업성 계산 analyze()  (주제별로 나뉨)
+   │   ├─ engine.py            전체 순서
+   │   ├─ development.py       개발 규모
+   │   ├─ comparables.py       비교사례 고르는 규칙
+   │   ├─ revenue.py           분양 수입
+   │   ├─ land_price.py        토지 매입가
+   │   ├─ costs.py             사업비
+   │   ├─ cashflow.py          현금흐름
+   │   └─ common.py            공통 도구
    ├─ public_api.py        공공 API 호출 창구 Collector
    ├─ survey.py            입지 조사
    ├─ land.py  boundary.py  regions.py   토지 분류·경계 배분·지역 목록

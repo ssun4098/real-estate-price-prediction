@@ -1,6 +1,7 @@
 """계산 엔진과 공공 API 연결 (웹·DB를 모르는 순수 계산 코드).
 
-    engine.py        사업성 계산: analyze(입력) → 결과, validate_snapshot(저장본 재계산)
+    analysis/        사업성 계산: analyze(입력) → 결과, validate_snapshot(저장본 재계산)
+                     주제별 파일 지도는 analysis/__init__.py
     public_api.py    공공 API 호출 창구 Collector (브이월드·공공데이터포털·도로명주소), ApiError
     survey.py        입지 조사, 필지 정보 보강 (KOSIS·SGIS·주변시설)
     land.py          용도지역·지목 분류, 토지비 계산

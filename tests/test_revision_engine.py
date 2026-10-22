@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from server.domain.engine import analyze, validate_snapshot
+from server.domain.analysis import analyze, validate_snapshot
 from test_engine import fixture, add_boundary
 
 

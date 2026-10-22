@@ -7,7 +7,7 @@ from unittest.mock import patch
 from server.domain.boundary import (recompute_boundary, attribute_basis, _request_features,
                          PARCEL_LAYER, ZONE_LAYERS, collect_boundary)
 from server.domain.land import parcel_area_profile
-from server.domain.engine import analyze
+from server.domain.analysis import analyze
 from test_engine import fixture
 
 

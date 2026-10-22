@@ -19,7 +19,7 @@ try:
 except ImportError:
     HAVE_APP = False
 
-from server.domain.engine import analyze
+from server.domain.analysis import analyze
 from test_engine import fixture
 
 SECRET = 'TEST_SECRET_NEVER_PUBLISH_847295'

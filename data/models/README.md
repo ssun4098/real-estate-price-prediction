@@ -46,5 +46,5 @@ MODEL_ENTRYPOINT=my_model:LandPricePredictor
 - 잘못된 입력은 `ValueError`/`KeyError`/`TypeError`로 알리면 422가 됩니다. 그 외 예외는 500이며 내부 메시지는 응답에 나가지 않습니다.
 - 모델 로드에 실패해도 앱은 뜹니다. 원인은 `GET /api/model/status`의 `error`(예외 종류만)와 컨테이너 로그에서 확인합니다.
 - `pickle`/`joblib`은 불러오는 파일이 곧 실행 코드입니다. 신뢰할 수 있는 곳에서 만든 모델 파일만 이 폴더에 넣으세요.
-- 분석 엔진(`server/domain/engine.py`)은 모델에 의존하지 않습니다. 모델 결과를 수지 계산에 연결할 때는
+- 분석 엔진(`server/domain/analysis/`)은 모델에 의존하지 않습니다. 모델 결과를 수지 계산에 연결할 때는
   `server/features/` 의 해당 기능에서 `request.app.state.model.predict(...)`를 호출하세요.
