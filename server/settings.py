@@ -17,6 +17,14 @@ def _int(name: str, default: int) -> int:
         raise SystemExit(f"{name}: 정수 값이 필요합니다.") from None
 
 
+def _choice(name: str, allowed: tuple[str, ...]) -> str:
+    """허용된 값 중 하나. 비어 있으면 첫 번째 값."""
+    value = os.environ.get(name, "").strip().lower() or allowed[0]
+    if value not in allowed:
+        raise SystemExit(f"{name}: {' 또는 '.join(allowed)} 중 하나여야 합니다.")
+    return value
+
+
 def _mysql_url() -> str:
     """DATABASE_URL이 있으면 그대로, 없으면 MYSQL_* 값으로 만든다."""
     url = os.environ.get("DATABASE_URL", "").strip()
@@ -48,6 +56,8 @@ class Settings:
     samples_dir: Path
     model_dir: Path
     model_entrypoint: str
+    land_trade_source: str                          # "table"(직접 적재한 DB) 또는 "api"(공공데이터포털)
+    applyhome_source: str                           # 청약홈 분양정보: "table" 또는 "api"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -68,4 +78,6 @@ class Settings:
             samples_dir=Path(env("SAMPLES_DIR", ROOT / "data" / "samples")),
             model_dir=Path(env("MODEL_DIR", ROOT / "data" / "models")),
             model_entrypoint=env("MODEL_ENTRYPOINT", "").strip(),
+            land_trade_source=_choice("LAND_TRADE_SOURCE", ("table", "api")),
+            applyhome_source=_choice("APPLYHOME_SOURCE", ("table", "api")),
         )

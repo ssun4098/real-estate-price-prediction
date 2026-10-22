@@ -94,9 +94,13 @@ V6_team_share/
 | `analysis_snapshots` | 화면에서 "저장"한 분석 (`/api/save`, `/api/export-json` 둘 다 여기) |
 | `portfolio_samples` | 샘플 선반: 한 번 보관하면 바뀌지 않는 분석 |
 | `app_settings` | 화면을 열 때 보여줄 기본 샘플 |
-| `land_complete`, `land_pages`, `land_errors` | 토지 실거래 조회 캐시 (최근 달 1시간, 지난 달 30일 재사용) |
+| `land_complete`, `land_pages`, `land_errors` | 토지 실거래 API 캐시. `LAND_TRADE_SOURCE=api`일 때만 씀 |
 
-`land-mysql`에는 직접 쌓은 실거래 자료도 있으므로, 서버는 시작할 때(`server/db.py`) 다음만 한다.
+**토지 실거래는 직접 적재한 `land_trade` 테이블에서 읽는다**(기본값 `LAND_TRADE_SOURCE=table`). 공공데이터 API는 부르지 않으며, `land_trade_job`에 적재가 끝났다고 기록된 달만 쓴다. 적재되지 않은 달은 화면에 "아직 적재되지 않음"으로 표시된다. 예전처럼 API로 받으려면 `.env`에 `LAND_TRADE_SOURCE=api`를 넣는다.
+
+**청약홈 분양정보도 직접 적재한 `applyhome_apt_notice`·`applyhome_apt_model` 테이블에서 읽는다**(기본값 `APPLYHOME_SOURCE=table`). 분양 공고 주소를 좌표로 바꾸는 일(브이월드)만 API를 쓴다.
+
+`land-mysql`에는 직접 쌓은 실거래 자료가 있으므로, 서버는 시작할 때(`server/db.py`) 다음만 한다.
 
 - 위 6개 중 **없는 테이블만 새로 만든다.**
 - 이미 있는 테이블은 **지우거나 구조를 바꾸지 않는다.**
@@ -121,6 +125,8 @@ docker compose up -d --build                     # 코드 고친 뒤 반영
 | 새 API(URL) 추가 | `server/features/`에 파일 하나 + `server/main.py`에 한 줄 ([server/README.md](server/README.md)) |
 | 계산식 수정 | `server/domain/analysis/`의 해당 단계 파일 (예: 공사비 → `costs.py`) |
 | 공공 API 호출 수정 | `server/domain/public_api.py`의 `Collector` |
+| 토지 실거래 DB 읽기 수정 | `server/features/land_trade_table.py` |
+| 청약홈 DB 읽기 수정 | `server/features/applyhome_table.py` |
 | 설정 항목 추가 | `server/settings.py` + `server/env.py`의 `APP_NAMES` + `.env.example` |
 | 학습 모델 연결 | [data/models/README.md](data/models/README.md) |
 | 화면 수정 | `frontend/`에서 `npm ci`, `npm run build` → `dist/index.html`을 `frontend/build/V6.template.html`로 복사 |

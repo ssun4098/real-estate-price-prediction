@@ -41,7 +41,9 @@ server/
 │   ├─ snapshots.py         /api/analyze  /api/save  /api/export-json  /api/snapshots[/{id}]
 │   ├─ portfolio.py         /api/portfolio-samples[/{id}]  /api/portfolio-default
 │   ├─ model.py             /api/model/status  /api/model/predict   (학습 모델 자리)
-│   └─ land_store_mysql.py  URL 없음. 토지 실거래 캐시를 MySQL에 읽고 쓰는 저장소
+│   ├─ land_trade_table.py  URL 없음. 토지 실거래를 직접 적재한 land_trade 테이블에서 읽기 (기본)
+│   ├─ applyhome_table.py   URL 없음. 청약홈 분양정보를 직접 적재한 applyhome_apt_* 테이블에서 읽기 (기본)
+│   └─ land_store_mysql.py  URL 없음. API로 받은 토지 실거래를 앱 캐시 테이블에 저장 (api 모드)
 │
 └─ domain/          웹·DB를 모르는 순수 계산 코드 (파일 지도는 domain/__init__.py)
     ├─ analysis/            사업성 계산 analyze() — 계산 단계별 파일 (지도는 analysis/__init__.py)
@@ -56,6 +58,28 @@ server/
     ├─ land_store.py        토지 실거래 캐시 규칙 (land_store_mysql.py 의 부모 클래스)
     └─ geometry.py          도형 계산 라이브러리(shapely, pyproj) 불러오기
 ```
+
+## 토지 실거래·청약홈 자료는 어디서 오나
+
+토지 실거래는 `.env`의 `LAND_TRADE_SOURCE`, 청약홈 분양정보는 `APPLYHOME_SOURCE`로 정한다. 둘 다 기본값은 `table`이다.
+
+| 값 | 읽는 곳 | 공공데이터 API |
+|---|---|---|
+| `table` (기본) | 직접 적재한 `land_trade` 테이블 (`features/land_trade_table.py`) | 부르지 않음 |
+| `api` | 공공데이터포털 → 앱 캐시 테이블 `land_complete` 등 (`features/land_store_mysql.py`) | 부름 |
+
+`table` 모드 규칙
+- `land_trade_job`에 기록이 있고 `loaded_rows ≥ total_count`인 달만 쓴다. 기록이 없는 달은 0건으로 치지 않고 "아직 적재되지 않음"(`LAND_NOT_LOADED`)으로 화면에 알린다.
+- 거래 한 건의 판정(취소·지분·금액 0 제외)은 API 모드와 같은 함수 `domain/public_api.py`의 `land_trade_row()`를 쓴다.
+- 이 앱은 `land_trade*` 테이블을 읽기만 한다.
+
+청약홈 `table` 모드 (`features/applyhome_table.py`)
+- `Collector.odcloud()`와 `Collector._coverage_count()`가 API 대신 `applyhome_apt_notice`·`applyhome_apt_model`을 조회한다. 분양사례 계산 코드는 바뀌지 않는다.
+- 돌려주는 행은 API와 같은 대문자 필드 이름이다. 열 값을 먼저 쓰고, `extra`(JSON)의 나머지 원본 필드(특별공급 세대수 등)를 덧붙인다.
+- 앱이 쓰는 조건(주택구분·상세구분·공고일·주소 포함·공고번호)만 받는다. 모르는 조건이 오면 조용히 무시하지 않고 오류를 낸다.
+- 좌표 변환(브이월드 지오코더)은 계속 API를 쓴다.
+
+**나중에 매일 적재하는 스케줄러를 만들 때:** API 호출 코드는 `domain/public_api.py`의 `Collector._land_page(시군구, 연월, 페이지)`에 그대로 남아 있다. 스케줄러는 이 함수로 하루치를 받아 `land_trade`에 넣고, `land_trade_job`에 `total_count`·`loaded_rows`를 기록하면 된다. 청약홈도 같은 방식이다(`Collector.odcloud()`는 `applyhome_table`이 비어 있을 때 API를 부른다). 서버 코드는 바꿀 필요가 없다.
 
 ## 기능 파일 읽는 법
 

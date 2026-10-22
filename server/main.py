@@ -16,6 +16,8 @@ from starlette.exceptions import HTTPException
 from server import db
 from server.features import model, pages, portfolio, public_data, snapshots, system
 from server.features.land_store_mysql import MySqlLandStore
+from server.features.applyhome_table import ApplyhomeTable
+from server.features.land_trade_table import LandTradeTable
 from server.settings import Settings
 from server.web import SafeJSONResponse, add_security_headers, check_host, error_response, set_secrets
 from server.domain.public_api import Collector
@@ -34,7 +36,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sessions = db.connect(settings.database_url, settings.db_connect_retries)
 
         collector = Collector(settings.keys, settings.vworld_domain)
-        collector.land_store = MySqlLandStore(sessions, secrets=settings.secrets)
+        if settings.land_trade_source == "table":
+            # 토지 실거래: 직접 적재한 land_trade 테이블에서만 읽는다 (공공데이터 API 호출 없음).
+            collector.land_store, collector.land_source = LandTradeTable(sessions), "table"
+        else:
+            # 토지 실거래: 공공데이터포털 API로 받고 앱 캐시 테이블(land_complete 등)에 보관.
+            collector.land_store = MySqlLandStore(sessions, secrets=settings.secrets)
+        if settings.applyhome_source == "table":
+            # 청약홈 분양정보: 직접 적재한 applyhome_apt_notice / applyhome_apt_model 에서 읽는다 (API 호출 없음).
+            collector.applyhome_table = ApplyhomeTable(sessions)
 
         bundled, bundled_default = portfolio.load_bundled_samples(settings.samples_dir)
         holder = model.ModelHolder(settings.model_dir, settings.model_entrypoint)

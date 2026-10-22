@@ -10,7 +10,9 @@
         pages.py             대시보드 화면(HTML)
         system.py            상태 확인(/healthz, /api/status)
         public_data.py       공공 API 조회(필지·주소·실거래 등)와 지도 타일
-        land_store_mysql.py  토지 실거래 캐시를 MySQL에 보관
+        land_trade_table.py  토지 실거래를 직접 적재한 land_trade 테이블에서 읽기 (기본)
+        land_store_mysql.py  토지 실거래를 API로 받아 앱 캐시 테이블에 보관 (LAND_TRADE_SOURCE=api 일 때)
+        applyhome_table.py   청약홈 분양정보를 직접 적재한 applyhome_apt_* 테이블에서 읽기 (기본)
         snapshots.py         사업성 계산(/api/analyze)과 분석 저장본
         portfolio.py         샘플 선반(고정 보관 분석)
         model.py             학습 모델 자리 (아직 모델 없음)

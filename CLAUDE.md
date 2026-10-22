@@ -22,7 +22,7 @@ python tests/run_tests.py
 python -m unittest test_engine        # one file, from the project root with PYTHONPATH=.;tests (Windows) / .:tests
 ```
 
-`tests/test_app_api.py` and `tests/test_app_storage.py` exercise `server/` against SQLite via `DATABASE_URL`. There is no linter config. Frontend (`frontend/`) is rebuilt separately with Node (`npm ci && npm run build`, copy `dist/index.html` to `frontend/build/V6.template.html`); its `AGENTS.md` and `protected-runtime.json` mark protected runtime files that must not be edited without the authorize script — don't touch the frontend unless asked.
+`tests/test_app_api.py`, `tests/test_app_storage.py`, `tests/test_land_trade_table.py` and `tests/test_applyhome_table.py` exercise `server/` against SQLite via `DATABASE_URL`. There is no linter config. Frontend (`frontend/`) is rebuilt separately with Node (`npm ci && npm run build`, copy `dist/index.html` to `frontend/build/V6.template.html`); its `AGENTS.md` and `protected-runtime.json` mark protected runtime files that must not be edited without the authorize script — don't touch the frontend unless asked.
 
 ## Architecture of `server/`
 
@@ -30,7 +30,7 @@ python -m unittest test_engine        # one file, from the project root with PYT
 
 Organised **by feature**, so one feature reads top to bottom in one file. The user found the previous strict layering (api/services/repositories/db/core/container, ~35 files) too hard to follow; don't reintroduce per-layer packages.
 
-- `main.py` — `create_app()`: lifespan builds everything (DB → `Collector` + `MySqlLandStore` → feature objects) and stores it on `app.state`; registers the `guard` middleware and the routers. Run with `uvicorn server.main:create_app --factory` (no module-level `app`).
+- `main.py` — `create_app()`: lifespan builds everything (DB → `Collector` + land store (`LandTradeTable` or `MySqlLandStore`) → feature objects) and stores it on `app.state`; registers the `guard` middleware and the routers. Run with `uvicorn server.main:create_app --factory` (no module-level `app`).
 - `settings.py` — `Settings.from_env()`. `env.py` — `.env` loader and API-key validation. `web.py` — shared HTTP rules. `db.py` — ORM tables, `connect()`, `db_errors()`.
 - `features/<name>.py` — each file: routes at the top (`router = APIRouter()`), then the rules/DB code (`SnapshotService`, `PortfolioService`, `PublicData`, `ModelHolder`). Routes reach their object via `request.app.state.<name>`. A new feature = a new file here + one line in `main.py`.
 - Imports are absolute from the project root (`from server.domain.analysis import analyze`); there is no `sys.path` manipulation. Dependency direction is one way: `features → domain`; `domain` never imports `features`, FastAPI or SQLAlchemy.
@@ -41,6 +41,10 @@ Organised **by feature**, so one feature reads top to bottom in one file. The us
 ### Storage
 
 The app does **not** run its own MySQL: it connects to a MySQL 8.4 container the user already runs on their PC (it also holds their own land-trade data). In Docker the api joins the external network `v6_mysql` (`MYSQL_NETWORK`) and reaches the container by name (`MYSQL_CONTAINER`, default `land-mysql`) on port 3306; the user connects it once with `docker network connect v6_mysql land-mysql`. Directly (`python -m server`), via `MYSQL_HOST`/`MYSQL_PORT`. `db.connect` only creates missing app tables, never alters/drops existing ones, and refuses to start if a same-named table lacks expected columns. Never add code that drops, truncates or migrates tables it did not create.
+
+Land trades: by default (`LAND_TRADE_SOURCE=table`) `Collector` reads the user's own bulk-loaded tables via `features/land_trade_table.LandTradeTable` (set as `collector.land_store` with `collector.land_source="table"`): `land_trade` (one row per deal, `lawd_cd`+`deal_ym`) and `land_trade_job` (a month counts only if `loaded_rows >= total_count`; missing months raise `LAND_NOT_LOADED`, never treated as zero). No public-API call is made for land in this mode. Row verdicts reuse `public_api.land_trade_row()` so DB and API paths judge identically; row ids mimic API paging (100/page). These tables are read-only to the app. The API code (`Collector._land_page`) stays for a future daily loader that will insert into `land_trade`/`land_trade_job`. `LAND_TRADE_SOURCE=api` restores the old API + `MySqlLandStore` cache path.
+
+청약홈 (Applyhome) notices/models: by default (`APPLYHOME_SOURCE=table`) `collector.applyhome_table = ApplyhomeTable(sessions)` (`features/applyhome_table.py`), and `Collector.odcloud()` / `_coverage_count()` query `applyhome_apt_notice` / `applyhome_apt_model` instead of the API, returning rows with the API's uppercase field names (columns first, then keys from the `extra` JSON). Only the condition keys the app uses are supported (`HOUSE_SECD/HOUSE_DTL_SECD::EQ`, `RCRIT_PBLANC_DE::GTE/LTE/LT`, `HSSPLY_ADRES::LIKE`, `HOUSE_MANAGE_NO/PBLANC_NO::EQ`); unknown ones raise. Read-only; geocoding still uses VWorld. `APPLYHOME_SOURCE=api` restores API calls.
 
 App tables (`server/db.py`) hold documents as LONGTEXT JSON strings (preserves key order/numbers): `analysis_snapshots`, `portfolio_samples`, `app_settings`, and the land-trade cache (`land_complete/pages/errors`). Table/column names must stay stable (existing data). `MySqlLandStore` (`features/land_store_mysql.py`) subclasses `domain/land_store.LandStore` (SQLite) and keeps its interface/cache policy so `Collector` is unchanged. Bundled read-only samples come from `data/samples/` (`default.json` names the default). `V6.html` is no longer written to disk; `features/pages.py` renders it per request.
 

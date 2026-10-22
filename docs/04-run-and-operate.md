@@ -57,6 +57,8 @@
 | `PUBLIC_PORT` | 접속 포트 (기본 4175) |
 | `ALLOWED_HOSTS` | 접속 허용 주소 추가. 다른 PC에서 접속하게 하려면 필요 |
 | `MODEL_ENTRYPOINT` | 학습 모델 지정. 지금은 비워 둠 |
+| `LAND_TRADE_SOURCE` | 토지 실거래 출처. `table`(기본, 직접 적재한 DB) 또는 `api`(공공데이터포털) |
+| `APPLYHOME_SOURCE` | 청약홈 분양정보 출처. `table`(기본, 직접 적재한 DB) 또는 `api`(공공데이터포털) |
 
 `.env`는 비밀번호가 들어 있으므로 **다른 사람에게 공유하거나 올리지 않습니다.** (git 제외 설정 되어 있음)
 
@@ -81,6 +83,7 @@
 | 화면은 뜨는데 조회가 안 됨 | API 키 입력·승인 상태, 브이월드 등록 주소 확인 → 수정 후 `docker compose up -d` |
 | "다른 자료를 조회 중입니다" | 정상. 몇 초 뒤 다시 시도 |
 | api가 계속 재시작됨 | `docker compose logs api` 로 원인 확인 (위 MySQL 안내문 중 하나가 찍혀 있음) |
+| 비교사례에 "DB에 아직 적재되지 않았습니다" | 그 시군구·월이 `land_trade_job`에 적재 완료로 기록되지 않음. 적재 후 다시 조회 |
 | 포트 사용 중 | `.env`에 `PUBLIC_PORT=4176` 처럼 다른 번호 지정, `VWORLD_DOMAIN`도 맞춰 수정 |
 
 다음: [5. 용어집과 앞으로의 계획](05-glossary.md)

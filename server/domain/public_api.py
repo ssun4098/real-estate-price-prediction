@@ -269,6 +269,26 @@ def comparison_period(start,end,min_month,max_month,as_of,label,*,automatic=Fals
     return period,min(last,cutoff).isoformat()
 
 
+def land_trade_row(sgg,month,page,index,row):
+    """토지 실거래 한 건(API 응답 필드 이름 그대로의 dict) → 비교사례 행. 취소·지분·금액 0 거래는 제외 사유를 단다.
+
+    API로 받을 때(Collector._land_page)와 DB(land_trade 테이블)에서 읽을 때 모두 이 함수를 써서 판정 기준을 같게 한다.
+    """
+    amount,area=number(row.get("dealAmount")),number(row.get("dealArea"))
+    cancelled=text(row.get("cdealType")).upper() in ("O","Y","1") or bool(text(row.get("cdealDay")))
+    share=text(row.get("shareDealingType"))
+    shared=bool(share and share not in ("전체","전체거래","전체 거래","N","0","-"))
+    reasons=[]
+    if cancelled:reasons.append("취소 거래")
+    if shared:reasons.append("지분 거래 또는 거래 범위 확인 필요")
+    if area is None or area<=0 or amount is None or amount<=0:reasons.append("금액·면적 미확보 또는 0 이하")
+    try:date=dt.date(int(row.get("dealYear","0")),int(row.get("dealMonth","0")),int(row.get("dealDay","0"))).isoformat()
+    except ValueError:date=None;reasons.append("거래일 미확인")
+    record={"id":f"land-{sgg}-{month}-{page}-{index}","date":date,"dong":row.get("umdNm",""),"jimok":row.get("jimok",""),"landUse":row.get("landUse",""),"areaM2":area,"priceManwon":amount,"cancelled":cancelled,"shareTrade":shared,"eligible":not reasons,"exclusionReason":" · ".join(reasons),"group":"기본","sourceUrl":"https://www.data.go.kr/data/15126466/openapi.do","jibun":row.get("jibun",""),"sggCode":row.get("sggCd",sgg),"shareDealingType":share,"cancellationDate":row.get("cdealDay",""),"coordinateStatus":"가려진 지번으로 PNU·좌표 생성 안 함"}
+    record.update(sourceEligible=not reasons, sourceExclusionReasons=list(reasons), ruleVersion=RULES_VERSION)
+    return record
+
+
 class MemoryCache:
     """Bounded process-memory cache: no raw payloads or credentials on disk."""
     def __init__(self, limit=128, ttl=1800):
@@ -341,7 +361,7 @@ def ned_container(payload):
 
 
 class Collector:
-    def __init__(self, keys=None, domain=DEFAULT_DOMAIN, transport=None, land_store=None):
+    def __init__(self, keys=None, domain=DEFAULT_DOMAIN, transport=None, land_store=None, land_source="api"):
         self.keys = dict(keys or {})
         self.domain = domain.rstrip("/")
         if urllib.parse.urlsplit(self.domain).scheme not in ("http", "https"):
@@ -363,6 +383,10 @@ class Collector:
         self.coverage_attempt_day = None
         self.land_cache = MemoryCache(512, 21600)
         self.land_store = land_store
+        # "api": 공공데이터포털에서 받고 land_store 에 캐시. "table": land_store(직접 적재한 DB 테이블)에서만 읽고 API는 부르지 않음.
+        self.land_source = land_source
+        # 청약홈 분양정보: None 이면 API(odcloud)로 받고, 값이 있으면 그 객체(직접 적재한 DB 테이블)의 query()/count() 를 쓴다.
+        self.applyhome_table = None
         self.land_store_error = None
         self.land_reads = {}
         self.land_locks = defaultdict(threading.RLock)
@@ -386,6 +410,8 @@ class Collector:
         return self._regions.search(**kwargs)
 
     def _coverage_count(self,conditions):
+        if self.applyhome_table is not None:
+            return self.applyhome_table.count({"cond[HOUSE_SECD::EQ]":"01","cond[HOUSE_DTL_SECD::EQ]":"01",**conditions})
         result=self.request("https://api.odcloud.kr/api/ApplyhomeInfoDetailSvc/v1/getAPTLttotPblancDetail",{"serviceKey":self.require("dataGoKr"),"page":1,"perPage":1,"cond[HOUSE_SECD::EQ]":"01","cond[HOUSE_DTL_SECD::EQ]":"01",**conditions})
         count=number(result.get("matchCount"))
         if not isinstance(result.get("data"),list) or count is None or count<0:
@@ -801,6 +827,8 @@ class Collector:
         return result
 
     def odcloud(self,path,conditions):
+        if self.applyhome_table is not None:
+            return self.applyhome_table.query(path,conditions)
         data,total=[],None
         for page in range(1,101):
             p={"serviceKey":self.require("dataGoKr"),"page":page,"perPage":100,**conditions}
@@ -830,19 +858,7 @@ class Collector:
         if count is None or count<0 or int(count)!=count:raise ApiError("SCHEMA_CHANGED","토지거래 전체 건수가 확인되지 않습니다.")
         total=int(count);rows=root.findall(".//item");data=[]
         for index,item in enumerate(rows):
-            row={child.tag:text(child.text) for child in item}
-            amount,area=number(row.get("dealAmount")),number(row.get("dealArea"))
-            cancelled=text(row.get("cdealType")).upper() in ("O","Y","1") or bool(text(row.get("cdealDay")))
-            share=text(row.get("shareDealingType"))
-            shared=bool(share and share not in ("전체","전체거래","전체 거래","N","0","-"))
-            reasons=[]
-            if cancelled:reasons.append("취소 거래")
-            if shared:reasons.append("지분 거래 또는 거래 범위 확인 필요")
-            if area is None or area<=0 or amount is None or amount<=0:reasons.append("금액·면적 미확보 또는 0 이하")
-            try:date=dt.date(int(row.get("dealYear","0")),int(row.get("dealMonth","0")),int(row.get("dealDay","0"))).isoformat()
-            except ValueError:date=None;reasons.append("거래일 미확인")
-            data.append({"id":f"land-{sgg}-{month}-{page}-{index}","date":date,"dong":row.get("umdNm",""),"jimok":row.get("jimok",""),"landUse":row.get("landUse",""),"areaM2":area,"priceManwon":amount,"cancelled":cancelled,"shareTrade":shared,"eligible":not reasons,"exclusionReason":" · ".join(reasons),"group":"기본","sourceUrl":"https://www.data.go.kr/data/15126466/openapi.do","jibun":row.get("jibun",""),"sggCode":row.get("sggCd",sgg),"shareDealingType":share,"cancellationDate":row.get("cdealDay",""),"coordinateStatus":"가려진 지번으로 PNU·좌표 생성 안 함"})
-            data[-1].update(sourceEligible=not reasons, sourceExclusionReasons=list(reasons), ruleVersion=RULES_VERSION)
+            data.append(land_trade_row(sgg,month,page,index,{child.tag:text(child.text) for child in item}))
         return data,total
 
     def land_month(self,sgg,month,refresh=False):
@@ -857,6 +873,13 @@ class Collector:
 
     def _land_month(self,sgg,month,refresh=False):
         key=(sgg,month);store=self.land_store
+        if self.land_source=="table":
+            # DB 테이블이 원본: 적재가 끝난 달만 쓰고, 없는 달을 0건으로 치거나 API로 채우지 않는다.
+            hit=store.complete(sgg,month)
+            if hit is None:
+                raise ApiError('LAND_NOT_LOADED',f'{sgg} 시군구 {month[:4]}-{month[4:]} 토지 실거래가 DB에 아직 적재되지 않았습니다.')
+            self.land_reads[key]={'origin':'local','fetchedAt':hit['fetchedAt'],'resumedPages':0}
+            return hit['rows']
         cacheable=month < (dt.date.today().replace(day=1)-dt.timedelta(days=1)).strftime('%Y%m')
         if store is not None:
             hit=store.complete(sgg,month,force=refresh)
