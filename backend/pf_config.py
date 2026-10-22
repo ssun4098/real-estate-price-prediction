@@ -14,7 +14,7 @@ KEY_FIELDS = (
     ('sgisId', 'SGIS_CONSUMER_KEY', 'SGIS ID (선택)'),
     ('sgisSecret', 'SGIS_CONSUMER_SECRET', 'SGIS 비밀값 (선택)'),
 )
-# FastAPI 서버(app/settings.py)용 변수. 같은 .env를 V6.py와 함께 쓸 수 있게 허용만 한다 (V6.py는 읽지 않음).
+# FastAPI 서버(app/settings.py)가 쓰는 변수. 이 목록에 없는 이름이 .env에 있으면 오타로 보고 거부한다.
 APP_NAMES = frozenset({'MYSQL_CONTAINER', 'MYSQL_NETWORK', 'MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE',
                        'DATABASE_URL', 'DB_CONNECT_RETRIES', 'PUBLIC_PORT', 'ALLOWED_HOSTS', 'ENABLE_DOCS',
                        'MODEL_ENTRYPOINT', 'MODEL_DIR', 'TEMPLATE_PATH', 'SAMPLES_DIR'})

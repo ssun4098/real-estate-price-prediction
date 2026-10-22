@@ -10,7 +10,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Only what the service needs: no frontend sources, tests, .env or local runtime data.
+# Only what the service needs: no frontend sources, tests or .env.
 COPY app ./app
 COPY backend ./backend
 COPY web ./web

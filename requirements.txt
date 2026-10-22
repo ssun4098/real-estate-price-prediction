@@ -1,6 +1,6 @@
 shapely==2.1.2
 pyproj==3.7.2
-# FastAPI / MySQL service (app/). The legacy `python V6.py` needs only the two above.
+# FastAPI 서버 + MySQL
 fastapi==0.159.1
 uvicorn==0.54.0
 SQLAlchemy==2.1.6

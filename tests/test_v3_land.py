@@ -1,14 +1,11 @@
 """Synthetic V3 policy, evidence and storage tests. No authenticated I/O."""
 import copy
 import json
-import tempfile
 import unittest
-from pathlib import Path
 
 from pf_engine import analyze, validate_snapshot
 from pf_land import classify_zone, classify_jimok, parcel_profile, ZONE_POOL, JIMOK_POOL
 from pf_persistence import export_snapshot
-from pf_server import SnapshotStore
 from pf_api import Collector
 from test_engine import fixture, parcel_evidence, add_boundary
 from test_parcel_linkage import linked_fixture
@@ -211,15 +208,6 @@ class LandPolicyTests(unittest.TestCase):
         snapshot['analysisVersion']='pf-study-1'; snapshot['inputs']['parcels'][0]['attributes']={}
         restored=validate_snapshot(snapshot)
         self.assertIsNone(restored['results']['land']['representativeWon'])
-
-    def test_v6_store_never_writes_v2_namespace(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path=Path(directory); (path/'V2.html').write_text('KEEP V2',encoding='utf-8')
-            store=SnapshotStore(path,'<html><head></head><body>V6</body></html>');store.initialize()
-            saved=store.save(analyze(v3_fixture(),partial=True))
-            self.assertEqual((path/'V2.html').read_text(encoding='utf-8'),'KEEP V2')
-            self.assertTrue((path/'V6.html').exists())
-            self.assertTrue(saved['fileName'].startswith('pf-study-v6-pf-'))
 
 
 if __name__=='__main__':unittest.main()

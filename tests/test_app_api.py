@@ -12,7 +12,7 @@ try:
     from app.settings import Settings
     from app.main import create_app
     HAVE_APP = True
-except ImportError:  # legacy `python V6.py` installs do not include FastAPI
+except ImportError:  # requirements.txt 를 설치하지 않은 환경
     HAVE_APP = False
 
 from test_engine import fixture

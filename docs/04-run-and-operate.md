@@ -3,7 +3,7 @@
 ## 준비물
 
 - **Docker Desktop** (실행 상태)와 **이미 떠 있는 MySQL 컨테이너** — 이 프로젝트는 MySQL을 새로 띄우지 않고 그것을 씁니다
-- 정부 API 키 3종 (발급 방법은 [README.md](../README.md) 2장). 키가 없어도 저장된 예시 열람은 가능합니다.
+- 정부 API 키 3종 (발급 방법은 [README.md](../README.md) 1장). 키가 없어도 저장된 예시 열람은 가능합니다.
 
 ## 처음 켜기
 
@@ -14,7 +14,7 @@
    docker network create v6_mysql
    docker network connect v6_mysql land-mysql
    ```
-2. **앱용 데이터베이스 만들기 (처음 한 번)** — 명령은 [README.md](../README.md) 8-1
+2. **앱용 데이터베이스 만들기 (처음 한 번)** — 명령은 [README.md](../README.md) 2-1
 3. **설정 파일 만들기**
    ```powershell
    Copy-Item .env.example .env
@@ -68,17 +68,13 @@
 | `MySQL에 연결할 수 없습니다` | land-mysql 컨테이너가 켜져 있는지(`docker ps`), `docker network connect v6_mysql land-mysql`를 했는지. Docker 없이 켤 때는 `MYSQL_PORT`가 PORTS 칸 왼쪽 번호와 같은지 |
 | `network v6_mysql ... could not be found` | `docker network create v6_mysql` 을 먼저 실행 |
 | `MySQL 계정 또는 비밀번호가 틀렸습니다` | `.env`의 `MYSQL_USER` / `MYSQL_PASSWORD` |
-| `MYSQL_DATABASE로 지정한 데이터베이스가 없습니다` | README 8-1의 `CREATE DATABASE` 실행 |
+| `MYSQL_DATABASE로 지정한 데이터베이스가 없습니다` | README 2-1의 `CREATE DATABASE` 실행 |
 | `기존 테이블 ...의 구조가 이 앱과 다릅니다` | 같은 이름의 다른 테이블이 있음. 자료 보호를 위해 멈춘 것. `MYSQL_DATABASE`를 다른 DB로 |
-| 큰 분석 저장이 실패함 | MySQL `max_allowed_packet` 이 작음. README 8-1의 `SET PERSIST` 실행 |
+| 큰 분석 저장이 실패함 | MySQL `max_allowed_packet` 이 작음. README 2-1의 `SET PERSIST` 실행 |
 | 접속하면 "허용된 실행 주소로 접속하세요" | 주소창을 `127.0.0.1:4175` 또는 `localhost:4175`로. 다른 주소를 쓰려면 `ALLOWED_HOSTS`에 추가 |
 | 화면은 뜨는데 조회가 안 됨 | API 키 입력·승인 상태, 브이월드 등록 주소 확인 → 수정 후 `docker compose up -d` |
 | "다른 자료를 조회 중입니다" | 정상. 몇 초 뒤 다시 시도 |
 | api가 계속 재시작됨 | `docker compose logs api` 로 원인 확인 (위 MySQL 안내문 중 하나가 찍혀 있음) |
 | 포트 사용 중 | `.env`에 `PUBLIC_PORT=4176` 처럼 다른 번호 지정, `VWORLD_DOMAIN`도 맞춰 수정 |
-
-## 예전 방식
-
-`python V6.py`로 데이터베이스 없이 내 PC에서 단독 실행하는 방식도 남아 있습니다 (파일로 저장). 새 방식과 **저장 위치가 서로 다르므로** 예전 방식으로 저장한 분석은 새 방식에 자동으로 나타나지 않습니다.
 
 다음: [5. 용어집과 앞으로의 계획](05-glossary.md)

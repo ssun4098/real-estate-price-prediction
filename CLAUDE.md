@@ -6,12 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 개발사업성 분석 V6: a real-estate development feasibility tool. A prebuilt React dashboard (`web/V6.template.html`) talks to a Python backend that calls Korean public APIs (VWorld, data.go.kr, Juso, KOSIS, SGIS) and runs the financial analysis engine. UI text, errors and comments are mostly Korean; keep that.
 
-## Two ways to run the backend
+## Running
 
-1. **Legacy local mode** — `python V6.py` → `backend/pf_server.py` (stdlib `ThreadingHTTPServer`), file/SQLite storage under `runtime/outputs/`. Needs only `shapely` + `pyproj`.
-2. **FastAPI + MySQL service** — `app/`, run via Docker (`docker compose`) or directly (`python -m app`). Same HTTP routes as the legacy server, so the built frontend works with both.
-
-`backend/` is the shared domain layer for both. `pf_server.py`/`pf_persistence` stay as the legacy path (existing tests import them); new work goes in `app/`.
+There is one server: the FastAPI app in `app/` (the old stdlib server `V6.py`/`backend/pf_server.py` was removed). `backend/` is the domain layer it uses.
 
 ## Commands
 
@@ -20,16 +17,12 @@ cp .env.example .env                # MYSQL_* = the user's EXISTING MySQL contai
 docker compose up -d --build        # api only → http://127.0.0.1:4175/
 python -m app                       # same server without Docker (loads .env, 127.0.0.1:PUBLIC_PORT)
 
-# Legacy local server
-python -m venv .venv && .venv/Scripts/python.exe -m pip install -r requirements.txt
-.venv/Scripts/python.exe V6.py [--port 4176 --no-browser]
-
-# Tests (unittest, no network/keys). Must use an interpreter with shapely/pyproj installed.
+# Tests (unittest, no network/keys/MySQL). Interpreter needs requirements.txt installed.
 python scripts/run_tests.py
 python -m unittest discover -s tests -p "test_engine.py"      # one file (set PYTHONPATH=backend;tests;.)
 ```
 
-`tests/test_app_api.py` exercises `app/` against SQLite via `DATABASE_URL` and skips itself if FastAPI is not installed. There is no linter config. Frontend (`frontend/`) is rebuilt separately with Node (`npm ci && npm run build`, copy `dist/index.html` to `web/V6.template.html`); its `AGENTS.md` and `protected-runtime.json` mark protected runtime files that must not be edited without the authorize script — don't touch the frontend unless asked.
+`tests/test_app_api.py` and `tests/test_app_storage.py` exercise `app/` against SQLite via `DATABASE_URL`. There is no linter config. Frontend (`frontend/`) is rebuilt separately with Node (`npm ci && npm run build`, copy `dist/index.html` to `web/V6.template.html`); its `AGENTS.md` and `protected-runtime.json` mark protected runtime files that must not be edited without the authorize script — don't touch the frontend unless asked.
 
 ## Architecture of `app/`
 
@@ -61,8 +54,8 @@ App tables (`app/db.py`) hold documents as LONGTEXT JSON strings (preserves key 
 
 ## `backend/` (domain layer)
 
-Flat modules prefixed `pf_`: `pf_engine` (analysis/cashflow/validation; `analyze`, `validate_snapshot`), `pf_api` (`Collector`: all upstream HTTP, caches, comparables; `ApiError`), `pf_survey` (site survey, parcel enrichment), `pf_land`/`pf_boundary`/`pf_regions` (land classification, parcel boundary allocation, region catalog), `pf_persistence` (export rules), `pf_config` (key loading). Standard library plus shapely/pyproj only — do not add dependencies here. Export policy: Geocoder-derived/real-time revenue data is stripped from saved snapshots and must be re-queried (`exportPolicy: v5-geocoder-requery`).
+Flat modules prefixed `pf_`: `pf_engine` (analysis/cashflow/validation; `analyze`, `validate_snapshot`), `pf_api` (`Collector`: all upstream HTTP, caches, comparables; `ApiError`), `pf_survey` (site survey, parcel enrichment), `pf_land`/`pf_boundary`/`pf_regions` (land classification, parcel boundary allocation, region catalog), `pf_persistence` (export rules), `pf_config` (key/.env loading), `pf_land_store` (SQLite land cache; base class of `MySqlLandStore`). Standard library plus shapely/pyproj only — do not add dependencies here. Export policy: Geocoder-derived/real-time revenue data is stripped from saved snapshots and must be re-queried (`exportPolicy: v5-geocoder-requery`).
 
 ## Configuration
 
-All config is environment variables (see `.env.example`); in Docker they come from `.env` via compose, with `python -m app` from `pf_config.load_environment`. That loader rejects unknown names, so any new app variable must be added to `pf_config.APP_NAMES` (one `.env` serves V6.py, Docker and `python -m app`). `app/settings.py` reads them. VWorld keys must match `VWORLD_DOMAIN`.
+All config is environment variables (see `.env.example`); in Docker they come from `.env` via compose, with `python -m app` from `pf_config.load_environment`. That loader rejects unknown names, so any new app variable must be added to `pf_config.APP_NAMES` (one `.env` serves Docker and `python -m app`). `app/settings.py` reads them. VWorld keys must match `VWORLD_DOMAIN`.

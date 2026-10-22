@@ -52,7 +52,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         env = os.environ.get
-        keys = read_keys()  # 예전 서버(V6.py)와 같은 키 검증 규칙
+        keys = read_keys()  # 키 형식 검증 (backend/pf_config.py)
         port = _int("PUBLIC_PORT", 4175)
         hosts = {h.strip().lower() for h in env("ALLOWED_HOSTS", "").split(",") if h.strip()}
         return cls(

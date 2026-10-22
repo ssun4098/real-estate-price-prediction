@@ -2,28 +2,11 @@
 
 Made by 최태영
 
-선택 필지의 토지·건축물·규제·주변 입지를 살펴보고, 분양 비교사례와 토지 실거래 자료로 개발사업 수지를 검토하는 웹 프로젝트다. React 화면과 Python 로컬 서버로 구성된다. 안산 장상동 27필지의 저장 예시가 포함되어 있다.
+선택 필지의 토지·건축물·규제·주변 입지를 살펴보고, 분양 비교사례와 토지 실거래 자료로 개발사업 수지를 검토하는 웹 프로젝트다. React 화면(빌드 완료본 `web/V6.template.html`)과 Python FastAPI 서버(`app/`)로 구성되고, 저장소는 MySQL이다. 안산 장상동 27필지의 저장 예시가 포함되어 있다.
 
-**가장 빠른 실행:** ZIP 전체를 압축 해제한 뒤, Python 라이브러리를 설치하고 `.env.example`을 `.env`로 복사해 자신의 키를 입력한다. 이후 `python V6.py`를 실행한다. HTML만 따로 옮기면 새 주소·필지 조회는 동작하지 않는다.
+인증키는 **프로세스 환경변수 → 이 프로젝트 폴더의 `.env`** 순서로 읽는다. 키를 코드, HTML, React의 `VITE_*` 변수 또는 분석 JSON에 넣지 않는다. 화면은 Python 서버에 요청하고, 서버가 인증키를 붙여 외부 API를 호출한다.
 
-## 1. 포함 파일
-
-| 경로 | 용도 |
-|---|---|
-| `V6.py` | 실행 진입점. 같은 폴더의 `.env`를 읽고 서버를 시작한다. |
-| `V6.html` | 저장 예시가 포함된 화면. 더블클릭으로 저장 결과를 열람할 수 있다. |
-| `backend/` | 수정 가능한 Python 분석·공공 API·저장·서버 소스 |
-| `frontend/` | React 화면 원본, 구성 파일, 잠금 파일, 보호된 런타임 검증 스크립트 |
-| `web/V6.template.html` | 로컬 서버가 사용하는 빌드 완료 화면 |
-| `samples/` | 공개를 허용한 기본 예시와 기본 예시 지정 파일 |
-| `.env.example` | 값이 비어 있는 환경변수 양식. 실제 키가 아니다. |
-| `requirements.txt` | Python 필수 라이브러리 |
-| `scripts/run_tests.py` | 환경변수·비밀값 비노출·계산·저장 회귀 테스트 |
-| `scripts/package_share.py` | `.env`·실행 결과 등을 제외하고 공유 ZIP을 다시 만드는 도구 |
-
-기존 PC의 Windows 암호화 인증키 파일을 자동 탐색하는 기능을 제거했다. 인증키는 **프로세스 환경변수 → 이 프로젝트 폴더의 `.env`** 순서로 읽는다. 키를 코드, HTML, React의 `VITE_*` 변수 또는 분석 JSON에 넣지 않는다. 화면은 로컬 Python 서버에 요청하고, Python이 인증키를 붙여 외부 API를 호출한다.
-
-## 2. 발급받아야 하는 API 키
+## 1. 발급받아야 하는 API 키
 
 여러 데이터 조회 주소를 쓴다고 해서 주소마다 별도의 키를 발급받는 것은 아니다. 핵심 기능의 발급처는 아래 **3곳**이다. 발급된 키의 서비스 권한과 활용신청 승인 여부도 확인해야 한다.
 
@@ -62,96 +45,11 @@ Geocoder와 Search를 별도 키로 발급받았다면 다음 두 값에 입력�
 
 이 목록은 포함된 V6 코드에서 확인한 호출 기준이다. 과거 검토한 전국 철도역·공원·대학교·폐기물처리시설 데이터는 이 공유본에 새로 연결하지 않았다. 주변시설 장소검색 결과를 전국 시설 전수 통계로 해석하면 안 된다.
 
-## 3. 실행 방법 — Windows PowerShell
+## 2. 실행
 
-Python **3.11 이상**이 필요하며, 64비트 Python 3.12 또는 3.13을 권장한다. Node.js는 빌드 완료 화면을 실행할 때 필요하지 않다. 새 데이터 조회와 지도 타일에는 인터넷 연결이 필요하다.
+Python 서버를 Docker로 띄우거나(방법 A), PC에서 바로 띄운다(방법 B). 어느 쪽이든 MySQL은 **PC에 이미 떠 있는 MySQL 컨테이너**를 쓴다. 이 프로젝트는 MySQL을 새로 띄우지 않는다.
 
-ZIP을 압축 해제하고 `V6.py`가 있는 폴더에서 터미널을 연다. 다음 명령을 순서대로 실행한다.
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-Copy-Item .env.example .env
-notepad .env
-```
-
-`python` 명령이 없다면 먼저 Python을 설치하거나 첫 줄의 `python`을 `py -3.12`로 바꾼다. `.env`의 등호 오른쪽에 자신의 키를 입력하고 UTF-8로 저장한다. 키 값 뒤에 주석을 붙이지 않는다. `.env.txt`로 저장되지 않았는지 확인한다. 파일은 처음 한 번만 복사하며 기존 `.env`가 있다면 덮어쓰지 않는다.
-
-```powershell
-.\.venv\Scripts\python.exe V6.py
-```
-
-브라우저가 자동으로 열리며, 기본 주소는 `http://127.0.0.1:4175/`다. 기본 포트가 이미 사용 중이면 빈 포트를 선택하고 터미널에 주소를 표시한다. 종료는 터미널에서 `Ctrl+C`다. 가상환경 활성화 명령을 사용하지 않으므로 PowerShell 실행 정책을 변경할 필요가 없다.
-
-필요하면 포트를 고정하거나 브라우저 자동 열기를 끌 수 있다.
-
-```powershell
-.\.venv\Scripts\python.exe V6.py --port 4176 --no-browser
-```
-
-다른 폴더에서 절대경로로 `V6.py`를 실행해도 `.env`·기본 예시·기본 저장 위치는 프로젝트 폴더를 기준으로 한다. 운영체제 환경변수를 이미 설정했다면 `.env`보다 우선한다. 환경변수가 빈 문자열인 경우에도 `.env`로 덮어쓰지 않는다. Geocoder/Search의 최종 값이 비어 있으면 기본 VWorld 키를 재사용한다.
-
-macOS·Linux에서는 같은 구조로 아래 명령을 사용할 수 있다. 이 공유본의 실제 설치·실행 검증은 Windows / Python 3.12에서 수행했다.
-
-```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-cp .env.example .env
-# 편집기로 .env에 키 입력
-.venv/bin/python V6.py
-```
-
-## 4. 사용·저장 방식
-
-- 키 없이도 저장된 안산 장상동 예시를 볼 수 있다. 새 검색·실시간 데이터 조회는 해당 키와 서비스 승인이 필요하다. 저장되지 않은 지도 타일 등은 키가 없으면 표시되지 않을 수 있다.
-- 기본 예시는 `samples/default.json`이 지정한다. 새 분석을 저장하는 것만으로 기본 예시가 자동 교체되지는 않는다.
-- 새 JSON·HTML·예시·토지 조회 캐시는 `runtime/outputs/` 아래에 생성된다. 이 폴더와 개인 `.env`는 공유 ZIP 대상에서 제외한다.
-- `V6.html`을 직접 열면 저장 결과를 보는 용도로 사용할 수 있다. 새 주소·필지 조회는 `V6.py`로 연 로컬 주소에서 수행한다.
-- 화면의 PDF 기능은 기본조사 4개 탭과 수지분석 화면을 A4 가로 5장으로 출력한다. 렌더링된 화면을 고해상도 PNG로 담는 방식이며 글꼴·이미지 로드 상태에 영향을 받는다.
-- 이 ZIP은 **팀원 각자의 PC에서 실행하는 로컬 프로젝트**다. 인터넷 공개 호스팅이나 Python 서버 배포는 포함하지 않는다. 해당 PC의 Python을 종료하면 실시간 조회 서버도 종료된다.
-
-## 5. 개발·검증
-
-Python 소스 변경은 `backend/`, 화면 변경은 `frontend/src/content/`에서 시작한다. 화면 원본의 `frontend/AGENTS.md`에 파일 경계와 빌드 절차가 정리되어 있다. 보호된 런타임 검사 파일과 잠금 파일을 함께 보관했다.
-
-```powershell
-.\.venv\Scripts\python.exe scripts/run_tests.py
-```
-
-이 테스트는 실제 인증키와 외부 API 호출 없이 실행된다. 환경변수 우선순위, 인코딩된 키 처리, HTTP 응답의 비밀값 차단, `.env` 접근 차단, 계산과 예시 저장 동작을 검사한다.
-
-프런트엔드 소스 재빌드는 별도 개발 작업이다. 제공된 `web/V6.template.html`은 이미 빌드되어 있다. Node/Vite로 소스를 빌드하려면 호환되는 Node.js(22.12 이상 또는 Vite가 지원하는 버전)와 `frontend/package-lock.json` 기준 의존성이 필요하다. `frontend/`에서 `npm ci`, `npm run build`를 수행하면 `dist/index.html`이 생성되며, 이를 `web/V6.template.html`로 복사하면 Python 서버에서 변경된 화면을 제공한다. 기본 제공 ZIP에 `node_modules`는 포함하지 않는다. 이 공유 작업에서는 프런트엔드 원본 무결성을 검사했으며 npm 재설치·재빌드는 수행하지 않았다.
-
-## 6. 다시 공유할 때
-
-프로젝트 폴더에서 다음 명령으로 공유 ZIP을 만든다. ZIP은 기본적으로 프로젝트의 상위 폴더에 생성된다.
-
-```powershell
-.\.venv\Scripts\python.exe scripts/package_share.py
-```
-
-허용된 소스·문서·기본 예시만 포함한다. `.env`, 암호화 인증파일, 개인 분석 결과, 로그, 데이터베이스, 가상환경, 의존성 설치 폴더, Git 이력은 제외한다. `.gitignore`도 동일한 민감·생성 파일을 제외하도록 구성했다. **폴더 전체를 탐색기에서 그대로 압축하지 말고 이 명령을 사용한다.** 코드를 직접 수정해 키를 하드코딩한 경우까지 자동으로 안전해지는 것은 아니므로 키는 계속 환경변수로 관리한다.
-
-본 공유 ZIP은 작성자의 현재 인증키 값 및 인코딩 형태 대조와 민감 파일 제외 검사를 거쳐 생성했다. 실제 키를 사용하는 외부 데이터 API의 신규 호출 성공 여부는 팀원별 키 권한·등록 주소·승인 상태·호출 한도에 따라 달라진다.
-
-## 7. 자주 생기는 문제
-
-| 증상 | 확인할 항목 |
-|---|---|
-| `인증 미준비` / `키 미입력` | `.env` 파일 이름·위치, 변수 이름, 환경변수 우선순위 확인 후 서버 재시작 |
-| 인증 오류 / 권한 오류 | 해당 서비스 활용신청 승인, 키 종류, VWorld 등록 주소·서비스 권한 확인 |
-| 주소 검색만 되고 좌표가 없음 | VWorld Geocoder 권한 또는 전용 키 확인 |
-| 주변시설 조회 실패 | VWorld Search 권한 또는 전용 키 확인 |
-| 경계 계산 라이브러리 없음 | 실행한 Python이 `.venv`의 Python인지 확인하고 `requirements.txt` 설치 |
-| 화면은 열리지만 새 조회 불가 | HTML 파일이 아닌 실행 중인 Python의 로컬 주소로 접속 |
-| 포트 사용 중 | 기존 서버를 확인하거나 `--port`로 다른 포트 지정 |
-| 자료 없음·산정 보류 | 키 문제와 구분하여 화면의 누락 면적·조회 실패·비교자료 상태 확인. 미확보 값을 임의로 채우지 않음 |
-
-## 8. FastAPI + MySQL 서비스
-
-`python V6.py`(로컬 단독 실행, 파일 저장)는 그대로 동작한다. 별도로 FastAPI 서버가 `app/`에 있고, 저장소로 **PC에 이미 떠 있는 MySQL 컨테이너**를 쓴다. 이 프로젝트는 MySQL을 새로 띄우지 않는다.
-
-### 8-1. 기존 MySQL 컨테이너(land-mysql) 연결 준비 (처음 한 번)
+### 2-1. 기존 MySQL 컨테이너(land-mysql) 연결 준비 (처음 한 번)
 
 api 컨테이너가 `land-mysql` 컨테이너를 이름으로 찾을 수 있게 같은 Docker 네트워크에 묶는다. MySQL 컨테이너를 다시 만들거나 재시작하지 않으므로 자료는 그대로다.
 
@@ -175,7 +73,7 @@ SET PERSIST max_allowed_packet = 134217728;
 
 `.env`에 `MYSQL_CONTAINER=land-mysql`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`를 적는다.
 
-### 8-2. 실행
+### 2-2. 실행
 
 ```powershell
 Copy-Item .env.example .env          # MYSQL_* 와 API 키 입력
@@ -184,13 +82,14 @@ Copy-Item .env.example .env          # MYSQL_* 와 API 키 입력
 docker compose up -d --build
 
 # 방법 B: Docker 없이 PC에서 바로 (MYSQL_HOST=127.0.0.1, MYSQL_PORT=docker ps 의 PORTS 왼쪽 번호)
-.venv\Scripts\python.exe -m pip install -r requirements.txt
+python -m venv .venv                                      # 처음 한 번 (Python 3.11 이상)
+.venv\Scripts\python.exe -m pip install -r requirements.txt   # 처음 한 번
 .venv\Scripts\python.exe -m app
 ```
 
-브라우저에서 `http://127.0.0.1:4175/`로 접속한다. `network v6_mysql declared as external, but could not be found` 오류가 나면 8-1의 `docker network create`를 안 한 것이다.
+브라우저에서 `http://127.0.0.1:4175/`로 접속한다. `network v6_mysql declared as external, but could not be found` 오류가 나면 2-1의 `docker network create`를 안 한 것이다.
 
-### 8-3. 기존 자료 보호 규칙
+### 2-3. 기존 자료 보호 규칙
 
 시작할 때 `app/db.py`가 다음만 한다. 로그에 `새로 만듦: … / 기존 유지: …`가 찍힌다.
 
@@ -198,7 +97,16 @@ docker compose up -d --build
 - 이미 있는 테이블(직접 적재한 실거래 테이블 포함)은 **지우거나 구조를 바꾸지 않는다.**
 - 같은 이름인데 구조가 다른 테이블이 있으면 **아무것도 하지 않고 시작을 멈춘다.** 이때는 `MYSQL_DATABASE`를 다른 DB로 지정한다.
 
-### 8-4. 코드 구조 (`app/`)
+### 2-4. 사용·저장 방식
+
+- 키 없이도 저장된 안산 장상동 예시를 볼 수 있다. 새 검색·실시간 데이터 조회는 해당 키와 서비스 승인이 필요하다.
+- 기본 예시는 `samples/default.json`이 지정한다. 새 분석을 저장하는 것만으로 기본 예시가 자동 교체되지는 않는다.
+- 분석 저장본·샘플 선반·기본 샘플·토지 실거래 캐시는 MySQL에 들어간다. `/api/save`와 `/api/export-json`은 같은 레코드를 저장하며, 화면 HTML은 요청마다 DB에서 만든다.
+- 화면의 PDF 기능은 기본조사 4개 탭과 수지분석 화면을 A4 가로 5장으로 출력한다.
+- 접속 주소를 바꾸면 `.env`의 `ALLOWED_HOSTS`에 `호스트:포트`를 추가해야 한다(Host/Origin 검사).
+- 학습 모델: 아직 없어도 기동한다. 추가 방법은 [models/README.md](models/README.md).
+
+## 3. 코드 구조
 
 ```
 app/
@@ -216,11 +124,30 @@ app/
    └─ model.py          학습 모델 자리
 ```
 
-하나의 기능을 고칠 때는 `features/` 안의 파일 하나만 열면 된다. Spring으로 치면 Controller·Service·Repository가 한 파일 안에 차례로 들어 있는 모양이다. 계산 엔진·공공 API 연결은 `backend/`(변경 없음)에 있다.
+`backend/`에는 사업성 계산 엔진과 공공 API 연결 코드가 있다(`pf_*.py`). 하나의 기능을 고칠 때는 `features/` 안의 파일 하나만 열면 된다. Spring으로 치면 Controller·Service·Repository가 한 파일 안에 차례로 들어 있는 모양이다.
 
 - 저장 위치: 분석 저장본·샘플 선반·기본 샘플·토지 실거래 캐시가 MySQL에 들어간다. `/api/save`와 `/api/export-json`은 같은 레코드를 저장하며 `V6.html` 파일은 쓰지 않는다(페이지는 요청마다 DB에서 만든다).
 - 학습 모델: 아직 없어도 기동한다. 추가 방법은 [models/README.md](models/README.md). 상태는 `GET /api/model/status`, 추론은 `POST /api/model/predict`.
 - 접속 주소를 바꾸면 `.env`의 `ALLOWED_HOSTS`에 `호스트:포트`를 추가해야 한다(Host/Origin 검사).
 - 테이블 구조를 바꿔야 할 일이 생기면 그때 Alembic(DB 구조 변경 이력 도구) 도입이 필요하다.
 
-공유본 구성일: 2026-10-16. API 명칭과 공식 링크는 위 발급처 안내를 기준으로 확인한다.
+## 4. 테스트
+
+```powershell
+.venv\Scripts\python.exe scripts/run_tests.py
+```
+
+실제 인증키·외부 API·MySQL 없이 실행된다(MySQL 대신 SQLite 사용). 환경변수 처리, 응답의 비밀값 차단, `.env` 접근 차단, 계산, 저장 규칙, 기존 테이블 보호를 검사한다.
+
+프런트엔드 소스 재빌드는 별도 작업이다. `frontend/`에서 `npm ci`, `npm run build`를 수행하면 `dist/index.html`이 생성되며, 이를 `web/V6.template.html`로 복사한다. 보호된 파일 규칙은 `frontend/AGENTS.md`를 따른다.
+
+## 5. 자주 생기는 문제
+
+| 증상 | 확인할 항목 |
+|---|---|
+| `인증 미준비` / `키 미입력` | `.env` 변수 이름 확인 후 서버 재시작 |
+| 인증 오류 / 권한 오류 | 해당 서비스 활용신청 승인, 키 종류, VWorld 등록 주소·서비스 권한 확인 |
+| 주소 검색만 되고 좌표가 없음 | VWorld Geocoder 권한 또는 전용 키 확인 |
+| 주변시설 조회 실패 | VWorld Search 권한 또는 전용 키 확인 |
+| 자료 없음·산정 보류 | 키 문제와 구분하여 화면의 누락 면적·조회 실패·비교자료 상태 확인. 미확보 값을 임의로 채우지 않음 |
+| MySQL 연결 관련 | [docs/04-run-and-operate.md](docs/04-run-and-operate.md)의 문제 해결 표 |
