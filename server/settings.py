@@ -59,7 +59,6 @@ class Settings:
     db_connect_retries: int
     vworld_domain: str
     public_port: int
-    allowed_hosts: frozenset[str]
     enable_docs: bool
     template_path: Path
     samples_dir: Path
@@ -76,7 +75,6 @@ class Settings:
         env = os.environ.get
         keys = read_keys()  # 키 형식 검증 (env.py)
         port = _int("PUBLIC_PORT", 4175)
-        hosts = {h.strip().lower() for h in env("ALLOWED_HOSTS", "").split(",") if h.strip()}
         return cls(
             keys=keys,
             secrets=tuple(v for v in (*keys.values(), env("MYSQL_PASSWORD", "")) if v),
@@ -84,7 +82,6 @@ class Settings:
             db_connect_retries=_int("DB_CONNECT_RETRIES", 30),
             vworld_domain=env("VWORLD_DOMAIN", f"http://127.0.0.1:{port}"),
             public_port=port,
-            allowed_hosts=frozenset(hosts | {f"127.0.0.1:{port}", f"localhost:{port}"}),  # 적은 주소는 기본값에 더해진다
             enable_docs=env("ENABLE_DOCS", "").strip().lower() in ("1", "true", "yes", "on"),
             template_path=Path(env("TEMPLATE_PATH", ROOT / "frontend" / "build" / "V6.template.html")),
             samples_dir=Path(env("SAMPLES_DIR", ROOT / "data" / "samples")),

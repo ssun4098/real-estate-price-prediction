@@ -3,7 +3,7 @@
 1. 응답       ok(), html(), raw()  — 보내기 직전에 인증키·DB 비밀번호가 섞였는지 검사
 2. 오류       error_response()     — 어떤 예외든 {"error": {"code", "message"}} 한 가지 모양으로
 3. 요청 본문  json_body()          — JSON만, 64MB 이하, NaN 거부
-4. 접속 검사  check_host()         — 허용된 주소(127.0.0.1:포트 등)에서 온 요청만
+4. 출처 검사  check_origin()       — 다른 사이트에서 몰래 보낸 요청 차단 (설정 없음)
 """
 from __future__ import annotations
 
@@ -166,18 +166,12 @@ async def json_body(request: Request) -> Any:
 
 
 # ---------------------------------------------------------------------------
-# 4. 접속 주소 검사 (다른 사이트에서 몰래 보낸 요청 차단)
+# 4. 출처 검사 (다른 사이트에서 몰래 보낸 요청 차단)
 # ---------------------------------------------------------------------------
-def check_host(request: Request, allowed_hosts: frozenset[str]) -> None:
+def check_origin(request: Request) -> None:
+    """접속 주소는 제한하지 않는다. 다만 지금 접속한 주소와 다른 사이트에서 보낸 요청은 막는다."""
     host = request.headers.get("host", "").lower()
-    any_host = "*" in allowed_hosts          # ALLOWED_HOSTS=* : 어느 주소로 접속하든 허용 (서버 IP·도메인을 적기 싫을 때)
-    if not any_host and host not in allowed_hosts:
-        raise ApiError("INVALID_HOST", "허용된 실행 주소로 접속하세요.", 403)
     origin = request.headers.get("origin")
     cross_site = request.headers.get("sec-fetch-site") == "cross-site"
-    # 서버(80·443)는 http·https 로, 내 PC(127.0.0.1)는 http 로 접속하므로 두 방식 모두 허용한다.
-    # 주소를 제한하지 않을 때는 '지금 접속한 주소와 같은 주소에서 온 요청'만 통과시킨다.
-    hosts = {host} if any_host else allowed_hosts
-    allowed_origins = {scheme + h for h in hosts for scheme in ("http://", "https://")}
-    if cross_site or (origin is not None and origin not in allowed_origins):
+    if cross_site or (origin is not None and origin.lower() not in {"http://" + host, "https://" + host}):
         raise ApiError("ORIGIN_REJECTED", "다른 사이트에서 분석 서버에 접근할 수 없습니다.", 403)

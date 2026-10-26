@@ -16,7 +16,7 @@ There is one server: the FastAPI app, the `server/` package (the old stdlib serv
 cp .env.example .env                # MYSQL_* = the user's EXISTING MySQL container, plus API keys
 docker compose up -d --build        # api only → http://127.0.0.1:4175/
 python -m server                    # same server without Docker (loads .env, 127.0.0.1:PUBLIC_PORT)
-docker compose --profile deploy up -d --build   # server: also starts nginx `proxy` on 80 (HTTP) and 443 (HTTPS) → api; `certgen` makes a self-signed cert in ./certs/ if none exists; config in deploy/nginx.conf.template (see docs/04). Only ports 80 and 443 are meant to be open; the app (4175) and MySQL stay internal.
+docker compose --profile deploy up -d --build   # server: also starts nginx `proxy` on 80 (HTTP) and 443 (HTTPS) → api; `certgen` makes a self-signed cert in ./certs/ if none exists; config in deploy/nginx.conf (app port 4175 hard-coded there on purpose; don't template it) (see docs/04). Only ports 80 and 443 are meant to be open; the app (4175) and MySQL stay internal.
 
 # Tests (unittest, no network/keys/MySQL). Interpreter needs requirements.txt installed.
 python tests/run_tests.py
@@ -36,7 +36,7 @@ Organised **by feature**, so one feature reads top to bottom in one file. The us
 - `features/<name>.py` — each file: routes at the top (`router = APIRouter()`), then the rules/DB code (`SnapshotService`, `PortfolioService`, `PublicData`, `ModelHolder`). Routes reach their object via `request.app.state.<name>`. A new feature = a new file here + one line in `main.py`.
 - Imports are absolute from the project root (`from server.domain.analysis import analyze`); there is no `sys.path` manipulation. Dependency direction is one way: `features → domain`; `domain` never imports `features`, FastAPI or SQLAlchemy.
 - Errors: the `guard` middleware in `main.py` catches every exception and returns `web.error_response(exc)` → `{"error":{"code","message"}}` (`ValueError/KeyError/TypeError` → 400, `ApiError` keeps its status, other → 500 with a generic message, nothing logged). FastAPI's own 404/405/validation errors are mapped by registered exception handlers. Handlers return `ok(data)` (`SafeJSONResponse`), not dicts, to avoid re-serialising up-to-64MB documents; every response body is refused if it contains a configured API key or the DB password.
-- Request bodies are parsed by the `json_body` dependency (JSON content type, 64MB cap, NaN rejected). `check_host` allows only the Host header in `ALLOWED_HOSTS` plus the defaults `127.0.0.1:PORT`, `localhost:PORT` (entries are added to the defaults, never replace them; `*` allows any Host and then only same-host Origins pass), and an Origin that is `http://` or `https://` of an allowed host. Behind nginx on 80/443 the Host has no port (`203.0.113.10`, or the domain).
+- Request bodies are parsed by the `json_body` dependency (JSON content type, 64MB cap, NaN rejected). There is no Host allow-list (the user removed `ALLOWED_HOSTS` on purpose; don't reintroduce it). `check_origin` only rejects cross-site requests: `Sec-Fetch-Site: cross-site`, or an Origin that is not `http://`/`https://` + the request's own Host.
 - Access logging is disabled on purpose (URLs carry addresses and upstream keys).
 
 ### Storage

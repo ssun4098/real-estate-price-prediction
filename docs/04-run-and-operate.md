@@ -52,19 +52,17 @@
 
 1. 서버에 Docker를 설치하고 프로젝트 폴더를 올립니다.
 2. 위 '처음 켜기'의 1~3번(MySQL 네트워크 연결, 데이터베이스 만들기, `.env` 만들기)을 서버에서 똑같이 합니다.
-3. `.env`에서 두 줄을 바꿉니다. 브이월드 사이트에 등록한 서비스 주소도 `VWORLD_DOMAIN`과 같은 값으로 맞춥니다.
+3. `.env`의 `VWORLD_DOMAIN`을 서버 주소로 바꾸고, 브이월드 사이트에 등록한 서비스 주소도 같은 값으로 맞춥니다. (203.0.113.10 은 예시이니 실제 서버 IP로)
    ```
-   ALLOWED_HOSTS=*
    VWORLD_DOMAIN=http://203.0.113.10
    ```
-   `ALLOWED_HOSTS=*`는 어느 주소로 접속해도 허용한다는 뜻이라 서버 IP가 바뀌어도 다시 고칠 필요가 없습니다(다른 사이트에서 몰래 보낸 요청은 계속 막습니다). 주소를 제한하고 싶으면 `*` 대신 서버 IP나 도메인을 포트 없이 적습니다. (203.0.113.10 은 예시이니 실제 서버 IP로)
 4. 켜기: `docker compose --profile deploy up -d --build`
    처음 켤 때 `certs/` 폴더에 시험용 인증서(`fullchain.pem`, `privkey.pem`)가 저절로 만들어집니다.
 5. 접속: 브라우저에서 `http://서버IP/` 또는 `https://서버IP/`
 
 `--profile deploy`를 빼면 지금까지처럼 내 PC용(`127.0.0.1:4175`)으로만 켜집니다.
 
-**나중에 도메인과 정식 인증서가 생기면:** `certs/`의 두 파일(이름 그대로)을 바꿔 넣고 `.env`의 `ALLOWED_HOSTS`·`VWORLD_DOMAIN`을 도메인으로 고친 뒤 `docker compose --profile deploy up -d` 를 실행합니다.
+**나중에 도메인과 정식 인증서가 생기면:** `certs/`의 두 파일(이름 그대로)을 바꿔 넣고 `.env`의 `VWORLD_DOMAIN`을 도메인으로 고친 뒤 `docker compose --profile deploy up -d` 를 실행합니다.
 
 > **주의:** 이 앱에는 로그인 기능이 없습니다. 80·443번을 인터넷 전체에 열면 주소를 아는 누구나 분석을 저장·조회하고 서버의 API 키 사용량을 쓸 수 있습니다. 방화벽에서 **접속을 허용할 IP를 제한**하세요.
 
@@ -89,7 +87,6 @@
 | `*_API_KEY` | 정부 사이트 이용 키 |
 | `VWORLD_DOMAIN` | 브이월드에 등록한 서비스 주소. 접속 주소와 같아야 함 |
 | `PUBLIC_PORT` | 접속 포트 (기본 4175) |
-| `ALLOWED_HOSTS` | 접속 허용 주소 추가(127.0.0.1·localhost는 항상 허용). 서버에서는 `*`(모든 주소 허용), 또는 IP·도메인을 포트 없이 적음 |
 | `MODEL_ENTRYPOINT` | 학습 모델 지정. 지금은 비워 둠 |
 | `LAND_TRADE_SOURCE` | 토지 실거래 출처. `table`(기본, 직접 적재한 DB) 또는 `api`(공공데이터포털) |
 | `APPLYHOME_SOURCE` | 청약홈 분양정보 출처. `table`(기본, 직접 적재한 DB) 또는 `api`(공공데이터포털) |
@@ -114,7 +111,6 @@
 | `MYSQL_DATABASE로 지정한 데이터베이스가 없습니다` | README 2-1의 `CREATE DATABASE` 실행 |
 | `기존 테이블 ...의 구조가 이 앱과 다릅니다` | 같은 이름의 다른 테이블이 있음. 자료 보호를 위해 멈춘 것. `MYSQL_DATABASE`를 다른 DB로 |
 | 큰 분석 저장이 실패함 | MySQL `max_allowed_packet` 이 작음. README 2-1의 `SET PERSIST` 실행 |
-| 접속하면 "허용된 실행 주소로 접속하세요" | 주소창을 `127.0.0.1:4175` 또는 `localhost:4175`로. 다른 주소(서버 도메인 등)를 쓰려면 `ALLOWED_HOSTS`에 추가하고 `docker compose --profile deploy up -d` |
 | 서버에서 `proxy`가 계속 재시작됨 / 접속이 안 됨 | `docker compose logs proxy`. `certs/`에 `fullchain.pem`·`privkey.pem`이 있는지, 서버 방화벽에서 80·443번이 열려 있는지 |
 | 화면은 뜨는데 조회가 안 됨 | API 키 입력·승인 상태, 브이월드 등록 주소 확인 → 수정 후 `docker compose up -d` |
 | "다른 자료를 조회 중입니다" | 정상. 몇 초 뒤 다시 시도 |

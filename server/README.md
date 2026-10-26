@@ -29,7 +29,7 @@ server/
 ├─ main.py          create_app(): 시작할 때 DB 연결 → Collector → 기능 객체를 만들어 app.state 에 둔다
 ├─ settings.py      환경변수 → Settings (DB 주소, 포트, 경로, 모델 설정)
 ├─ env.py           .env 파일 읽기, 공공 API 키 형식 검사, 허용하는 변수 이름 목록(APP_NAMES)
-├─ web.py           ok()/html() 응답, error_response(), json_body(), check_host(), 비밀값 검사
+├─ web.py           ok()/html() 응답, error_response(), json_body(), check_origin(), 비밀값 검사
 ├─ db.py            테이블 6개 정의, connect() (기존 테이블 보호), db_errors()
 │
 ├─ features/        기능별 파일

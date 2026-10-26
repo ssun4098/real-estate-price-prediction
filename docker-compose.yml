@@ -24,7 +24,7 @@ services:
       MODEL_DIR: /app/data/models
     networks: [mysql, web]
     ports:
-      # 내 PC에서만 접속 가능. 다른 기기에서 열려면 왼쪽을 바꾸고 .env 의 ALLOWED_HOSTS 에도 추가.
+      # 내 PC에서만 접속 가능. 서버에서는 아래 proxy(80·443)를 통해 접속한다.
       - "127.0.0.1:${PUBLIC_PORT:-4175}:${PUBLIC_PORT:-4175}"
     volumes:
       - ./data/models:/app/data/models:ro   # 학습 모델 파일 (읽기 전용)
@@ -45,7 +45,7 @@ services:
       - ./certs:/certs
 
   # 서버용: 80(HTTP)·443(HTTPS)을 받아서 api 로 넘겨 준다. 앱(4175)은 밖으로 열지 않고 이 문을 통해서만 접속된다.
-  # --profile deploy 를 붙였을 때만 켜진다. 설정은 deploy/nginx.conf.template.
+  # --profile deploy 를 붙였을 때만 켜진다. 설정은 deploy/nginx.conf.
   proxy:
     profiles: [deploy]
     image: nginx:1.27-alpine
@@ -55,14 +55,11 @@ services:
         condition: service_started
       certgen:
         condition: service_completed_successfully
-    environment:
-      PUBLIC_PORT: ${PUBLIC_PORT:-4175}         # nginx 설정 안의 ${PUBLIC_PORT} 자리에 들어간다
-      NGINX_ENVSUBST_FILTER: PUBLIC_PORT       # 이 값만 바꿔 넣고, nginx 자신의 $변수는 건드리지 않음
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./deploy/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./certs:/certs:ro
     networks: [web]
     security_opt: ["no-new-privileges:true"]

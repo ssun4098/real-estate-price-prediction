@@ -19,7 +19,7 @@ from server.features.land_store_mysql import MySqlLandStore
 from server.features.applyhome_table import ApplyhomeTable
 from server.features.land_trade_table import LandTradeTable
 from server.settings import Settings
-from server.web import SafeJSONResponse, add_security_headers, check_host, error_response, set_secrets
+from server.web import SafeJSONResponse, add_security_headers, check_origin, error_response, set_secrets
 from server.domain.public_api import Collector
 
 # 요청 URL에 주소·인증키가 섞이므로 접속 로그는 끈다 (예전 서버와 같음).
@@ -82,7 +82,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.middleware("http")
     async def guard(request: Request, call_next):
         try:
-            check_host(request, settings.allowed_hosts)
+            check_origin(request)
             response = await call_next(request)
         except Exception as exc:  # noqa: BLE001 - 모든 예외를 표준 오류로 (상세 내용은 기록·노출하지 않음)
             return error_response(exc)
