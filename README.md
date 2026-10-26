@@ -100,6 +100,8 @@ V6_team_share/
 
 **청약홈 분양정보도 직접 적재한 `applyhome_apt_notice`·`applyhome_apt_model` 테이블에서 읽는다**(기본값 `APPLYHOME_SOURCE=table`). 분양 공고 주소를 좌표로 바꾸는 일(브이월드)만 API를 쓴다.
 
+**두 테이블은 서버가 매일 새벽 3시에 자동으로 갱신한다**(`server/features/daily_load.py`). 토지 실거래는 최근 3개월을 다시 받아 늦은 신고·해제 신고를 반영하고, 청약홈은 공고·주택형 전체를 다시 받는다. 결과는 `http://127.0.0.1:4175/api/daily-load`에서 확인한다. 끄려면 `.env`에 `DAILY_LOAD=off`.
+
 `land-mysql`에는 직접 쌓은 실거래 자료가 있으므로, 서버는 시작할 때(`server/db.py`) 다음만 한다.
 
 - 위 6개 중 **없는 테이블만 새로 만든다.**
@@ -110,7 +112,7 @@ V6_team_share/
 
 - 저장할 때 화면이 보낸 계산값은 믿지 않고 서버가 다시 계산한다.
 - 응답·저장 자료에 API 키나 DB 비밀번호가 섞이면 보내지(저장하지) 않는다.
-- 웹은 `127.0.0.1`에서만 열린다. 다른 주소로 접속하게 하려면 `.env`의 `ALLOWED_HOSTS`에 `호스트:포트`를 추가한다.
+- 웹은 `127.0.0.1`에서만 열린다. 서버에 올려 다른 곳에서 접속하게 하려면 [docs/04-run-and-operate.md](docs/04-run-and-operate.md)의 '서버에 올리기'를 따른다(열어 둘 포트는 80번 HTTP, 443번 HTTPS). 접속 주소는 `.env`의 `ALLOWED_HOSTS`에 추가한다(서버 IP·도메인은 포트 없이, 그 밖에는 `호스트:포트`).
 - 새 분석을 저장해도 기본 예시는 저절로 바뀌지 않는다. 화면에서 직접 지정해야 한다.
 
 ## 4. 개발할 때
@@ -127,6 +129,7 @@ docker compose up -d --build                     # 코드 고친 뒤 반영
 | 공공 API 호출 수정 | `server/domain/public_api.py`의 `Collector` |
 | 토지 실거래 DB 읽기 수정 | `server/features/land_trade_table.py` |
 | 청약홈 DB 읽기 수정 | `server/features/applyhome_table.py` |
+| 매일 적재 수정 | `server/features/daily_load.py` (시각·기간은 `.env`의 `DAILY_LOAD_*`) |
 | 설정 항목 추가 | `server/settings.py` + `server/env.py`의 `APP_NAMES` + `.env.example` |
 | 학습 모델 연결 | [data/models/README.md](data/models/README.md) |
 | 화면 수정 | `frontend/`에서 `npm ci`, `npm run build` → `dist/index.html`을 `frontend/build/V6.template.html`로 복사 |

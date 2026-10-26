@@ -1,0 +1,38 @@
+# 서버에 올릴 때 쓰는 nginx 설정: 80(HTTP)과 443(HTTPS)으로 받아서 앱(api 컨테이너)으로 넘긴다.
+# ${PUBLIC_PORT} 는 docker-compose.yml 이 .env 의 값(기본 4175)으로 바꿔 넣는다.
+
+# 80: 도메인·인증서 없이 http://서버IP/ 로 접속. (암호화되지 않음)
+server {
+    listen 80;
+    server_name _;
+
+    server_tokens off;
+    client_max_body_size 64m;      # 앱이 받는 JSON 한도(64MB)와 같게
+
+    location / {
+        proxy_pass         http://api:${PUBLIC_PORT};
+        proxy_set_header   Host $http_host;   # 앱의 접속 주소 검사(ALLOWED_HOSTS)가 이 값을 본다
+        proxy_http_version 1.1;
+        proxy_read_timeout 300s;               # 오래 걸리는 분석·공공 API 조회 대비
+    }
+}
+
+# 443: https://서버IP/ 로 접속. 인증서는 ./certs/ 의 fullchain.pem, privkey.pem
+server {
+    listen 443 ssl;
+    server_name _;
+
+    ssl_certificate     /certs/fullchain.pem;
+    ssl_certificate_key /certs/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    server_tokens off;
+    client_max_body_size 64m;
+
+    location / {
+        proxy_pass         http://api:${PUBLIC_PORT};
+        proxy_set_header   Host $http_host;
+        proxy_http_version 1.1;
+        proxy_read_timeout 300s;
+    }
+}

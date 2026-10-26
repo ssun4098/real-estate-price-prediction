@@ -16,6 +16,7 @@
         snapshots.py         사업성 계산(/api/analyze)과 분석 저장본
         portfolio.py         샘플 선반(고정 보관 분석)
         model.py             학습 모델 자리 (아직 모델 없음)
+        daily_load.py        매일 공공데이터를 받아 land_trade·applyhome 테이블 갱신 (/api/daily-load)
     domain/              계산 엔진·공공 API 연결 (웹·DB를 모름). 목록은 domain/__init__.py
 
 부르는 방향은 features → domain 한쪽뿐입니다. domain 은 features 를 import 하지 않습니다.

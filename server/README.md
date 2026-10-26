@@ -41,6 +41,7 @@ server/
 │   ├─ snapshots.py         /api/analyze  /api/save  /api/export-json  /api/snapshots[/{id}]
 │   ├─ portfolio.py         /api/portfolio-samples[/{id}]  /api/portfolio-default
 │   ├─ model.py             /api/model/status  /api/model/predict   (학습 모델 자리)
+│   ├─ daily_load.py        /api/daily-load  /api/daily-load/run   (매일 공공데이터 적재)
 │   ├─ land_trade_table.py  URL 없음. 토지 실거래를 직접 적재한 land_trade 테이블에서 읽기 (기본)
 │   ├─ applyhome_table.py   URL 없음. 청약홈 분양정보를 직접 적재한 applyhome_apt_* 테이블에서 읽기 (기본)
 │   └─ land_store_mysql.py  URL 없음. API로 받은 토지 실거래를 앱 캐시 테이블에 저장 (api 모드)
@@ -71,7 +72,7 @@ server/
 `table` 모드 규칙
 - `land_trade_job`에 기록이 있고 `loaded_rows ≥ total_count`인 달만 쓴다. 기록이 없는 달은 0건으로 치지 않고 "아직 적재되지 않음"(`LAND_NOT_LOADED`)으로 화면에 알린다.
 - 거래 한 건의 판정(취소·지분·금액 0 제외)은 API 모드와 같은 함수 `domain/public_api.py`의 `land_trade_row()`를 쓴다.
-- 이 앱은 `land_trade*` 테이블을 읽기만 한다.
+- 화면 요청은 `land_trade*` 테이블을 읽기만 한다. 쓰기는 아래의 매일 적재(`daily_load.py`)만 한다.
 
 청약홈 `table` 모드 (`features/applyhome_table.py`)
 - `Collector.odcloud()`와 `Collector._coverage_count()`가 API 대신 `applyhome_apt_notice`·`applyhome_apt_model`을 조회한다. 분양사례 계산 코드는 바뀌지 않는다.
@@ -79,7 +80,11 @@ server/
 - 앱이 쓰는 조건(주택구분·상세구분·공고일·주소 포함·공고번호)만 받는다. 모르는 조건이 오면 조용히 무시하지 않고 오류를 낸다.
 - 좌표 변환(브이월드 지오코더)은 계속 API를 쓴다.
 
-**나중에 매일 적재하는 스케줄러를 만들 때:** API 호출 코드는 `domain/public_api.py`의 `Collector._land_page(시군구, 연월, 페이지)`에 그대로 남아 있다. 스케줄러는 이 함수로 하루치를 받아 `land_trade`에 넣고, `land_trade_job`에 `total_count`·`loaded_rows`를 기록하면 된다. 청약홈도 같은 방식이다(`Collector.odcloud()`는 `applyhome_table`이 비어 있을 때 API를 부른다). 서버 코드는 바꿀 필요가 없다.
+**매일 적재 (`features/daily_load.py`)**: 서버가 켜질 때 백그라운드 스레드가 뜨고, 매일 `DAILY_LOAD_TIME`(기본 03:00, 한국 시각)에 아래를 실행한다. 처음 적재에 쓴 `land_trade.py`·`applyhome.py`의 `load` 규칙을 그대로 따른다.
+- 토지 실거래: 지난 달부터 `DAILY_LOAD_MONTHS`(기본 3)개월 × `land_trade_job`에 있는 시군구를 다시 받아, 달마다 DELETE → INSERT 하고 `land_trade_job`을 갱신한다. 실패한 달은 `land_trade_fail`에 남기고 기존 자료는 그대로 둔다.
+- 청약홈: 공고·주택형 전체를 받아 `REPLACE` 한다. 실패한 쪽은 `applyhome_fail`에 남긴다.
+- 인증키 오류·일일 한도 초과가 나면 바로 멈춘다. 서버가 여러 개여도 한 번만 돌도록 MySQL `GET_LOCK`을 쓴다.
+- 상태 확인 `GET /api/daily-load`, 지금 바로 실행 `POST /api/daily-load/run`, 끄기 `.env`의 `DAILY_LOAD=off`.
 
 ## 기능 파일 읽는 법
 

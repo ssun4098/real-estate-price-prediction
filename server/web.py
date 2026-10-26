@@ -173,5 +173,7 @@ def check_host(request: Request, allowed_hosts: frozenset[str]) -> None:
         raise ApiError("INVALID_HOST", "허용된 실행 주소로 접속하세요.", 403)
     origin = request.headers.get("origin")
     cross_site = request.headers.get("sec-fetch-site") == "cross-site"
-    if cross_site or (origin is not None and origin not in {"http://" + h for h in allowed_hosts}):
+    # 서버(443)는 https, 내 PC(127.0.0.1)는 http 로 접속하므로 두 방식 모두 허용한다. 호스트는 위에서 이미 검사했다.
+    allowed_origins = {scheme + h for h in allowed_hosts for scheme in ("http://", "https://")}
+    if cross_site or (origin is not None and origin not in allowed_origins):
         raise ApiError("ORIGIN_REJECTED", "다른 사이트에서 분석 서버에 접근할 수 없습니다.", 403)

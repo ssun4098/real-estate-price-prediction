@@ -14,7 +14,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
 from server import db
-from server.features import model, pages, portfolio, public_data, snapshots, system
+from server.features import daily_load, model, pages, portfolio, public_data, snapshots, system
 from server.features.land_store_mysql import MySqlLandStore
 from server.features.applyhome_table import ApplyhomeTable
 from server.features.land_trade_table import LandTradeTable
@@ -56,10 +56,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.snapshots = snapshots.SnapshotService(sessions)
         app.state.portfolio = portfolio.PortfolioService(sessions, bundled, bundled_default)
         app.state.model = holder
+        # 매일 공공데이터를 받아 land_trade·applyhome 테이블에 넣는 백그라운드 작업
+        app.state.daily_load = daily_load.DailyLoader(
+            sessions, collector, enabled=settings.daily_load,
+            run_at=settings.daily_load_time, months=settings.daily_load_months)
+        app.state.daily_load.start()
         try:
             yield
         finally:
             # --- 끌 때 ---
+            app.state.daily_load.stop()
             db.close(sessions)
             collector.keys.clear()
 
@@ -86,6 +92,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_exception_handler(HTTPException, lambda _request, exc: error_response(exc))
     app.add_exception_handler(RequestValidationError, lambda _request, exc: error_response(exc))
 
-    for feature in (pages, system, public_data, snapshots, portfolio, model):
+    for feature in (pages, system, public_data, snapshots, portfolio, model, daily_load):
         app.include_router(feature.router)
     return app

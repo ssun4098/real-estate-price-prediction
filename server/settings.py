@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import quote_plus
@@ -22,6 +23,14 @@ def _choice(name: str, allowed: tuple[str, ...]) -> str:
     value = os.environ.get(name, "").strip().lower() or allowed[0]
     if value not in allowed:
         raise SystemExit(f"{name}: {' 또는 '.join(allowed)} 중 하나여야 합니다.")
+    return value
+
+
+def _clock(name: str, default: str) -> str:
+    """HH:MM 형식의 시각."""
+    value = os.environ.get(name, "").strip() or default
+    if not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", value):
+        raise SystemExit(f"{name}: HH:MM 형식(예: 03:00)이어야 합니다.")
     return value
 
 
@@ -58,6 +67,9 @@ class Settings:
     model_entrypoint: str
     land_trade_source: str                          # "table"(직접 적재한 DB) 또는 "api"(공공데이터포털)
     applyhome_source: str                           # 청약홈 분양정보: "table" 또는 "api"
+    daily_load: bool                                # 매일 공공데이터 적재 (features/daily_load.py)
+    daily_load_time: str                            # 실행 시각 HH:MM (한국 시각)
+    daily_load_months: int                          # 토지 실거래를 다시 받는 개월 수
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -72,7 +84,7 @@ class Settings:
             db_connect_retries=_int("DB_CONNECT_RETRIES", 30),
             vworld_domain=env("VWORLD_DOMAIN", f"http://127.0.0.1:{port}"),
             public_port=port,
-            allowed_hosts=frozenset(hosts or {f"127.0.0.1:{port}", f"localhost:{port}"}),
+            allowed_hosts=frozenset(hosts | {f"127.0.0.1:{port}", f"localhost:{port}"}),  # 적은 주소는 기본값에 더해진다
             enable_docs=env("ENABLE_DOCS", "").strip().lower() in ("1", "true", "yes", "on"),
             template_path=Path(env("TEMPLATE_PATH", ROOT / "frontend" / "build" / "V6.template.html")),
             samples_dir=Path(env("SAMPLES_DIR", ROOT / "data" / "samples")),
@@ -80,4 +92,7 @@ class Settings:
             model_entrypoint=env("MODEL_ENTRYPOINT", "").strip(),
             land_trade_source=_choice("LAND_TRADE_SOURCE", ("table", "api")),
             applyhome_source=_choice("APPLYHOME_SOURCE", ("table", "api")),
+            daily_load=_choice("DAILY_LOAD", ("on", "off")) == "on",
+            daily_load_time=_clock("DAILY_LOAD_TIME", "03:00"),
+            daily_load_months=max(1, min(12, _int("DAILY_LOAD_MONTHS", 3))),
         )

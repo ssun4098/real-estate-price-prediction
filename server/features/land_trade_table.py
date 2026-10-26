@@ -4,7 +4,7 @@
     land_trade_job   시군구·월마다 적재 기록 (total_count=API가 알려 준 전체 건수, loaded_rows=넣은 건수)
     land_trade_fail  적재 실패 기록
 
-이 앱은 위 테이블을 읽기만 한다 (만들거나 고치지 않음). 적재는 별도 작업(나중에 스케줄러)이 맡는다.
+이 파일은 위 테이블을 읽기만 한다 (만들거나 고치지 않음). 매일 갱신은 features/daily_load.py 가 맡는다.
 
 규칙
   - land_trade_job 에 기록이 있고 loaded_rows ≥ total_count 인 달만 "다 받은 달"로 쓴다.

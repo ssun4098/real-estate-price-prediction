@@ -44,6 +44,21 @@ class AppApiTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/status', headers={'origin': 'http://evil.com'}).status_code, 403)
         self.assertEqual(self.client.get('/api/status').status_code, 200)
 
+    def test_deploy_host_on_80_443_keeps_local_host_and_accepts_http_and_https_origin(self):
+        """서버(80·443): IP(포트 없음)만 적어도 로컬 주소는 그대로 허용되고, http·https 출처 모두 통과한다."""
+        os.environ['ALLOWED_HOSTS'] = '203.0.113.10'
+        try:
+            settings = Settings.from_env()
+        finally:
+            del os.environ['ALLOWED_HOSTS']
+        self.assertEqual(settings.allowed_hosts, frozenset({'203.0.113.10', '127.0.0.1:4175', 'localhost:4175'}))
+        with TestClient(create_app(settings), base_url='http://203.0.113.10') as client:
+            for origin in ('http://203.0.113.10', 'https://203.0.113.10'):
+                self.assertEqual(client.get('/api/status', headers={'origin': origin}).status_code, 200)
+            self.assertEqual(client.get('/api/status', headers={'origin': 'https://evil.com'}).status_code, 403)
+            self.assertEqual(client.get('/api/status', headers={'host': 'evil.com'}).status_code, 403)
+            self.assertEqual(client.get('/api/status', headers={'host': '127.0.0.1:4175'}).status_code, 200)
+
     def test_model_absent_is_reported_not_fatal(self):
         self.assertEqual(self.client.get('/api/model/status').json()['state'], 'not_configured')
         response = self.client.post('/api/model/predict', json={'features': {'a': 1}})

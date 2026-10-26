@@ -4,7 +4,7 @@
     applyhome_apt_model    공고별 주택형 (공급면적·분양가)
     applyhome_fail         적재 실패 기록
 
-이 앱은 위 테이블을 읽기만 한다 (만들거나 고치지 않음). 적재는 별도 작업(나중에 스케줄러)이 맡는다.
+이 파일은 위 테이블을 읽기만 한다 (만들거나 고치지 않음). 매일 갱신은 features/daily_load.py 가 맡는다.
 
 Collector 는 청약홈 API(odcloud)를 부르는 대신 이 객체의 query()/count() 를 부른다 (main.py).
 돌려주는 행은 API 응답과 같은 필드 이름(대문자)이라서 분양사례 계산 코드는 바뀌지 않는다.
