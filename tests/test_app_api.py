@@ -59,6 +59,20 @@ class AppApiTests(unittest.TestCase):
             self.assertEqual(client.get('/api/status', headers={'host': 'evil.com'}).status_code, 403)
             self.assertEqual(client.get('/api/status', headers={'host': '127.0.0.1:4175'}).status_code, 200)
 
+    def test_wildcard_allows_any_host_but_still_blocks_cross_site(self):
+        """ALLOWED_HOSTS=* : 어느 주소로 접속해도 되고, 접속한 주소와 다른 출처(다른 사이트)는 계속 막는다."""
+        os.environ['ALLOWED_HOSTS'] = '*'
+        try:
+            settings = Settings.from_env()
+        finally:
+            del os.environ['ALLOWED_HOSTS']
+        with TestClient(create_app(settings), base_url='http://198.51.100.7') as client:
+            self.assertEqual(client.get('/api/status').status_code, 200)
+            self.assertEqual(client.get('/api/status', headers={'origin': 'http://198.51.100.7'}).status_code, 200)
+            self.assertEqual(client.get('/api/status', headers={'origin': 'https://198.51.100.7'}).status_code, 200)
+            self.assertEqual(client.get('/api/status', headers={'origin': 'http://evil.com'}).status_code, 403)
+            self.assertEqual(client.get('/api/status', headers={'sec-fetch-site': 'cross-site'}).status_code, 403)
+
     def test_model_absent_is_reported_not_fatal(self):
         self.assertEqual(self.client.get('/api/model/status').json()['state'], 'not_configured')
         response = self.client.post('/api/model/predict', json={'features': {'a': 1}})

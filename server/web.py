@@ -169,11 +169,15 @@ async def json_body(request: Request) -> Any:
 # 4. 접속 주소 검사 (다른 사이트에서 몰래 보낸 요청 차단)
 # ---------------------------------------------------------------------------
 def check_host(request: Request, allowed_hosts: frozenset[str]) -> None:
-    if request.headers.get("host", "").lower() not in allowed_hosts:
+    host = request.headers.get("host", "").lower()
+    any_host = "*" in allowed_hosts          # ALLOWED_HOSTS=* : 어느 주소로 접속하든 허용 (서버 IP·도메인을 적기 싫을 때)
+    if not any_host and host not in allowed_hosts:
         raise ApiError("INVALID_HOST", "허용된 실행 주소로 접속하세요.", 403)
     origin = request.headers.get("origin")
     cross_site = request.headers.get("sec-fetch-site") == "cross-site"
-    # 서버(443)는 https, 내 PC(127.0.0.1)는 http 로 접속하므로 두 방식 모두 허용한다. 호스트는 위에서 이미 검사했다.
-    allowed_origins = {scheme + h for h in allowed_hosts for scheme in ("http://", "https://")}
+    # 서버(80·443)는 http·https 로, 내 PC(127.0.0.1)는 http 로 접속하므로 두 방식 모두 허용한다.
+    # 주소를 제한하지 않을 때는 '지금 접속한 주소와 같은 주소에서 온 요청'만 통과시킨다.
+    hosts = {host} if any_host else allowed_hosts
+    allowed_origins = {scheme + h for h in hosts for scheme in ("http://", "https://")}
     if cross_site or (origin is not None and origin not in allowed_origins):
         raise ApiError("ORIGIN_REJECTED", "다른 사이트에서 분석 서버에 접근할 수 없습니다.", 403)
