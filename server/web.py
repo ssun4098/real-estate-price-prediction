@@ -87,6 +87,22 @@ def html(text: str) -> Response:
     return SafeBytesResponse(text.encode("utf-8"), media_type="text/html; charset=utf-8")
 
 
+def cached_html(body: bytes, gzipped: bytes, request: Request) -> Response:
+    """미리 만들어 검사까지 끝낸 HTML. 브라우저가 gzip 을 받으면 압축본을 보낸다.
+
+    body 는 만들 때 한 번 _checked() 를 거친 것이어야 한다 (요청마다 수 MB를 다시 검사하지 않는다).
+    """
+    headers = {"Vary": "Accept-Encoding", "Cache-Control": "no-cache"}
+    if "gzip" in request.headers.get("accept-encoding", ""):
+        return Response(gzipped, media_type="text/html; charset=utf-8", headers={**headers, "Content-Encoding": "gzip"})
+    return Response(body, media_type="text/html; charset=utf-8", headers=headers)
+
+
+def checked_bytes(body: bytes) -> bytes:
+    """응답에 인증키·DB 비밀번호가 섞였으면 ValueError (미리 만들어 두는 응답용)."""
+    return _checked(body)
+
+
 def raw(data: bytes, media_type: str) -> Response:
     return SafeBytesResponse(data, media_type=media_type)
 

@@ -53,6 +53,7 @@ App tables (`server/db.py`) hold documents as LONGTEXT JSON strings (preserves k
 
 - `SnapshotService.recompute` never trusts client-computed results: it re-runs `validate_snapshot` + `export_snapshot`, and rejects any payload containing a configured secret.
 - `PortfolioService` samples are frozen captures (`persistencePolicy=portfolio_frozen_v1`); reading one must not recompute it with the current engine. The default sample is an explicit pointer and is never silently replaced.
+- The dashboard page is ~19MB (template + default sample embedded in `__PF_SNAPSHOT__` and again in `__PF_PORTFOLIO__`). Rendering it per request made 20 concurrent loads peak ~1.6GB and got the process OOM-killed on a small EC2 ("connection refused"). `pages.PageCache` (on `app.state.page_cache`) renders it once, checks secrets once (`web.checked_bytes`), keeps a gzip copy, and serves it via `web.cached_html`; it rebuilds only when `PortfolioService.version()` (sorted sample ids+captured_at, plus the default-sample setting) changes. `PortfolioService.entries()` is cached on the same id list (samples are immutable and there is no delete); callers must not mutate the returned items. `default_id()` validates against `entries()` instead of re-reading. Every saved sample is still embedded in the page, so the page grows with the number of samples.
 - `PublicData.slot()` allows at most 4 concurrent upstream lookups through `domain.public_api.Collector` (429 `BUSY` otherwise).
 
 ### Trained model

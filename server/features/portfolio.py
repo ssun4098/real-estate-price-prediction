@@ -11,6 +11,8 @@
     (엔진이 바뀌어도 과거 보관본이 달라지지 않도록. persistencePolicy=portfolio_frozen_v1).
   - data/samples/ 폴더의 샘플은 읽기 전용 기본 제공본이다. DB에 같은 id가 있으면 DB 것이 우선.
   - 기본 샘플로 지정한 id가 잘못되면 다른 샘플로 몰래 바꾸지 않고 '기본 없음'으로 둔다.
+  - 저장본은 바뀌지 않으므로(지우는 기능도 없음) 전체 목록을 한 번 읽어 기억해 두고,
+    저장본 id 목록이 바뀌었을 때만 다시 읽는다. 예시 하나가 수 MB라 요청마다 읽으면 메모리가 크게 늘어난다.
 """
 from __future__ import annotations
 
@@ -18,6 +20,7 @@ import datetime as dt
 import json
 import math
 import re
+import threading
 import uuid
 from pathlib import Path
 
@@ -89,6 +92,9 @@ class PortfolioService:
             self._check_item(clean, clean.get("id"))
             self.bundled[clean["id"]] = clean
         self.bundled_default_id = bundled_default_id if bundled_default_id in self.bundled else None
+        self._entries_key = None    # 기억해 둔 목록이 어떤 저장본 id 목록으로 만든 것인지
+        self._entries: list[dict] = []
+        self._lock = threading.Lock()
 
     # --- 저장 -------------------------------------------------------------
     def save(self, body) -> dict:
@@ -132,8 +138,26 @@ class PortfolioService:
             return self._clean(self.bundled[ident])
         raise ApiError("NOT_FOUND", "저장한 분석을 찾을 수 없습니다.", 404)
 
+    def version(self) -> tuple:
+        """저장본 id 목록 + 기본 샘플 설정. 이 값이 같으면 목록·화면 내용도 같다 (본문은 읽지 않아 가볍다)."""
+        with db_errors(), self.sessions() as session:
+            rows = tuple(sorted(session.execute(select(PortfolioSampleRow.id, PortfolioSampleRow.captured_at)).tuples()))
+            setting = session.get(SettingRow, DEFAULT_KEY)
+            default = setting.value if setting else None
+        return rows, default
+
     def entries(self) -> list[dict]:
-        """기본 제공 + DB 샘플 전체 (최신순). 형식이 깨진 항목은 건너뛴다."""
+        """기본 제공 + DB 샘플 전체 (최신순). 형식이 깨진 항목은 건너뛴다.
+
+        저장본 id 목록이 그대로면 기억해 둔 목록을 그대로 돌려준다 (돌려받은 항목은 고치지 말 것).
+        """
+        rows, _ = self.version()
+        with self._lock:  # 동시에 여러 요청이 와도 한 번만 읽는다
+            if self._entries_key != rows:
+                self._entries, self._entries_key = self._read_entries(), rows
+            return self._entries
+
+    def _read_entries(self) -> list[dict]:
         items = dict(self.bundled)
         with db_errors(), self.sessions() as session:
             bodies = list(session.scalars(select(PortfolioSampleRow.body)))
@@ -172,11 +196,8 @@ class PortfolioService:
             ident = row.value if row else None
         if ident is None:
             return self.bundled_default_id
-        try:
-            self.read(ident)
-            return ident
-        except (ValueError, ApiError, KeyError, TypeError):
-            return None  # 잘못된 지정은 다른 샘플로 바꾸지 않는다
+        # 형식이 맞는 샘플(entries 에 들어간 것)만 인정. 잘못된 지정은 다른 샘플로 바꾸지 않는다.
+        return ident if any(item["id"] == ident for item in self.entries()) else None
 
     def set_default(self, ident) -> dict:
         self.read(ident)  # 존재·형식 확인

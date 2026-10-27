@@ -55,6 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.public_data = public_data.PublicData(collector)
         app.state.snapshots = snapshots.SnapshotService(sessions, land_model=holder.estimator)
         app.state.portfolio = portfolio.PortfolioService(sessions, bundled, bundled_default, land_model=holder.estimator)
+        app.state.page_cache = pages.PageCache()  # 첫 화면(약 19MB)을 한 번만 만들어 재사용
         app.state.model = holder
         # 매일 공공데이터를 받아 land_trade·applyhome 테이블에 넣는 백그라운드 작업
         app.state.daily_load = daily_load.DailyLoader(

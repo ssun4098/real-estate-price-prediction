@@ -78,6 +78,33 @@ class AppApiTests(unittest.TestCase):
         self.assertIn('window.__PF_PORTFOLIO__=', page.text)
         self.assertNotIn(KEY, page.text)
 
+    def test_dashboard_page_is_built_once_and_rebuilt_only_when_samples_change(self):
+        import gzip
+        from unittest import mock
+        from server.features import pages
+        state = self.client.app.state
+        state.page_cache = pages.PageCache()  # 다른 테스트가 만든 페이지와 섞이지 않게 새로
+        with mock.patch.object(pages, 'render_html', wraps=pages.render_html) as render:
+            first = self.client.get('/')
+            for _ in range(3):
+                self.assertEqual(self.client.get('/').content, first.content)
+            self.assertEqual(render.call_count, 1)  # 같은 내용이면 다시 만들지 않는다
+            # 샘플을 새로 저장하면 다시 만든다
+            analyzed = self.client.post('/api/analyze', json=fixture()).json()
+            sample = self.client.post('/api/portfolio-samples', json={'snapshot': analyzed}).json()
+            self.assertIn(sample['id'], self.client.get('/').text)
+            self.assertEqual(render.call_count, 2)
+            # 기본 샘플을 바꿔도 다시 만든다
+            self.client.post('/api/portfolio-default', json={'id': sample['id']})
+            self.assertIn('window.__PF_DEFAULT_SAMPLE_ID__="%s"' % sample['id'], self.client.get('/').text)
+            self.assertEqual(render.call_count, 3)
+        # gzip 을 받는 브라우저에는 압축본, 아니면 원본
+        zipped = self.client.get('/', headers={'accept-encoding': 'gzip'})
+        self.assertEqual(zipped.headers['content-encoding'], 'gzip')
+        plain = self.client.get('/', headers={'accept-encoding': 'identity'})
+        self.assertNotIn('content-encoding', plain.headers)
+        self.assertEqual(gzip.decompress(state.page_cache.get(state.template, state.portfolio)[1]), plain.content)
+
 
 @unittest.skipUnless(HAVE_APP, 'fastapi/sqlalchemy not installed')
 class ExistingDatabaseTests(unittest.TestCase):
