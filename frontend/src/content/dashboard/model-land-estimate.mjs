@@ -32,7 +32,7 @@ export function modelEstimateSummary(data,skipped=[]){
   complete,
   amountWon:subtotal,
   label:complete?'모델 예측 토지매입대금':'모델 예측 · 산출분 소계',
-  pricedCount:priced.length,rowCount:rows.length,
+  pricedCount:priced.length,rowCount:rows.length,pricedAreaM2:pricedArea,
   areaPct:area>0?pricedArea/area*100:null,
   targetMonths:months.length?(months.length===1?months[0]:`${months[0]} ~ ${months[months.length-1]}`):null,
   rows,

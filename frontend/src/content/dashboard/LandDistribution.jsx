@@ -36,24 +36,10 @@ function FallbackPrice({group,rows,onInspect}){
  </div>;
 }
 
-export function V5LandPlot({land,rows,onInspect,selection:controlledSelection,onSelectionChange}){
- const [localSelection,setLocalSelection]=useState('');
- const selection=controlledSelection===undefined?localSelection:controlledSelection;
- const setSelection=value=>{if(controlledSelection===undefined)setLocalSelection(value);onSelectionChange?.(value)};
- const groups=land.groups||[],references=land.referenceGroups||[],amountStatus=landAmountStatus(land),method=land.method||'median';
- const unitGroups=[...groups.map(group=>({...group,referenceOnly:false})),...references.filter(ref=>!groups.some(group=>group.id===ref.id)).map(group=>({...group,referenceOnly:true}))];
- const options=[...unitGroups.map(group=>({id:'unit:'+group.id,mode:'unit',group,label:'평당 단가 · '+(group.label||group.id)})),...groups.map(group=>({id:'amount:'+group.id,mode:'amount',group,label:'산정 금액 · '+(group.label||group.id)}))];
- const selected=options.find(o=>o.id===selection)||options[0],group=selected?.group,unitStats=group?.unitPriceStats||(group?.referenceOnly?group.stats:null),unit=group?.representativeUnitPriceWonM2??unitStats?.[method],fallback=group?.fallback?.used===true;
- const reasons=amountStatus.reasons;
- return <DataComponent className="v3-plot-source v5-land-plot" id="pf-live-land-box" queryId="liveLand" kind="custom" title="예상 토지매입대금" sourceRows={rows} displayRows={fallback?[{groupId:group.id,areaM2:group.areaM2,representativeUnitPriceWonM2:unit,representativeWon:group.representativeWon,fallback:group.fallback}]:group?.points||[]} description="용도지역 8개 × 지목 6개 비교그룹. 같은 그룹의 유효 거래 단가 중앙값 또는 평균에 배분 면적을 곱합니다. 같은 그룹이 0건이면 현재 조회·필터 조건을 통과한 다른 그룹의 거래 단가를 모두 모아 중앙값으로 대체합니다. 대체 그룹과 근거 거래를 표시하며 직접 비교사례 건수는 0건으로 유지합니다. 경계·면적 미확정 또는 모든 그룹의 유효 거래가 없으면 총액을 보류합니다.">
-  <div className="live-box-value v5-land-unit-value" data-reviewed-rows>{Number.isFinite(unit)?`${number(wonM2ToEokPyeong(unit),5)} 억원/평`:'미산출'}<small>{fallback?'중앙값 대체 · 동일 그룹 0건':`사례 평당 단가 ${method==='mean'?'평균':'중앙값'} · ${unitStats?.n??0}건`}</small></div>
-  {group?<><div className="v3-land-group-control">{options.length>1?<select aria-label="토지 분포 보기" value={selected.id} onChange={e=>setSelection(e.target.value)}>{options.map(o=><option key={o.id} value={o.id}>{o.label}</option>)}</select>:<small>{selected.label}</small>}</div>
-   <small className="v3-land-total">{group.referenceOnly?'대상 면적 확인 전 · 단가만 표시':`선택군 예상액 ${eok(group.representativeWon)} · ${number(group.areaM2,2)}㎡`}</small>
-   {fallback?<FallbackPrice group={group} rows={rows} onInspect={onInspect}/>:selected.mode==='unit'?<UnitPriceBox group={group} onInspect={onInspect} referenceOnly={group.referenceOnly}/>:<VerticalBox compact title={group.label||group.id} points={group.points} stats={group.stats} onInspect={onInspect}/>}
-  </>:<div className="v3-box-empty">토지 비교군 확인 필요<small>대상 필지 분류와 같은 그룹의 유효 거래가 필요합니다.</small></div>}
-  <div className="v5-land-total-amount" data-reviewed-rows><span>{amountStatus.status==='manual'?'사용자 가정 적용액':'전체 토지매입대금'}</span><strong>{eok(amountStatus.appliedWon)}</strong></div>
-  {amountStatus.fallbackUsed&&<small className="v6-land-fallback-note" data-reviewed-rows>{amountStatus.fallbackSummary} 포함</small>}
-  <ModelLandEstimate land={land}/>
-  {!amountStatus.completeness.complete&&<details className="v5-land-completeness"><summary>{amountStatus.label} · {amountStatus.summary}</summary><span>{amountStatus.confirmedSubtotalWon!==null?`확인분 소계 ${eok(amountStatus.confirmedSubtotalWon)}`:'확인된 산정 금액 없음'}</span><small>부분 금액은 전체 토지비에 적용하지 않습니다.</small>{reasons.length>0&&<small className="v5-land-hold">{reasons.join(' · ')}</small>}</details>}
+// '예상 토지매입대금' 칸은 모델 예측만 보여 준다. 비교사례 금액은 수지분석 표·비교사례 상세 테이블에서 계속 쓴다.
+// (위의 UnitPriceBox·FallbackPrice 는 지금 이 칸에서 쓰지 않음. 비교사례 분포를 다시 보여 줄 때 사용)
+export function V5LandPlot({land,rows}){
+ return <DataComponent className="v3-plot-source v5-land-plot" id="pf-live-land-box" queryId="liveLand" kind="custom" title="예상 토지매입대금" sourceRows={rows} displayRows={[]} description="토지 단가 예측 모델(CatBoost)이 예측한 시군구·지목·용도지역 그룹의 6개월 뒤 월간 거래단가 중앙값에 필지 면적을 곱한 금액입니다. 모델이 예측하지 못한 필지가 있으면 산출분 소계로 표시합니다. 수지분석 표의 토지 매입대금은 비교사례 기준으로 따로 계산됩니다.">
+  <ModelLandEstimate land={land} prominent/>
  </DataComponent>;
 }
