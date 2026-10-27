@@ -6,3 +6,5 @@ uvicorn==0.54.0
 SQLAlchemy==2.1.6
 PyMySQL==1.2.3
 cryptography==50.0.2
+# 학습 모델 (data/models/land_price_model.py). 모델을 학습한 버전과 맞춤
+catboost==1.2.10

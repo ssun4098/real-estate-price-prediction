@@ -80,7 +80,7 @@ V6_team_share/
 │   └─ build/V6.template.html   빌드된 화면. 서버가 이 파일을 브라우저로 보낸다
 ├─ data/
 │   ├─ samples/         기본 제공 예시 분석 (default.json 이 기본 예시를 지정)
-│   └─ models/          학습 모델 넣는 곳 (지금은 비어 있음 → data/models/README.md)
+│   └─ models/          학습 모델 (land_price_model.py + model.cbm → data/models/README.md)
 ├─ tests/               자동 테스트 (python tests/run_tests.py)
 └─ docs/                쉬운 설명 문서 5편
 ```

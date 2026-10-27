@@ -4,6 +4,7 @@ import {number,eok,VerticalBox} from './pf-live-widgets.jsx';
 import {landAmountStatus} from './land-completeness.mjs';
 import './land-distribution.css';
 import {wonM2ToEokPyeong} from './price-formula.mjs';
+import {ModelLandEstimate} from './ModelLandEstimate.jsx';
 
 function UnitPriceBox({group,onInspect,referenceOnly=false}){
  const {points=[]}=group,stats=group.unitPriceStats||group.stats;
@@ -52,6 +53,7 @@ export function V5LandPlot({land,rows,onInspect,selection:controlledSelection,on
   </>:<div className="v3-box-empty">토지 비교군 확인 필요<small>대상 필지 분류와 같은 그룹의 유효 거래가 필요합니다.</small></div>}
   <div className="v5-land-total-amount" data-reviewed-rows><span>{amountStatus.status==='manual'?'사용자 가정 적용액':'전체 토지매입대금'}</span><strong>{eok(amountStatus.appliedWon)}</strong></div>
   {amountStatus.fallbackUsed&&<small className="v6-land-fallback-note" data-reviewed-rows>{amountStatus.fallbackSummary} 포함</small>}
+  <ModelLandEstimate land={land}/>
   {!amountStatus.completeness.complete&&<details className="v5-land-completeness"><summary>{amountStatus.label} · {amountStatus.summary}</summary><span>{amountStatus.confirmedSubtotalWon!==null?`확인분 소계 ${eok(amountStatus.confirmedSubtotalWon)}`:'확인된 산정 금액 없음'}</span><small>부분 금액은 전체 토지비에 적용하지 않습니다.</small>{reasons.length>0&&<small className="v5-land-hold">{reasons.join(' · ')}</small>}</details>}
  </DataComponent>;
 }

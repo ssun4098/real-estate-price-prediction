@@ -87,7 +87,7 @@
 | `*_API_KEY` | 정부 사이트 이용 키 |
 | `VWORLD_DOMAIN` | 브이월드에 등록한 서비스 주소. 접속 주소와 같아야 함 |
 | `PUBLIC_PORT` | 접속 포트 (기본 4175) |
-| `MODEL_ENTRYPOINT` | 학습 모델 지정. 지금은 비워 둠 |
+| `MODEL_ENTRYPOINT` | 학습 모델 지정. `land_price_model:LandPricePredictor` (모델 파일 `data/models/model.cbm`은 git에 없어 직접 복사) |
 | `LAND_TRADE_SOURCE` | 토지 실거래 출처. `table`(기본, 직접 적재한 DB) 또는 `api`(공공데이터포털) |
 | `APPLYHOME_SOURCE` | 청약홈 분양정보 출처. `table`(기본, 직접 적재한 DB) 또는 `api`(공공데이터포털) |
 | `DAILY_LOAD`, `DAILY_LOAD_TIME`, `DAILY_LOAD_MONTHS` | 매일 공공데이터 적재 켜기(`on`)/끄기(`off`), 실행 시각(기본 `03:00`), 토지 실거래를 다시 받는 개월 수(기본 3) |

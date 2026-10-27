@@ -40,7 +40,7 @@ server/
 │   │                       /api/land-cache  /api/tiles/...   (공공 API 조회, 동시 4건 제한)
 │   ├─ snapshots.py         /api/analyze  /api/save  /api/export-json  /api/snapshots[/{id}]
 │   ├─ portfolio.py         /api/portfolio-samples[/{id}]  /api/portfolio-default
-│   ├─ model.py             /api/model/status  /api/model/predict   (학습 모델 자리)
+│   ├─ model.py             /api/model/status  /api/model/predict  /api/model/land-estimate   (학습 모델: data/models/)
 │   ├─ daily_load.py        /api/daily-load  /api/daily-load/run   (매일 공공데이터 적재)
 │   ├─ land_trade_table.py  URL 없음. 토지 실거래를 직접 적재한 land_trade 테이블에서 읽기 (기본)
 │   ├─ applyhome_table.py   URL 없음. 청약홈 분양정보를 직접 적재한 applyhome_apt_* 테이블에서 읽기 (기본)
