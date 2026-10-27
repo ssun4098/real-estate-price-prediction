@@ -176,3 +176,57 @@ class ModelApiTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LandModelInAnalysisTests(unittest.TestCase):
+    """분석(analyze)의 토지매입대금이 모델 금액으로 바뀌는지. 모델 파일 없이 가짜 모델 함수로 검사한다."""
+
+    def test_combine_matches_screen_formula(self):
+        # 화면 테스트(model-land-estimate.test.mjs)와 같은 숫자: 3억 + 평균 2백만 × 50㎡ = 4억
+        from server.domain.analysis.land_price import combine_land_model
+        m = combine_land_model([{"areaM2": 100, "unitPriceKrwPerM2": 1e6}, {"areaM2": 50, "unitPriceKrwPerM2": 4e6},
+                                {"areaM2": 30}, {"areaM2": 20, "status": "분류 불가"}])
+        self.assertEqual((m["totalWon"], m["pricedWon"], m["filledWon"], m["averageUnitPriceKrwPerM2"]), (4e8, 3e8, 1e8, 2e6))
+        self.assertEqual([r["basis"] for r in m["rows"]], ["모델 예측", "모델 예측", "평균 단가로 채움", "평균 단가로 채움"])
+        self.assertIsNone(combine_land_model([{"areaM2": 100}, {"areaM2": 50}]))
+        self.assertIsNone(combine_land_model([{"areaM2": 100, "unitPriceKrwPerM2": 1e6}, {"areaM2": None}]))
+
+    def _input(self):
+        sys.path.insert(0, str(ROOT / "tests"))
+        from test_land_twelve import make_input
+        data = make_input("제1종일반주거지역", "대")
+        data["assumptions"]["landAdjustmentPct"] = 10
+        data["financeEditor"] = {"land": {"mode": "comparablePct", "value": 100}}  # 수지분석 표의 '모델% 100'
+        return data
+
+    def test_model_amount_feeds_land_and_costs(self):
+        from server.domain.analysis import analyze
+        seen = []
+
+        def fake_model(parcels):
+            seen.extend(parcels)
+            return {"rows": [{**p, "unitPriceKrwPerM2": 3e6, "status": "산출", "targetMonth": "2027-02"} for p in parcels]}
+
+        plain = analyze(self._input(), partial=True)["results"]["land"]
+        result = analyze(self._input(), partial=True, land_model=fake_model)["results"]
+        land = result["land"]
+        area = sum(p["areaM2"] for p in seen)
+        self.assertEqual(seen[0]["jimok"], "대")
+        self.assertEqual(land["amountBasis"], "model")
+        self.assertAlmostEqual(land["representativeWon"], 3e6 * area * 1.1)          # 가격 보정 10% 포함
+        self.assertAlmostEqual(land["comparableWon"], land["representativeWon"])      # 표의 '모델%' 기준
+        self.assertEqual(land["comparablesRepresentativeWon"], plain["representativeWon"])  # 비교사례 금액은 따로 남김
+        self.assertEqual(result["budget"]["landWon"], land["representativeWon"])        # 수지분석 표도 같은 금액
+
+    def test_without_model_or_on_failure_comparables_are_used(self):
+        from server.domain.analysis import analyze
+        plain = analyze(self._input(), partial=True)["results"]["land"]
+        self.assertEqual((plain["amountBasis"], plain["modelEstimate"]["used"]), ("comparables", False))
+
+        def broken(parcels):
+            raise RuntimeError("model down")
+        land = analyze(self._input(), partial=True, land_model=broken)["results"]["land"]
+        self.assertEqual(land["representativeWon"], plain["representativeWon"])
+        self.assertEqual(land["amountBasis"], "comparables")
+        none_priced = analyze(self._input(), partial=True, land_model=lambda ps: {"rows": [{**p, "status": "자료 없음"} for p in ps]})
+        self.assertEqual(none_priced["results"]["land"]["representativeWon"], plain["representativeWon"])

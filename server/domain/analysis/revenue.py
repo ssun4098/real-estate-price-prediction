@@ -103,7 +103,7 @@ def _revenue(inputs, development, warnings):
     net = full_net * (final_sales / 100) if full_net is not None else None
     if final_sales < 100:
         warnings.append("미분양 잔여재고의 처분대금은 자동 반영하지 않았습니다. 별도 매각·처분 시나리오를 검토하세요.")
-    return {"label": "최고가 사례 기준 잠재 분양수입", "points": points,
+    return {"label": "비교단지 사례 기준 잠재 분양수입", "points": points,
             "eligibleComplexes": copy.deepcopy(points),
             "supplyAreaStats": statistics([p["medianSupplyAreaM2"] for p in points]),
             "stats": stats, "baseStats": base_stats, "unitPriceStats": statistics([p["unitPriceWonM2"] for p in points]),

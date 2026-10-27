@@ -80,8 +80,9 @@ def load_bundled_samples(samples_dir: Path) -> tuple[list[dict], str | None]:
 
 
 class PortfolioService:
-    def __init__(self, sessions, bundled_entries=(), bundled_default_id=None):
+    def __init__(self, sessions, bundled_entries=(), bundled_default_id=None, land_model=None):
         self.sessions = sessions
+        self.land_model = land_model  # 새 예시를 저장할 때 화면과 같은 토지매입대금(모델 예측)으로 계산하기 위함
         self.bundled: dict[str, dict] = {}
         for item in bundled_entries:
             clean = self._clean(item)
@@ -100,7 +101,7 @@ class PortfolioService:
         if isinstance(validation, dict) and validation.get("mode") == "browser-preview":
             # 브라우저 계산값은 믿지 않는다: /api/analyze 와 같은 partial 모드로 다시 계산.
             validation["mode"] = "partial"
-        snapshot = validate_snapshot(candidate)
+        snapshot = validate_snapshot(candidate, self.land_model() if self.land_model else None)
 
         name = str(clean.get("name") or snapshot.get("name") or "저장한 분석").strip()
         if not name or len(name) > 120:

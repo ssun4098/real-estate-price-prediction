@@ -68,9 +68,9 @@ def export_inputs(inputs):
             if 'revenue' in k.lower(): progress.pop(k,None)
     return _clean(safe)
 
-def export_snapshot(snapshot):
+def export_snapshot(snapshot, land_model=None):
     """Never trust caller-computed results or a caller's storage-policy flag."""
-    safe=analyze(export_inputs(snapshot.get('inputs',{})),partial=True)
+    safe=analyze(export_inputs(snapshot.get('inputs',{})),partial=True,land_model=land_model)
     for key in ('id','createdAt'):
         if key in snapshot: safe[key]=snapshot[key]
     safe['exportPolicy']='v5-geocoder-requery'

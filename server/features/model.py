@@ -112,6 +112,13 @@ class ModelHolder:
                 "data": data_info() if callable(data_info) else None,
                 "error": self.error}
 
+    def estimator(self):
+        """사업성 계산(analyze)에 넘길 '필지 목록 → 모델 단가' 함수. 모델이 준비되지 않았으면 None.
+
+        None 이면 토지매입대금은 예전처럼 비교사례 기준으로 계산된다 (server/domain/analysis/land_price.py).
+        """
+        return self.land_estimate if self.predictor is not None else None
+
     def predict(self, features: dict) -> dict:
         return {"model": self._predictor().name, "version": self._predictor().version,
                 "result": self._call(features)}

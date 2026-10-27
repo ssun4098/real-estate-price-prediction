@@ -36,8 +36,9 @@ def _snapshots(request: Request) -> "SnapshotService":
 # 라우터
 # ---------------------------------------------------------------------------
 @router.post("/api/analyze")
-def analyze_inputs(body: dict = Depends(json_body)):
-    return ok(analyze(body, partial=True))
+def analyze_inputs(request: Request, body: dict = Depends(json_body)):
+    # 학습 모델이 켜져 있으면 토지매입대금을 모델 예측으로 계산한다.
+    return ok(analyze(body, partial=True, land_model=request.app.state.model.estimator()))
 
 
 @router.post("/api/save")
@@ -65,14 +66,15 @@ def read_snapshot_old_path(request: Request, ident: str):
 # 규칙 + DB
 # ---------------------------------------------------------------------------
 class SnapshotService:
-    def __init__(self, sessions):
+    def __init__(self, sessions, land_model=None):
         self.sessions = sessions
+        self.land_model = land_model  # 호출하면 '필지 → 모델 단가' 함수(또는 None)를 주는 함수 (ModelHolder.estimator)
 
-    @staticmethod
-    def recompute(snapshot) -> dict:
+    def recompute(self, snapshot) -> dict:
         """인증키가 섞였는지 확인하고, 엔진으로 다시 계산한 뒤, 저장 규칙에 맞게 정리한다."""
         reject_secrets(snapshot)
-        return export_snapshot(validate_snapshot(snapshot))
+        land_model = self.land_model() if self.land_model else None
+        return export_snapshot(validate_snapshot(snapshot, land_model), land_model)
 
     def save(self, snapshot) -> dict:
         snapshot = self.recompute(snapshot)

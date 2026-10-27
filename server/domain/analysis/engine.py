@@ -19,7 +19,7 @@ from server.domain.analysis.development import (
     _development, _linked_development, _partial_development,
 )
 from server.domain.analysis.revenue import _rescale_revenue, _revenue
-from server.domain.analysis.land_price import _land
+from server.domain.analysis.land_price import _apply_land_model, _land
 from server.domain.analysis.costs import _apply_finance_price, _budget_allocation, _costs
 from server.domain.analysis.cashflow import (
     _cashflow_scalar_errors, _empty_cashflow, calculate_cashflow,
@@ -74,7 +74,8 @@ def _error_path(message, section, inputs):
     return section
 
 
-def analyze(inputs, partial=False):
+def analyze(inputs, partial=False, land_model=None):
+    """land_model: 필지별 모델 단가를 주는 함수 (없으면 토지매입대금은 비교사례 기준). land_price._apply_land_model 참고."""
     if not isinstance(inputs, dict):
         raise ValueError("분석 입력은 JSON 객체여야 합니다.")
     safe = _safe_tree(inputs)
@@ -138,6 +139,7 @@ def analyze(inputs, partial=False):
         revenue = _rescale_revenue(safe, revenue, development, errors if partial else None)
         warnings.append("필지 확인 면적을 대지면적으로, 용적률 적용 면적을 공급면적으로 보는 간이 가정입니다. 법적 허용 용적률·인허가 가능 호수를 확정한 결과가 아닙니다.")
     land = part("land", land_operation, lambda: _land(empty, development, []))
+    land = _apply_land_model(land, safe, land_model)  # 모델이 있으면 토지매입대금 = 모델 예측
     revenue = _apply_finance_price(safe, revenue, "revenue", errors if partial else None)
     land = _apply_finance_price(safe, land, "land", errors if partial else None)
     for parcel in safe.get("parcels", []):
@@ -188,7 +190,7 @@ def analyze(inputs, partial=False):
     return _safe_tree(snapshot)
 
 
-def validate_snapshot(snapshot):
+def validate_snapshot(snapshot, land_model=None):
     """Validate then recompute canonical results; uploaded numbers aren't trusted."""
     if not isinstance(snapshot, dict) or snapshot.get("schemaVersion") != 1 or snapshot.get("analysisVersion") not in (VERSION, "pf-study-1", "pf-study-2", "pf-study-3"):
         raise ValueError("지원하지 않는 분석 결과 버전입니다.")
@@ -203,6 +205,6 @@ def validate_snapshot(snapshot):
         dt.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
     except ValueError:
         raise ValueError("분석 결과 생성시각이 올바르지 않습니다.") from None
-    computed = analyze(safe["inputs"], partial=safe.get("results", {}).get("validation", {}).get("mode") == "partial")
+    computed = analyze(safe["inputs"], partial=safe.get("results", {}).get("validation", {}).get("mode") == "partial", land_model=land_model)
     computed["id"], computed["createdAt"] = sid, timestamp
     return computed
