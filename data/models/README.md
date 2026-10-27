@@ -1,25 +1,40 @@
-# 학습 모델 (토지 그룹 단가 예측 · CatBoost 23번)
+# 학습 모델 (토지 그룹 단가 예측)
 
 이 폴더는 컨테이너에 `/app/data/models`로 **읽기 전용** 마운트됩니다.
-모델은 팀원 전달 자료 `개발자전달_CatBoost23_20261027`의 23번 모델입니다
-(depth 6, learning_rate 0.06, l2_leaf_reg 32, iterations 1600 → 조기 종료로 트리 873개).
+모델은 두 가지이고, `.env`의 `MODEL_ENTRYPOINT` 한 줄로 고릅니다. 둘 다 입력 13개·토지 그룹·입력 자료(`inputs/`)·6개월 뒤 예측이 같습니다.
+
+| 모델 | `MODEL_ENTRYPOINT` | 모델 파일 | 필요한 패키지 |
+|---|---|---|---|
+| **선형회귀 (지금 쓰는 모델)** | `land_price_linear:LandPriceLinearPredictor` | `linear/model.joblib` (약 65KB, git에 올림) | scikit-learn 1.9.1, pandas |
+| CatBoost 23번 (예전 모델) | `land_price_model:LandPricePredictor` | `model.cbm` (약 110MB, Git LFS) | catboost 1.2.10 |
 
 | 파일 | git | 설명 |
 |---|---|---|
-| `land_price_model.py` | 올림 | 모델을 불러와 예측. 토지 그룹 이름 만들기 |
+| `land_price_linear.py` | 올림 | 선형회귀 모델을 불러와 예측. CatBoost 클래스를 이어받아 '불러오기'와 '모델 부르기'만 바꿈 |
+| `linear/model.joblib`, `linear/model_info.json` | 올림 | 팀원이 준 선형회귀 모델과 설명서 (전처리: 표준화·원-핫, 목표값 log1p). 받은 이름 그대로 |
+| `land_price_model.py` | 올림 | CatBoost 모델을 불러와 예측. 토지 그룹 이름 만들기 (두 모델이 같이 씀) |
 | `land_price_inputs.py` | 올림 | 모델 입력 13개를 `inputs/` 자료로 만들기 (팀원 `tools/build_context.py`와 같은 규칙) |
 | `inputs/` | 올림 (약 9MB) | 입력 자료: 그룹별 월간 거래단가, 지역 대응표, 거시 지표, COFIX 공시 이력. 만드는 법은 `inputs/make_inputs.py` |
-| `model_info.json` | 올림 | 모델 설명서 (팀원 제공): 입력 항목, 학습 그룹 5,085개, log1p 변환 |
-| `model.cbm` | **안 올림** (약 110MB) | 학습된 모델. 전달 자료의 `model/model.cbm`을 PC·서버마다 직접 복사 |
+| `model_info.json` | 올림 | CatBoost 모델 설명서 (팀원 제공): 입력 항목, 학습 그룹 5,085개, log1p 변환 |
+| `model.cbm` | Git LFS (약 110MB) | CatBoost 학습 모델 (`개발자전달_CatBoost23_20261027`의 23번: depth 6, 트리 873개) |
 
 `.env`
 
 ```
-MODEL_ENTRYPOINT=land_price_model:LandPricePredictor
+MODEL_ENTRYPOINT=land_price_linear:LandPriceLinearPredictor
 ```
 
-적용: `docker compose up -d --build api` → `GET /api/model/status`가 `"state": "ready"`면 성공.
+적용: `docker compose up -d --build api` (또는 서버 재시작) → `GET /api/model/status`가 `"state": "ready"`, `"name": "land-price-linear"`면 성공.
 파일이 없거나 서로 안 맞으면 앱은 그대로 뜨고 `state`만 `failed`가 됩니다.
+
+### 선형회귀 모델에서 알아 둘 것
+
+- 켤 때 확인하는 것: 입력 항목 13개가 코드와 같은지, `model_info.json`이 같은 모델의 설명서인지(학습 자료 지문 비교),
+  scikit-learn 버전이 저장할 때(1.9.1)와 같은지. 하나라도 다르면 켜지 않습니다 (버전이 다르면 값이 조용히 달라질 수 있어서).
+- 결과 단가는 팀원 모델 전체(`pipeline.predict`)와 같습니다 (`tests/test_land_price_model.py`에서 확인).
+- 학습 때 없던 토지 그룹은 원-핫이 모두 0이라 그룹 보정 없이 예측됩니다. 응답의 `knownGroup: false`와 주의 문구로 알립니다.
+- 학습 자료 평균에서 4표준편차 넘게 벗어난 입력에는 주의 문구를 붙입니다 (선형 모델은 범위 밖에서 크게 빗나갈 수 있음).
+- 다른 선형회귀 모델로 바꿀 때는 `linear/` 안의 두 파일만 같은 이름으로 덮어쓰면 됩니다.
 
 ## 모델이 예측하는 것
 
@@ -52,7 +67,7 @@ MODEL_ENTRYPOINT=land_price_model:LandPricePredictor
 ```
 
 필지마다 `그룹 단가(원/㎡) × 면적`을 돌려주고, 모두 구하면 `totalWon`, 일부만 구하면 `totalWon: null`과 `partialWon`(산출분 소계)을 줍니다.
-화면 '사업 수지분석 → 예상 토지매입대금' 칸 아래에 **기존 금액과 별도로** 표시되며, 수지표 계산에는 들어가지 않습니다.
+사업성 계산(`/api/analyze`)도 같은 방식으로 이 금액을 토지매입대금으로 씁니다 (모델이 꺼져 있으면 비교사례 금액).
 
 ### `POST /api/model/predict` — 그룹 하나
 
@@ -108,7 +123,7 @@ MODEL_ENTRYPOINT=land_price_model:LandPricePredictor
 
 1. 팀원에게 새 전달 자료(지표·거래 집계·COFIX 공시 이력)를 받거나, 같은 형식으로 갱신합니다.
 2. `python data/models/inputs/make_inputs.py <전달자료 폴더> data/models/inputs` (pandas, pyarrow 필요)
-3. 모델이 바뀌었으면 `model.cbm`과 `model_info.json`도 덮어씁니다.
+3. 모델이 바뀌었으면 선형회귀는 `linear/model.joblib`·`linear/model_info.json`, CatBoost는 `model.cbm`·`model_info.json`을 덮어씁니다.
 4. `docker compose up -d --build api`
 
 지표 출처·주의점은 전달 자료의 `docs/지표출처와갱신.md`를 따릅니다 (예: M1·대출 통화 단위를 바꾸지 않기, COFIX는 공시일 기준).

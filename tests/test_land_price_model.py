@@ -1,7 +1,8 @@
-"""토지 단가 모델(data/models/land_price_model.py, land_price_inputs.py) 테스트.
+"""토지 단가 모델(data/models/land_price_model.py, land_price_linear.py, land_price_inputs.py) 테스트.
 
-그룹 이름 만들기·입력 자료 계산은 항상 검사한다. 실제 예측은 catboost 가 설치되어 있고
-data/models/model.cbm 이 있을 때만 검사한다 (모델 파일은 git 에 없음).
+그룹 이름 만들기·입력 자료 계산은 항상 검사한다. 실제 예측은
+CatBoost: catboost 가 설치되어 있고 data/models/model.cbm 이 있을 때 (모델 파일은 git 에 없음),
+선형회귀: scikit-learn·pandas 가 설치되어 있고 data/models/linear/model.joblib 이 있을 때만 검사한다.
 """
 import importlib.util
 import json
@@ -20,8 +21,11 @@ if str(MODEL_DIR) not in sys.path:
 
 import land_price_inputs  # noqa: E402
 import land_price_model  # noqa: E402
+import land_price_linear  # noqa: E402
 
 HAVE_MODEL = importlib.util.find_spec("catboost") is not None and (MODEL_DIR / land_price_model.MODEL_FILE).is_file()
+HAVE_LINEAR = (all(importlib.util.find_spec(name) is not None for name in ("sklearn", "pandas", "joblib"))
+               and (MODEL_DIR / land_price_linear.MODEL_FOLDER / land_price_linear.MODEL_FILE).is_file())
 
 # 팀원 전달 자료 examples/expected_prediction.csv 의 첫 행 (11110|대|상업지역, 기준월 2026-09)
 EXAMPLE_RAW = {"지가변동률": 0.446, "건축허가면적": 2559834.16, "경제심리지수_원계열": 97.9, "동행종합지수_전월비": 1.0,
@@ -118,6 +122,7 @@ class LandPricePredictorTests(unittest.TestCase):
 @unittest.skipUnless(HAVE_MODEL, "catboost 또는 data/models/model.cbm 없음")
 class ModelApiTests(unittest.TestCase):
     """MODEL_ENTRYPOINT 로 켠 서버에서 /api/model/* 가 동작하는지."""
+    ENTRYPOINT = "land_price_model:LandPricePredictor"
 
     @classmethod
     def setUpClass(cls):
@@ -127,7 +132,7 @@ class ModelApiTests(unittest.TestCase):
 
         cls.directory = tempfile.TemporaryDirectory()
         cls.env = {"DATABASE_URL": "sqlite:///" + os.path.join(cls.directory.name, "t.db").replace("\\", "/"),
-                   "MODEL_DIR": str(MODEL_DIR), "MODEL_ENTRYPOINT": "land_price_model:LandPricePredictor"}
+                   "MODEL_DIR": str(MODEL_DIR), "MODEL_ENTRYPOINT": cls.ENTRYPOINT}
         cls.saved = {k: os.environ.get(k) for k in cls.env}
         os.environ.update(cls.env)
         cls.client = TestClient(create_app(Settings.from_env()), base_url="http://127.0.0.1:4175")
@@ -172,6 +177,61 @@ class ModelApiTests(unittest.TestCase):
     def test_land_estimate_rejects_bad_parcels(self):
         bad = {"parcels": [{"pnu": "123", "jimok": "대", "landUse": "상업지역", "areaM2": 10}]}
         self.assertEqual(self.client.post("/api/model/land-estimate", json=bad).status_code, 400)
+
+
+class LinearModelApiTests(ModelApiTests):
+    """선형회귀 모델로 켜도 /api/model/* 가 똑같이 동작하는지 (위 테스트를 그대로 다시 돌린다)."""
+    ENTRYPOINT = "land_price_linear:LandPriceLinearPredictor"
+    __unittest_skip__ = not HAVE_LINEAR
+    __unittest_skip_why__ = "scikit-learn·pandas 또는 data/models/linear/model.joblib 없음"
+
+
+@unittest.skipUnless(HAVE_LINEAR, "scikit-learn·pandas 또는 data/models/linear/model.joblib 없음")
+class LandPriceLinearPredictorTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.predictor = land_price_linear.LandPriceLinearPredictor()
+        cls.predictor.load(MODEL_DIR)
+
+    def _features(self):
+        return land_price_inputs.model_features(EXAMPLE_RAW, *EXAMPLE_HISTORY, land_price_inputs.Month.parse("2026-09"))
+
+    def test_same_price_as_teammate_pipeline(self):
+        """팀원 모델 전체(pipeline.predict)에 넣은 값과 같은 단가가 나와야 한다."""
+        import pandas
+        for group in ("11110|대|상업지역", "11110|대|일반주거지역", "41820|임야|비도시지역"):
+            features = self._features()
+            row = pandas.DataFrame([{**features, "land_group_key": group}], columns=list(land_price_model.FEATURE_ORDER))
+            expected = max(float(self.predictor.model.predict(row)[0]), 0.0)
+            result = self.predictor.predict({**features, "land_group_key": group})
+            self.assertAlmostEqual(result["unitPriceKrwPerM2"], expected, delta=expected * 1e-12)
+            self.assertAlmostEqual(math.expm1(result["log1pUnitPrice"]), expected, delta=expected * 1e-12)
+
+    def test_builds_inputs_from_group_only(self):
+        result = self.predictor.predict({"sggCode": "11110", "jimok": "대", "landUse": "제2종일반주거지역"})
+        self.assertEqual(result["landGroupKey"], "11110|대|일반주거지역")
+        self.assertEqual((result["context"]["forecastMonth"], result["context"]["targetMonth"]), ("2026-08", "2027-02"))
+        self.assertGreater(result["unitPriceKrwPerM2"], 0)
+        self.assertTrue(result["knownGroup"])
+        self.assertEqual(self.predictor.name, "land-price-linear")
+
+    def test_unknown_group_and_out_of_range_are_flagged(self):
+        result = self.predictor.predict({**self._features(), "land_group_key": "99999|대|상업지역"})
+        self.assertFalse(result["knownGroup"])
+        self.assertIn("학습 때 없던 토지 그룹", result["warnings"][0])
+        far = self.predictor.predict({**self._features(), "신규취급액기준_COFIX": 99.0, "land_group_key": "11110|대|상업지역"})
+        self.assertTrue(any("신규취급액기준_COFIX" in w for w in far["warnings"]))
+
+    def test_refuses_info_from_another_model(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as folder:
+            target = Path(folder) / land_price_linear.MODEL_FOLDER
+            shutil.copytree(MODEL_DIR / land_price_linear.MODEL_FOLDER, target)
+            info = json.loads((target / land_price_linear.INFO_FILE).read_text(encoding="utf-8"))
+            info["split_fingerprints"]["train"] = "다른 모델"
+            (target / land_price_linear.INFO_FILE).write_text(json.dumps(info, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                land_price_linear.LandPriceLinearPredictor().load(Path(folder))
 
 
 if __name__ == "__main__":

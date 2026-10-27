@@ -33,7 +33,7 @@ def _land(inputs, development, warnings=None):
 #   {"rows": [{pnu, jimok, landUse, areaM2, unitPriceKrwPerM2, status, reason, forecastMonth, targetMonth, knownGroup}]}
 #   를 돌려주는 함수 (server/features/model.py 의 ModelHolder.land_estimate). 없으면 None.
 # 계산 domain 은 모델 코드를 직접 부르지 않고 이 함수만 받는다.
-MODEL_BASIS = "시군구·지목·용도지역 그룹의 6개월 뒤 월간 거래단가 중앙값(CatBoost 예측) × 필지 면적. 모델이 못 구한 필지는 구한 필지들의 평균 단가로 채움."
+MODEL_BASIS = "시군구·지목·용도지역 그룹의 6개월 뒤 월간 거래단가 중앙값(학습 모델 예측) × 필지 면적. 모델이 못 구한 필지는 구한 필지들의 평균 단가로 채움."
 
 
 def model_parcels(land):

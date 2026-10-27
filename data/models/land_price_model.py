@@ -129,8 +129,7 @@ class LandPricePredictor:
             built = self._build_inputs(group, features.get("forecastMonth"))
             numbers, context = built["features"], built["context"]
 
-        with self.lock:
-            log1p_price = float(self.model.predict([[numbers[n] for n in NUMBER_FEATURES] + [group]], thread_count=1)[0])
+        log1p_price = self._predict_log1p(numbers, group)
         known = group in self.training_groups
         return {
             "landGroupKey": group,
@@ -140,6 +139,11 @@ class LandPricePredictor:
             "context": context,  # 서버가 입력을 만들었을 때: 기준월·예측 대상월·원자료
             "warnings": self._warnings(numbers, known),
         }
+
+    def _predict_log1p(self, numbers: dict, group: str) -> float:
+        """모델에 숫자 12개 + 그룹을 넣고 log1p(단가)를 받는다. 다른 모델(land_price_linear.py)은 이것만 바꾼다."""
+        with self.lock:
+            return float(self.model.predict([[numbers[n] for n in NUMBER_FEATURES] + [group]], thread_count=1)[0])
 
     def data_info(self) -> dict:
         """화면 안내용: 자료가 있는 가장 최근 기준월과 그때의 예측 대상월."""

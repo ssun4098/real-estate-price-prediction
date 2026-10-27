@@ -10,7 +10,7 @@
 | 창고 | **MySQL** (PC에 이미 떠 있는 컨테이너) | 저장된 모든 자료 |
 | 레시피북 | **계산 엔진** (`server/domain`) | 사업성 계산법, 정부 자료 가져오는 법. 손님·창고는 모른다 |
 | 외부 식자재 업체 | **공공 API** (브이월드 등) | 필지·실거래 정보를 공급 |
-| 새로 온 요리사 | **학습 모델** (`server/features/model.py` + `data/models/land_price_model.py`) | 토지 그룹의 6개월 뒤 단가를 예측 (CatBoost 23번). 화면 '예상 토지매입대금' 아래에 따로 표시 |
+| 새로 온 요리사 | **학습 모델** (`server/features/model.py` + `data/models/land_price_linear.py`) | 토지 그룹의 6개월 뒤 단가를 예측 (선형회귀. 예전 CatBoost 23번은 `land_price_model.py`). 이 금액이 '예상 토지매입대금'이 됨 |
 
 ### 왜 이렇게 나눴나요?
 
@@ -84,7 +84,7 @@
 │   └─ build/           │  완성된 화면 (서버가 브라우저로 보내는 HTML)
 ├─ data/                ← 코드가 아닌 자료
 │   ├─ samples/         │  기본으로 들어 있는 예시 분석 (안산 장상동 27필지)
-│   └─ models/          │  학습 모델 (land_price_model.py, model.cbm)
+│   └─ models/          │  학습 모델 (land_price_linear.py + linear/model.joblib, 예전 CatBoost)
 ├─ tests/               ← 자동 점검 (계산이 맞는지, 안전장치가 작동하는지)
 └─ docs/                ← 지금 읽는 문서
 ```

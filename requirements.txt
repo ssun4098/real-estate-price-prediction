@@ -6,5 +6,7 @@ uvicorn==0.54.0
 SQLAlchemy==2.1.6
 PyMySQL==1.2.3
 cryptography==50.0.2
-# 학습 모델 (data/models/land_price_model.py). 모델을 학습한 버전과 맞춤
-catboost==1.2.10
+# 학습 모델 (data/models/). 모델을 저장한 버전과 맞춤 — 버전이 다르면 모델이 켜지지 않는다
+scikit-learn==1.9.1   # 선형회귀 모델 land_price_linear.py (지금 쓰는 모델). Python 3.11 이상 필요
+pandas==3.0.1         # 선형회귀 모델에 입력을 넣을 때 사용
+catboost==1.2.10      # 예전 CatBoost 모델 land_price_model.py (그 모델로 돌아갈 때만 필요)

@@ -10,7 +10,7 @@ RULES_VERSION = "land-match-v7-48-groups-1"
 FALLBACK_POLICY = 'valid-other-groups-median'
 FALLBACK_REASON = '동일 그룹 비교사례 없음 · 중앙값 대체'
 # 토지 비교그룹 = 용도지역 8그룹 × 지목 6그룹 (같은 시군구·법정동 안에서 비교).
-# 근거: 팀 문서 '토지실거래가 데이터 전처리 개선 내용' — 학습 모델(CatBoost)과 같은 분류.
+# 근거: 팀 문서 '토지실거래가 데이터 전처리 개선 내용' — 학습 모델(선형회귀·CatBoost)과 같은 분류.
 ZONE_OTHER = "용도미지정 등"      # 용도미지정·개발제한구역·기타, 그리고 거래의 용도지역 누락
 JIMOK_OTHER = "기타"              # 전·답·임야·대·공장용지 외 23개 지목, 그리고 거래의 지목 누락
 JIMOK_GROUPS = ("전", "답", "임야", "대", "공장용지")

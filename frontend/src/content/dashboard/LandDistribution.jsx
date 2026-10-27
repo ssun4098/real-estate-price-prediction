@@ -39,7 +39,7 @@ function FallbackPrice({group,rows,onInspect}){
 // '예상 토지매입대금' 칸은 모델 예측만 보여 준다. 수지분석 표도 같은 금액을 쓴다 (비교사례 금액은 상세 테이블에서 확인).
 // (위의 UnitPriceBox·FallbackPrice 는 지금 이 칸에서 쓰지 않음. 비교사례 분포를 다시 보여 줄 때 사용)
 export function V5LandPlot({land,rows}){
- return <DataComponent className="v3-plot-source v5-land-plot" id="pf-live-land-box" queryId="liveLand" kind="custom" title="예상 토지매입대금" sourceRows={rows} displayRows={[]} description="토지 단가 예측 모델(CatBoost)이 예측한 시군구·지목·용도지역 그룹의 6개월 뒤 월간 거래단가 중앙값에 필지 면적을 곱한 금액입니다. 모델이 예측하지 못한 필지는 예측한 필지들의 평균 단가로 채웁니다. 이 금액이 수지분석 표의 예상 토지매입대금 기준입니다. 모델이 꺼져 있으면 비교사례 금액을 씁니다.">
+ return <DataComponent className="v3-plot-source v5-land-plot" id="pf-live-land-box" queryId="liveLand" kind="custom" title="예상 토지매입대금" sourceRows={rows} displayRows={[]} description="토지 단가 예측 모델이 예측한 시군구·지목·용도지역 그룹의 6개월 뒤 월간 거래단가 중앙값에 필지 면적을 곱한 금액입니다. 모델이 예측하지 못한 필지는 예측한 필지들의 평균 단가로 채웁니다. 이 금액이 수지분석 표의 예상 토지매입대금 기준입니다. 모델이 꺼져 있으면 비교사례 금액을 씁니다.">
   <ModelLandEstimate land={land}/>
  </DataComponent>;
 }

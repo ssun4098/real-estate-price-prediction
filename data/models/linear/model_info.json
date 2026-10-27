@@ -1,0 +1,56 @@
+{
+  "model": "LinearRegression",
+  "target_unit": "KRW/m2",
+  "target_definition": "시군구×지목×용도지역별 목표월 거래 단가 중앙값",
+  "forecast_horizon_months": 6,
+  "assumed_release_lag_months": 2,
+  "release_vintage_verified": false,
+  "categorical_unknown_behavior": "all-zero one-hot; flagged in predictions",
+  "numeric_features": [
+    "지가변동률",
+    "log_permit_area",
+    "신규취급액기준_COFIX",
+    "경제심리지수_원계열",
+    "동행종합지수_전월비",
+    "log_m1_original",
+    "log_nonbank_housing_loans",
+    "log_history_median_area",
+    "log_history_unit_price",
+    "forecast_month_index",
+    "forecast_month_sin",
+    "forecast_month_cos"
+  ],
+  "categorical_features": [
+    "land_group_key"
+  ],
+  "fit_split": "train_only",
+  "encoded_feature_count": 5096,
+  "model_parameters": {
+    "type": "LinearRegression",
+    "tol": 1e-06,
+    "n_jobs": 6
+  },
+  "source": {
+    "type": "mysql_read_only",
+    "database": "land_trade",
+    "views": {
+      "train": "land_price_train_6m_20261026",
+      "validation": "land_price_valid_6m_20261026",
+      "test": "land_price_test_6m_20261026"
+    }
+  },
+  "split_fingerprints": {
+    "train": "8b34516b30f9c32131d19400116ac4dab8f1116a8ee0c9468203651594d4fa86",
+    "validation": "28a85ea7bc088fc946bdacb177b925fd6cdfc56f959bf2342397a14b70fe4393",
+    "test": "f97f09ead7fc9dd6d0b1dab2edf164c1f182855e446d7391d0e85cb8942a7131"
+  },
+  "software": {
+    "python": "3.12.14",
+    "numpy": "2.5.4",
+    "pandas": "3.0.1",
+    "scikit_learn": "1.9.1",
+    "joblib": "1.6.0"
+  },
+  "elapsed_seconds": 28.445,
+  "test_interpretation": "Previously inspected fixed comparison split; this run reproduces it, not a new unseen holdout."
+}
