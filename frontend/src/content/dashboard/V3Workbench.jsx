@@ -80,7 +80,8 @@ function FinanceRow({id,label,input,budget,result,onChange,disabled,onDetail}){
  const setting=financeRowSetting(input,id),amount=setting.mode==='amount',value=finite(setting.value)?setting.value/(amount?1e8:1):setting.value??'';
  const applied=id==='revenue'?budget.revenueWon:id==='land'?budget.landWon:id==='trust'?budget.trustWon:budget.allocationRows?.find(r=>r.id===id)?.amountWon;
  const comparable=id==='revenue'||id==='land',max=amount?Math.max(1000,finite(value)?Math.ceil(value/100)*100:0):setting.mode==='comparablePct'?200:100;
- const choices=comparable?[['comparablePct','사례%'],['amount','금액']]:[['budgetPct','지출%'],['revenuePct','수입%'],['amount','금액']];
+ const landModel=id==='land'&&result?.results?.land?.amountBasis==='model';
+ const choices=comparable?[['comparablePct',landModel?'모델%':'사례%'],['amount','금액']]:[['budgetPct','지출%'],['revenuePct','수입%'],['amount','금액']];
  const update=raw=>{const n=raw.trim()===''?null:Number(raw);onChange(id,{...setting,value:raw.trim()===''?null:finite(n)?n*(amount?1e8:1):raw});};
  const modeChange=mode=>{const baseline=result?.results?.[id]?.comparableWon;const base=mode==='comparablePct'?baseline:mode==='budgetPct'?budget.allowableWon:mode==='revenuePct'?budget.revenueWon:null;onChange(id,{mode,value:mode==='amount'?(finite(applied)?applied:null):finite(base)&&base>0&&finite(applied)?applied/base*100:mode==='comparablePct'?100:null});};
  const valid=setting.value==null||finite(setting.value)&&setting.value>=0&&(amount||setting.value<=max);
@@ -92,6 +93,7 @@ function FinanceRow({id,label,input,budget,result,onChange,disabled,onDetail}){
   <output>{finite(applied)?number(applied/1e8,2):held?<button type="button" className="v5-held-amount" onClick={()=>onDetail('boundaries')}>산정 보류</button>:'—'}</output>
   {held&&<div className="v5-land-row-status"><span>{finite(landStatus.confirmedSubtotalWon)?`확인분 소계 ${number(landStatus.confirmedSubtotalWon/1e8,2)}억원 · `:''}{landStatus.summary} · 전체 토지비 미적용</span><button onClick={()=>onDetail('boundaries')} title={landStatus.reasons.join(' · ')}>보류 원인·근거</button></div>}
   {landStatus?.fallbackUsed&&<div className="v5-land-row-status v6-land-fallback-status"><span>동일 그룹 비교사례 없음 · {landStatus.fallbackSummary}</span><button onClick={()=>onDetail('boundaries')}>대체 근거</button></div>}
+  {landStatus?.modelUsed&&<div className="v5-land-row-status"><span>{landStatus.modelSummary} · {landStatus.appliedPct===100?"왼쪽 '예상 토지매입대금' 칸과 같은 금액":`왼쪽 '예상 토지매입대금' 칸 모델 예측의 ${number(landStatus.appliedPct,1)}%`}</span></div>}
  </div>;
 }
 function PercentControl({id,label,sliderLabel,value,max,disabled,onChange,live=false}){

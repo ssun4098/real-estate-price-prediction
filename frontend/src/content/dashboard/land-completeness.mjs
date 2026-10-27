@@ -17,8 +17,10 @@ export function landAmountStatus(land={}){
  const manual=land.appliedSetting?.mode==='amount'||land.editMode==='amount';
  const value=land.representativeWon,applied=Number.isFinite(value),partial=Number.isFinite(land.partialRepresentativeWon)?land.partialRepresentativeWon:null;
  const rawPct=land.appliedSetting?.value??land.editValue??100,pct=Number.isFinite(rawPct)&&rawPct>=0?rawPct:null;
- const fallbackUsed=!manual&&land.fallback?.used===true,fallbackSummary=fallbackUsed?`${land.fallback.groupCount}개 그룹 · ${land.fallback.parcelCount}필지 중앙값 대체`:'';
- return {status:applied?(manual?'manual':'complete'):'held',label:applied?(manual?'사용자 가정':fallbackUsed?'전체 산출 · 중앙값 대체 포함':'전체 산출'):'전체 산정 보류',appliedWon:applied?value:null,fallbackUsed,fallbackSummary,
+ const model=land.amountBasis==='model'&&land.modelEstimate?.used===true?land.modelEstimate:null;
+ const modelUsed=!manual&&!!model,modelSummary=modelUsed?`모델 예측 ${model.pricedCount}필지${model.filledCount?` · 평균 단가로 ${model.filledCount}필지 채움`:''}`:'';
+ const fallbackUsed=!manual&&!modelUsed&&land.fallback?.used===true,fallbackSummary=fallbackUsed?`${land.fallback.groupCount}개 그룹 · ${land.fallback.parcelCount}필지 중앙값 대체`:'';
+ return {status:applied?(manual?'manual':'complete'):'held',label:applied?(manual?'사용자 가정':modelUsed?'모델 예측 적용':fallbackUsed?'전체 산출 · 중앙값 대체 포함':'전체 산출'):'전체 산정 보류',appliedWon:applied?value:null,appliedPct:manual?null:pct,fallbackUsed,fallbackSummary,modelUsed,modelSummary,
   confirmedSubtotalWon:partial,adjustedSubtotalWon:!manual&&partial!==null&&pct!==null?partial*pct/100:null,
   summary:`${c.pricedParcelCount}/${c.parcelCount}필지 산출 · ${c.unpricedParcelCount}필지 미완료`,reasons:c.reasons,completeness:c};
 }

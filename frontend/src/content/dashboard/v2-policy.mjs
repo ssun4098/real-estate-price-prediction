@@ -1,4 +1,5 @@
 import {calculateLand,LAND_RULE_VERSION} from './land-comparison.mjs';
+import {applyLandModel,landAdjustmentFactor} from './model-land-estimate.mjs';
 import {applyFinanceAmount,financeRowSetting,calculateBudget} from './revision-model.mjs';
 export const REALTIME_NOTICE='실시간 조회 영역 제외 · Geocoder 사용조건의 보관 가능 범위 확인 전 적용하는 V5 설계 기준입니다. Python 연결 후 위치 재조회가 필요합니다.';
 const safeClone=x=>x==null?x:JSON.parse(JSON.stringify(x));
@@ -40,7 +41,7 @@ export function sanitizeSnapshot(value={}){
   for(const key of ['units','supplyAreaM2','unitSupplyAreaM2','assignedSupplyAreaM2','unassignedSupplyAreaM2','farAreaPerUnitM2'])development[key]=null;
   development.status='사례 면적에 의존하는 공급계획 · Python 연결 후 재조회 필요';
  }
- const baseline=calculateLand(inputs),landSetting=financeRowSetting(inputs,'land');
+ const baseline=applyLandModel(calculateLand(inputs),r.land?.modelEstimate,landAdjustmentFactor(inputs)),landSetting=financeRowSetting(inputs,'land');
  const land={...baseline,comparableWon:baseline.representativeWon,representativeWon:applyFinanceAmount(landSetting,baseline.representativeWon),appliedSetting:landSetting,sourceStatus:landSetting.mode==='amount'?'사용자 가정':'보관 토지자료 기반 추정'};
  const revenueSetting=financeRowSetting(inputs,'revenue'),manualRevenue=revenueSetting.mode==='amount'?applyFinanceAmount(revenueSetting):null;
  const discount=inputs.assumptions?.discountPct??0,sales=inputs.assumptions?.finalSalesPct??100,full=manualRevenue!==null&&Number.isFinite(discount)&&discount>=0&&discount<=100?manualRevenue*(1-discount/100):null;

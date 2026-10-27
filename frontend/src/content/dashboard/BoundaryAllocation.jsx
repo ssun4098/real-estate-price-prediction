@@ -30,7 +30,8 @@ export default function BoundaryAllocation({parcels=[],land={},state={},onRetry,
  ];
  return <section className="v5-boundary-allocation">
   <div className="v5-boundary-heading" data-reviewed-rows><p>경계 확인 <strong>{view.readyCount}필지</strong> · 보류 <strong>{view.heldCount}필지</strong></p>{onRetry&&!printing&&<button disabled={!parcels.length||Object.values(state).some(s=>s?.loading)} onClick={()=>onRetry()}>선택 필지 경계 다시 조회</button>}</div>
-  {parcels.length>0&&<p data-reviewed-rows><strong>{amountStatus.label}</strong> · {amountStatus.summary}{amountStatus.confirmedSubtotalWon!==null?` · 확인분 소계 ${fmt(amountStatus.confirmedSubtotalWon/1e8)}억원`:''}{!amountStatus.completeness.complete?' · 미완료 필지 금액은 0원으로 처리하지 않습니다.':''}</p>}
+  {parcels.length>0&&amountStatus.modelUsed&&<p data-reviewed-rows><strong>비교사례 기준 상세</strong> · {amountStatus.summary}{amountStatus.confirmedSubtotalWon!==null?` · 비교사례 합계 ${fmt(amountStatus.confirmedSubtotalWon/1e8)}억원`:''} · 수지분석에는 모델 예측 {fmt(amountStatus.appliedWon/1e8)}억원을 적용합니다 ({amountStatus.modelSummary}).</p>}
+  {parcels.length>0&&!amountStatus.modelUsed&&<p data-reviewed-rows><strong>{amountStatus.label}</strong> · {amountStatus.summary}{amountStatus.confirmedSubtotalWon!==null?` · 확인분 소계 ${fmt(amountStatus.confirmedSubtotalWon/1e8)}억원`:''}{!amountStatus.completeness.complete?' · 미완료 필지 금액은 0원으로 처리하지 않습니다.':''}</p>}
   {amountStatus.fallbackUsed&&<p data-reviewed-rows><strong>동일 그룹 비교사례 없음 · 중앙값 대체</strong> · {amountStatus.fallbackSummary}</p>}
   <p>필지와 용도지역이 실제로 겹치는 도형을 계산합니다. <strong>토지비 배분면적 = 대장 면적 × (교차 도형면적 ÷ 필지 도형면적)</strong>. 토지비는 같은 용도지역·지목 그룹의 사례 단가를 우선 적용해 합산합니다. 동일 그룹에 사례가 없으면 다른 그룹의 유효 거래 단가를 모아 구한 중앙값으로 대체합니다.</p>
   {!parcels.length&&<p className="v5-boundary-empty">지도에서 개발 대상 필지를 선택하세요.</p>}
