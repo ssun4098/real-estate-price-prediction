@@ -1183,7 +1183,7 @@ class Collector:
                                   eligibleComplexCount=len({r["houseManageNo"] for r in outcomes if r["eligible"]}),
                                   **date_summary(revenue))
         result={"revenueCases":revenue,"landCases":land,"sources":sources,"warnings":warnings,"collectionStatus":"complete" if complete else "partial","queriedAt":now(),"query":{"sgg":sgg,"dong":dong,"start":revenue_start,"end":revenue_end,"landStart":land_start,"landEnd":land_end,"revenueStart":revenue_start,"revenueEnd":revenue_end,"asOf":as_of,"landEndDate":land_cutoff,"revenueEndDate":revenue_cutoff,"scope":scope,"radiusKm":radius_km if scope=="radius" else None,"lon":lon if scope=="radius" else None,"lat":lat if scope=="radius" else None,"center":{"lon":lon,"lat":lat} if scope=="radius" else None,"landScope":"dong"},"geocodingStats":location_stats,"geocodingOutcomes":outcomes,"realtimeOnly":True,"persistencePolicy":"session_only","fromCache":False}
-        result["query"].update(landScope=land_scope, landRawScope="sgg", landMatchPolicy="custom-twelve-groups", landRulesVersion=RULES_VERSION)
+        result["query"].update(landScope=land_scope, landRawScope="sgg", landMatchPolicy="custom-48-groups", landRulesVersion=RULES_VERSION)
         if automatic:
             result["query"].update(periodMode=period_mode,landStartDate=land_first,revenueStartDate=revenue_first)
             result["coverage"]=coverage

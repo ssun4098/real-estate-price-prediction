@@ -1,10 +1,10 @@
-"""The user-defined 4 x 3 matrix and explicit empty-group median fallback."""
+"""용도지역 8그룹 × 지목 6그룹 비교 (팀 문서 '토지실거래가 데이터 전처리 개선 내용') and explicit empty-group median fallback."""
 import copy
 import itertools
 import unittest
 
 from server.domain.analysis import analyze
-from server.domain.land import (ZONE_POOL, JIMOK_POOL, JIMOK_OTHER, RULES_VERSION,
+from server.domain.land import (ZONE_OTHER, JIMOK_OTHER, JIMOK_GROUPS, ZONE_GROUPS, RULES_VERSION,
     classify_zone, classify_jimok, classify_transaction_zone, classify_transaction_jimok)
 from test_engine import fixture, parcel_evidence, add_boundary
 
@@ -30,16 +30,16 @@ def twelve_fixtures():
             landUse=z, jimok=j, sourceEligible=True) for i, (z, j) in enumerate(itertools.product(ZONES, JIMOKS))]
         scenarios.append({'name': f'matrix-{zone}-{jimok}', 'input': data})
     for method in ('median', 'mean'):
-        data = make_input()
+        data = make_input(jimok='도로')  # 비도시지역 · 기타 필지
         data['assumptions'].update(landMethod=method, landAdjustmentPct=10)
         source = data['comparables']['landCases'][0]
-        data['comparables']['landCases'] = [dict(source, id='known'), dict(source, id='zone-missing', landUse=None, priceManwon=30000),
-            dict(source, id='jimok-missing', jimok=None, priceManwon=80000), dict(source, id='both-missing', landUse='', jimok='', priceManwon=120000),
-            dict(source, id='forest', landUse='자연녹지지역', jimok='학교용지', priceManwon=200000)]
+        data['comparables']['landCases'] = [dict(source, id='known'), dict(source, id='jimok-missing', jimok=None, priceManwon=80000),
+            dict(source, id='zone-missing', landUse=None, priceManwon=30000), dict(source, id='both-missing', landUse='', jimok='', priceManwon=120000),
+            dict(source, id='managed', landUse='계획관리지역', jimok='학교용지', priceManwon=200000)]
         scenarios.append({'name': f'missing-{method}', 'input': data})
     for patch in ({'cancelled':True},{'shareTrade':True},{'userExcluded':True},{'manualExclusion':True},
                   {'sourceEligible':False},{'priceManwon':0},{'areaM2':0},{'date':'2030-01-01'},
-                  {'landUse':'개발제한구역'},{'landUse':'완충녹지'},{'landUse':False},{'landUse':{}},
+                  {'landUse':'주거지역'},{'landUse':'완충녹지'},{'landUse':False},{'landUse':{}},
                   {'landUse':'제1종일반주거지역','landUseCode':'UQA220'}, {'jimok':'대','jimokCode':'01'}):
         data = make_input()
         data['comparables']['landCases'][0].update(landUse=None, jimok=None)
@@ -60,11 +60,25 @@ def twelve_fixtures():
 
 
 class TwelveGroupsTests(unittest.TestCase):
-    def test_exact_three_jimok_and_four_zone_groups(self):
-        self.assertEqual({classify_jimok(j)['matchKey'] for j in ('전','답','과수원','목장용지')}, {JIMOK_POOL})
-        self.assertEqual({classify_jimok(j)['matchKey'] for j in ('임야','잡종지','학교용지','공장용지','도로')}, {JIMOK_OTHER})
-        self.assertEqual(classify_jimok('대')['matchKey'], '대')
-        self.assertEqual(classify_transaction_zone(None)['matchKey'], ZONE_POOL)
+    def test_exact_six_jimok_and_eight_zone_groups(self):
+        for jimok in JIMOK_GROUPS:
+            self.assertEqual(classify_jimok(jimok)['matchKey'], jimok)
+        self.assertEqual({classify_jimok(j)['matchKey'] for j in ('과수원','목장용지','잡종지','학교용지','도로','묘지')}, {JIMOK_OTHER})
+        zones = {'전용주거지역': ('제1종전용주거지역', '제2종전용주거지역', '전용주거지역'),
+                 '일반주거지역': ('제1종일반주거지역', '제2종일반주거지역', '제3종일반주거지역', '일반주거지역'),
+                 '준주거지역': ('준주거지역',), '상업지역': ('중심상업지역', '일반상업지역', '근린상업지역', '유통상업지역'),
+                 '공업지역': ('전용공업지역', '일반공업지역', '준공업지역'), '녹지지역': ('보전녹지지역', '생산녹지지역', '자연녹지지역'),
+                 '비도시지역': ('보전관리지역', '생산관리지역', '계획관리지역', '관리지역', '농림지역', '자연환경보전지역', '자연환경보전')}
+        for group, names in zones.items():
+            for name in names:
+                self.assertEqual(classify_transaction_zone(name)['matchKey'], group, name)
+        for name in ('용도미지정', '개발제한구역', '기타'):  # 거래 자료에서만 '용도미지정 등'
+            self.assertEqual(classify_transaction_zone(name)['matchKey'], ZONE_OTHER, name)
+            self.assertEqual(classify_transaction_zone(name)['status'], 'ready', name)
+            self.assertIsNone(classify_zone(name)['matchKey'], name)  # 필지 토지이용계획에서는 용도구역 → 분류하지 않음
+        self.assertIsNone(classify_transaction_zone('주거지역')['matchKey'])  # 전용·일반·준주거 구분 불가
+        self.assertEqual(list(ZONE_GROUPS[-1:]), [ZONE_OTHER])
+        self.assertEqual(classify_transaction_zone(None)['matchKey'], ZONE_OTHER)
         self.assertEqual(classify_transaction_jimok(None)['matchKey'], JIMOK_OTHER)
         self.assertIsNone(classify_zone(None)['matchKey']) # boundaries remain strict
 
@@ -83,11 +97,11 @@ class TwelveGroupsTests(unittest.TestCase):
             group, ref = result['groups'][0], result['referenceGroups'][0]
             self.assertEqual(group['caseIds'], ref['caseIds'])
             self.assertEqual(group['unitPriceStats'], ref['stats'])
-            self.assertEqual(group['stats']['n'], 5)
-            self.assertEqual(group['unknownZoneCount'], 2)
-            self.assertEqual(group['unknownJimokCount'], 2)
-            self.assertEqual(group['points'][1]['zoningStatus'], 'missing')
-            self.assertEqual(group['points'][2]['jimokStatus'], 'missing')
+            # 지목 누락은 '기타'에 들어오고, 용도지역 누락은 '용도미지정 등'으로 가서 이 그룹(비도시지역)에 섞이지 않는다.
+            self.assertEqual([p['id'] for p in group['points']], ['known', 'jimok-missing', 'managed'])
+            self.assertEqual(group['unknownZoneCount'], 0)
+            self.assertEqual(group['unknownJimokCount'], 1)
+            self.assertEqual(group['points'][1]['jimokStatus'], 'missing')
             method = scenario['input']['assumptions']['landMethod']
             self.assertAlmostEqual(result['representativeWon'], group['unitPriceStats'][method]*100*1.1, delta=0.0001)
             self.assertTrue(all(not c['classificationBasis']['fallbackUsed'] for c in result['caseDecisions']))

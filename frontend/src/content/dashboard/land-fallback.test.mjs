@@ -33,7 +33,7 @@ test('direct cases retain the selected representative method while fallback is a
 });
 
 test('cancelled, shared, manual, bad price, invalid classification and source-excluded cases never become donors',()=>{
- const patches=[{cancelled:true},{cancellationDate:'2026-02-01'},{shareTrade:true},{shareDealingType:'지분'},{userExcluded:true},{manualExclusion:true},{sourceEligible:false},{priceManwon:0},{areaM2:0},{priceManwon:Number.MAX_VALUE},{date:'2030-01-01'},{landUse:'개발제한구역'},{landUse:'제1종일반주거지역',landUseCode:'UQA220'},{jimok:'대',jimokCode:'01'}];
+ const patches=[{cancelled:true},{cancellationDate:'2026-02-01'},{shareTrade:true},{shareDealingType:'지분'},{userExcluded:true},{manualExclusion:true},{sourceEligible:false},{priceManwon:0},{areaM2:0},{priceManwon:Number.MAX_VALUE},{date:'2030-01-01'},{landUse:'주거지역'},{landUse:'제1종일반주거지역',landUseCode:'UQA220'},{jimok:'대',jimokCode:'01'}];
  const land=calculateLand(fixture([trade('valid',5e6),...patches.map((patch,i)=>trade(`excluded-${i}`,99e6,patch)),trade('valid',99e6)]));
  assert.equal(land.representativeWon,500e6);assert.deepEqual(land.groups[0].fallback.sourceCaseIds,['valid']);assert.equal(land.fallback.sourceCaseCount,1);assert.ok(land.caseDecisions.slice(1).every(row=>!row.fallbackEligible&&!row.classificationBasis.fallbackUsed));
 });

@@ -4,7 +4,7 @@ import json
 import unittest
 
 from server.domain.analysis import analyze, validate_snapshot
-from server.domain.land import classify_zone, classify_jimok, parcel_profile, ZONE_POOL, JIMOK_POOL
+from server.domain.land import classify_zone, classify_jimok, parcel_profile
 from server.domain.persistence import export_snapshot
 from server.domain.public_api import Collector
 from test_engine import fixture, parcel_evidence, add_boundary
@@ -21,14 +21,18 @@ def v3_fixture():
 
 class ProfileTests(unittest.TestCase):
     def test_exact_classification_and_pool_names(self):
-        for name in ('보전녹지지역', '생산녹지지역', '자연녹지지역', '계획관리지역', '생산관리지역', '보전관리지역', '농림지역', '자연환경보전', '자연환경보전지역'):
-            self.assertEqual(classify_zone(name)['matchKey'], ZONE_POOL, name)
-        for name in ('전', '답', '과수원', '목장용지'):
-            self.assertEqual(classify_jimok(name)['matchKey'], JIMOK_POOL)
+        for name in ('보전녹지지역', '생산녹지지역', '자연녹지지역'):
+            self.assertEqual(classify_zone(name)['matchKey'], '녹지지역', name)
+        for name in ('계획관리지역', '생산관리지역', '보전관리지역', '농림지역', '자연환경보전', '자연환경보전지역'):
+            self.assertEqual(classify_zone(name)['matchKey'], '비도시지역', name)
+        for name in ('전', '답'):
+            self.assertEqual(classify_jimok(name)['matchKey'], name)
+        for name in ('과수원', '목장용지'):
+            self.assertEqual(classify_jimok(name)['matchKey'], '기타')
         for name in ('완충녹지', '도시지역', '개발제한구역', '용도미지정', '아파트지구', ''):
             self.assertIsNone(classify_zone(name)['matchKey'], name)
         self.assertEqual(classify_jimok('대지')['name'], '대')
-        self.assertEqual(classify_zone('제3종일반주거지역', 'UQA123')['matchKey'], '주거')
+        self.assertEqual(classify_zone('제3종일반주거지역', 'UQA123')['matchKey'], '일반주거지역')
 
     def test_included_and_overlapping_apply_adjacent_and_parent_do_not(self):
         parcel = fixture()['parcels'][0]
@@ -38,7 +42,7 @@ class ProfileTests(unittest.TestCase):
                  dict(prposAreaDstrcCode='UQT310', prposAreaDstrcCodeNm='완충녹지', cnflcAt='2', cnflcAtNm='저촉')]
         profile = parcel_profile(parcel)
         self.assertEqual(profile['status'], 'ready')
-        self.assertEqual(profile['zoneMatchKey'], '주거')
+        self.assertEqual(profile['zoneMatchKey'], '일반주거지역')
         self.assertEqual(len(profile['adjacentRows']), 1)
         rows[-2].update(cnflcAt='2', cnflcAtNm='저촉')
         self.assertEqual(parcel_profile(parcel)['status'], 'ambiguous')
@@ -46,9 +50,12 @@ class ProfileTests(unittest.TestCase):
     def test_mixed_detail_resolves_only_one_normalized_match_group(self):
         parcel = fixture()['parcels'][0]
         parcel['attributes'] = parcel_evidence('자연녹지지역', '전')
+        parcel['attributes']['landUse']['rows'].append(dict(prposAreaDstrcCodeNm='생산녹지지역', cnflcAt='2', cnflcAtNm='저촉'))
+        self.assertEqual(parcel_profile(parcel)['zoneMatchKey'], '녹지지역')
+        self.assertEqual(parcel_profile(parcel)['jimokMatchKey'], '전')
+        # 녹지지역과 비도시지역은 이제 다른 그룹 → 한 필지에 섞이면 면적 배분 확인 필요
         parcel['attributes']['landUse']['rows'].append(dict(prposAreaDstrcCodeNm='계획관리지역', cnflcAt='2', cnflcAtNm='저촉'))
-        self.assertEqual(parcel_profile(parcel)['zoneMatchKey'], ZONE_POOL)
-        self.assertEqual(parcel_profile(parcel)['jimokMatchKey'], JIMOK_POOL)
+        self.assertIsNone(parcel_profile(parcel)['zoneMatchKey'])
 
     def test_unknown_relation_conflict_and_cross_pnu_never_guess(self):
         changes = [dict(cnflcAt='9'), dict(cnflcAt='1', cnflcAtNm='접함'),
@@ -66,7 +73,7 @@ class ProfileTests(unittest.TestCase):
         parcel['attributes']['landUse']['rows'].append(row)
         profile = parcel_profile(parcel)
         self.assertEqual(profile['status'], 'ready')
-        self.assertEqual(profile['zoneMatchKey'], '주거')
+        self.assertEqual(profile['zoneMatchKey'], '일반주거지역')
         self.assertEqual(profile['adjacentRows'], [row])
         for relation, label in [('1', '포함'), ('2', '저촉'), ('3', '포함')]:
             row.update(cnflcAt=relation, cnflcAtNm=label)
@@ -113,10 +120,10 @@ class LandPolicyTests(unittest.TestCase):
         data['parcels'][0]['attributes'] = parcel_evidence('자연녹지지역','전')
         add_boundary(data['parcels'][0])
         case = data['comparables']['landCases'][0]
-        case.update(landUse='농림지역',jimok='목장용지')
+        case.update(landUse='보전녹지지역',jimok='전')  # 같은 그룹: 녹지지역 · 전
         data['comparables']['landCases'] += [dict(case,id='zone-wrong',landUse='일반상업지역'),
                                              dict(case,id='jimok-wrong',jimok='대'),
-                                             dict(case,id='unknown',landUse='개발제한구역')]
+                                             dict(case,id='unknown',landUse='완충녹지')]
         result = analyze(data)
         land = result['results']['land']
         self.assertEqual(land['representativeWon'],100_000_000)

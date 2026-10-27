@@ -89,7 +89,7 @@ test('month change invalidates old rows and cannot accept prior response',()=>{
 test('historical saved results preserve actual evidence period until next selection',()=>{
  const old=original(),before=JSON.stringify(old),safe=sanitizeSnapshot({schemaVersion:1,inputs:old,results:{}});assert.equal(JSON.stringify(old),before);assert.equal(safe.inputs.comparables.landQuery.start,old.comparables.query.start);assert.equal(safe.inputs.comparisonFilters.start,old.comparisonFilters.start);
  const x=selected();x.comparables.query={...comparisonRequest(x),asOf:x.project.asOf};x.comparables.landQuery=x.comparables.query;
- const saved=sanitizeSnapshot({schemaVersion:1,inputs:x,results:{}});assert.equal(saved.inputs.comparables.landQuery.endExclusive,'2026-10-01');assert.equal(saved.inputs.comparisonFilters.landEndDate,'2026-09-30');assert.equal(calculateLand(saved.inputs).representativeWon,2e9);
+ const saved=sanitizeSnapshot({schemaVersion:1,inputs:x,results:{}});assert.equal(saved.inputs.comparables.landQuery.endExclusive,'2026-10-01');assert.equal(saved.inputs.comparisonFilters.landEndDate,'2026-09-30');assert.equal(calculateLand(saved.inputs).representativeWon,1e9);
 });
 test('offline land calculation checks exact boundary and retains excluded rows',()=>{
  const x=selected();x.comparables.query={...comparisonRequest(x),asOf:x.project.asOf};x.comparables.landQuery=x.comparables.query;

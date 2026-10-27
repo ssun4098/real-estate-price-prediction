@@ -1429,7 +1429,7 @@
         "landCases": [
           {
             "id": "A",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 10000,
             "areaM2": 100,
@@ -2104,7 +2104,7 @@
         "landCases": [
           {
             "id": "A",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 10000,
             "areaM2": 100,
@@ -2465,7 +2465,7 @@
         "landCases": [
           {
             "id": "A",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 10000,
             "areaM2": 100,
@@ -2477,7 +2477,7 @@
           },
           {
             "id": "B",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 30000,
             "areaM2": 100,
@@ -2489,7 +2489,7 @@
           },
           {
             "id": "C",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 20000,
             "areaM2": 100,
@@ -2502,7 +2502,7 @@
           },
           {
             "id": "D",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 20000,
             "areaM2": 100,
@@ -2864,7 +2864,7 @@
         "landCases": [
           {
             "id": "A",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 10000,
             "areaM2": 100,
@@ -2876,7 +2876,7 @@
           },
           {
             "id": "B",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 30000,
             "areaM2": 100,
@@ -2888,7 +2888,7 @@
           },
           {
             "id": "C",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 20000,
             "areaM2": 100,
@@ -2901,7 +2901,7 @@
           },
           {
             "id": "D",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 20000,
             "areaM2": 100,
@@ -2966,7 +2966,7 @@
         "landCases": [
           {
             "id": "A",
-            "landUse": "주거지역",
+            "landUse": "제2종일반주거지역",
             "jimok": "대",
             "priceManwon": 10000,
             "areaM2": 100,

@@ -63,7 +63,7 @@ class MedianFallbackTests(unittest.TestCase):
             dict(areaM2=0), dict(priceManwon=-1), dict(priceManwon=1e308),
             dict(date='2024-12-01'), dict(date='2025-02-30'), dict(date='2030-01-01'),
             dict(dong='방배동'), dict(sggCode='99999'),
-            dict(landUse='완충녹지'), dict(landUse='개발제한구역'),
+            dict(landUse='완충녹지'), dict(landUse='주거지역'),  # 개발제한구역은 이제 '용도미지정 등'으로 유효
             dict(landUse='일반상업지역', landUseCode='UQA123'), dict(jimok='대', jimokCode='01')]
         for patch in patches:
             data = fallback_fixture()

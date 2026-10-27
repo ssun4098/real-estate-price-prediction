@@ -71,7 +71,8 @@ export function validateBoundaryAllocation(parcel={}){
  if(!rawParts.length)fail('필지 안 용도지역 교차 면적 미확보');
  for(const part of rawParts){
   const zone=classifyZone(part?.zoneName,part?.zoneCode);
-  if(zone.status!=='ready'||zone.matchKey!==part?.zoneMatchKey)fail('경계 용도지역 코드·명칭 불일치');
+  // 비교그룹(zoneMatchKey)은 저장값을 믿지 않고 지금 규칙으로 코드에서 다시 정한다 (그룹 규칙이 바뀌어도 예전 저장 경계를 그대로 검증).
+  if(zone.status!=='ready')fail('경계 용도지역 코드·명칭 불일치');
   if(!expected.has(zone.code)&&!tolerated.has(zone.code))fail('경계 용도지역과 현재 토지이용계획 불일치');
   if((part?.pricingExcluded===true)!==tolerated.has(zone.code))fail('접함 경계 미세 교차 제외 근거 불일치: Python 재계산 필요');
   if(actual.has(zone.code))fail('같은 용도지역 교차 면적 중복');
@@ -81,7 +82,7 @@ export function validateBoundaryAllocation(parcel={}){
   const area=registerArea===null?null:registerArea*part.ratio;
   if(!positive(part?.allocatedAreaM2)||!positive(area)||Math.abs(part.allocatedAreaM2-area)>Math.max(.000001,registerArea*1e-10))fail('대장 면적 배분값 불일치');
   sumRatio+=finite(part?.ratio)?part.ratio:0;sumArea+=finite(part?.geometryAreaM2)?part.geometryAreaM2:0;
-  parts.push({...clone(part),ratio:part?.ratio,allocatedAreaM2:area,areaM2:area});
+  parts.push({...clone(part),zoneMatchKey:zone.matchKey,ratio:part?.ratio,allocatedAreaM2:area,areaM2:area});
  }
  if([...expected].some(code=>!actual.has(code)))fail('현재 적용 용도지역의 경계 누락');
  if(!positive(geometryArea)||Math.abs(1-sumRatio)*geometryArea>tolerance||Math.abs(sumArea-geometryArea)>tolerance)fail('면적 비율 합계 미완결');

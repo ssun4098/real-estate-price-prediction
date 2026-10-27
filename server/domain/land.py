@@ -6,12 +6,17 @@ import json
 import math
 import re
 
-RULES_VERSION = "land-match-v6-median-fallback-1"
+RULES_VERSION = "land-match-v7-48-groups-1"
 FALLBACK_POLICY = 'valid-other-groups-median'
 FALLBACK_REASON = '동일 그룹 비교사례 없음 · 중앙값 대체'
-ZONE_POOL = "녹지·관리·농림·자연환경보전"
-JIMOK_POOL = "전·답·과수원·목장용지"
-JIMOK_OTHER = "기타·미확인"
+# 토지 비교그룹 = 용도지역 8그룹 × 지목 6그룹 (같은 시군구·법정동 안에서 비교).
+# 근거: 팀 문서 '토지실거래가 데이터 전처리 개선 내용' — 학습 모델(CatBoost)과 같은 분류.
+ZONE_OTHER = "용도미지정 등"      # 용도미지정·개발제한구역·기타, 그리고 거래의 용도지역 누락
+JIMOK_OTHER = "기타"              # 전·답·임야·대·공장용지 외 23개 지목, 그리고 거래의 지목 누락
+JIMOK_GROUPS = ("전", "답", "임야", "대", "공장용지")
+ZONE_GROUPS = ("전용주거지역", "일반주거지역", "준주거지역", "상업지역", "공업지역", "녹지지역", "비도시지역", ZONE_OTHER)
+# 거래 자료의 용도지역 값 중 '용도미지정 등'으로 묶는 이름 (필지 토지이용계획의 개발제한구역은 용도구역이라 해당 없음)
+OTHER_ZONE_NAMES = {"용도미지정", "개발제한구역", "기타"}
 MISSING_ZONE_NAMES = {'', '-', '미상', '미정', '미확인', '미지정', '없음', '용도미지정', '용도지역미지정', '용도지역미확인', '용도지역미상', '용도지역없음'}
 MISSING_JIMOK_NAMES = {'', '-', '미상', '미정', '미확인', '미지정', '없음', '지목미상', '지목미확인', '지목없음'}
 # Exact MOLIT/KLIS names only. Facilities such as 완충녹지 are not 녹지지역.
@@ -32,6 +37,17 @@ ZONE_CODES = {
     "UQC001": ("농림지역", "농림"), "UQD001": ("자연환경보전지역", "자연환경보전"),
 }
 ZONE_NAMES = {name: (code, broad) for code, (name, broad) in ZONE_CODES.items()}
+# 용도지역 코드 → 8그룹. UQA100(주거지역, 세부 미구분)은 전용·일반·준주거 중 어디인지 알 수 없어 넣지 않는다.
+ZONE_GROUP_OF_CODE = {
+    "UQA110": "전용주거지역", "UQA111": "전용주거지역", "UQA112": "전용주거지역",
+    "UQA120": "일반주거지역", "UQA121": "일반주거지역", "UQA122": "일반주거지역", "UQA123": "일반주거지역",
+    "UQA130": "준주거지역",
+    "UQA200": "상업지역", "UQA210": "상업지역", "UQA220": "상업지역", "UQA230": "상업지역", "UQA240": "상업지역",
+    "UQA300": "공업지역", "UQA310": "공업지역", "UQA320": "공업지역", "UQA330": "공업지역",
+    "UQA400": "녹지지역", "UQA410": "녹지지역", "UQA420": "녹지지역", "UQA430": "녹지지역",
+    "UQB001": "비도시지역", "UQB100": "비도시지역", "UQB200": "비도시지역", "UQB300": "비도시지역",
+    "UQC001": "비도시지역", "UQD001": "비도시지역",
+}
 JIMOK_NAMES = "전 답 과수원 목장용지 임야 광천지 염전 대 공장용지 학교용지 주차장 주유소용지 창고용지 도로 철도용지 제방 하천 구거 유지 양어장 수도용지 공원 체육용지 유원지 종교용지 사적지 묘지 잡종지".split()
 JIMOK_CODES = {str(i + 1).zfill(2): name for i, name in enumerate(JIMOK_NAMES)}
 
@@ -51,9 +67,11 @@ def classify_zone(value, code=None):
     if code and not coded and named:
         return {"status": "conflict", "raw": raw, "code": code, "broadClass": None, "matchKey": None}
     broad = coded[1] if coded else named[1] if named and not code else None
-    return {"status": "ready" if broad else "unknown", "raw": raw,
-            "code": code or (named[0] if named else None), "broadClass": broad,
-            "matchKey": ZONE_POOL if broad in {"녹지", "관리", "농림", "자연환경보전"} else broad}
+    resolved = code or (named[0] if named else None)
+    group = ZONE_GROUP_OF_CODE.get(resolved) if broad else None
+    return {"status": "ready" if group else "unknown", "raw": raw,
+            "code": resolved, "broadClass": broad,
+            "matchKey": group}
 
 
 def classify_jimok(value, code=None):
@@ -64,7 +82,7 @@ def classify_jimok(value, code=None):
     canonical = None if conflict else coded or (name if name in JIMOK_NAMES and not code else None)
     return {"status": "conflict" if conflict else "ready" if canonical else "unknown", "raw": raw,
             "code": code or None, "name": canonical,
-            "matchKey": JIMOK_POOL if canonical in {"전", "답", "과수원", "목장용지"} else "대" if canonical == "대" else JIMOK_OTHER if canonical else None}
+            "matchKey": canonical if canonical in JIMOK_GROUPS else JIMOK_OTHER if canonical else None}
 
 
 def _missing_value(value, names):
@@ -72,10 +90,12 @@ def _missing_value(value, names):
 
 
 def classify_transaction_zone(value, code=None):
-    """Only genuine missing attributes join the fourth group; overlays never do."""
+    """거래 자료의 용도미지정·개발제한구역·기타는 '용도미지정 등' 그룹. 진짜 누락도 그 그룹에 '미확인'으로 넣는다."""
     result = classify_zone(value, code)
-    if result['status'] == 'unknown' and not code and _missing_value(value, MISSING_ZONE_NAMES):
-        result.update(status='missing', matchKey=ZONE_POOL)
+    if result['status'] == 'unknown' and not code and _text(value) in OTHER_ZONE_NAMES:
+        result.update(status='ready', broadClass=ZONE_OTHER, matchKey=ZONE_OTHER)
+    elif result['status'] == 'unknown' and not code and _missing_value(value, MISSING_ZONE_NAMES):
+        result.update(status='missing', matchKey=ZONE_OTHER)
     return result
 
 
@@ -87,7 +107,7 @@ def classify_transaction_jimok(value, code=None):
 
 
 def land_group_label(zone, jimok):
-    return (ZONE_POOL + '·미확인' if zone == ZONE_POOL else zone) + ' · ' + jimok
+    return zone + ' · ' + jimok
 
 
 def _classification_status(result):
@@ -390,12 +410,12 @@ def calculate_land(inputs, development, *, stats, context, date_reason, incomple
         row['representativeUnitPriceWonM2'] = matched['representativeUnitPriceWonM2'] if matched else row['stats'][method]
         reference_rows.append(row)
     completeness = land_completeness(profiles, rows, assignments, complete, [reason, '토지거래 수집 미완료' if incomplete else None])
-    return {"groups": rows, "referenceGroups": reference_rows, "referencePolicy": 'same-twelve-groups-v1', "representativeWon": partial if complete else None, "partialRepresentativeWon": partial if any(g["representativeWon"] is not None for g in rows) else None,
+    return {"groups": rows, "referenceGroups": reference_rows, "referencePolicy": 'same-48-groups-v1', "representativeWon": partial if complete else None, "partialRepresentativeWon": partial if any(g["representativeWon"] is not None for g in rows) else None,
             "completeness": completeness, "fallback": fallback,
             "excluded": excluded, "caseDecisions": decisions, "parcelProfiles": profiles, "parcelAssignments": assignments, "boundaryParts": boundary_parts,
             "coverage": {"coveredAreaM2": covered, "totalAreaM2": total, "coveredPct": covered / total * 100 if total else None, "unresolvedParcelCount": sum(p["status"] != "ready" for p in profiles)},
-            "comparisonReason": reason, "comparisonScope": scope, "ruleVersion": RULES_VERSION, "matchingMode": "custom-twelve-groups", "method": method,
-            'matchingPolicy': {'zoneGroups': ['주거', '상업', '공업', ZONE_POOL], 'jimokGroups': ['대', JIMOK_POOL, JIMOK_OTHER], 'missingZoneGroup': ZONE_POOL, 'missingJimokGroup': JIMOK_OTHER, 'noCasePolicy': FALLBACK_POLICY, 'boundaryPolicy': 'hold-missing-or-conflicting-evidence'},
+            "comparisonReason": reason, "comparisonScope": scope, "ruleVersion": RULES_VERSION, "matchingMode": "custom-48-groups", "method": method,
+            'matchingPolicy': {'zoneGroups': list(ZONE_GROUPS), 'jimokGroups': [*JIMOK_GROUPS, JIMOK_OTHER], 'missingZoneGroup': ZONE_OTHER, 'missingJimokGroup': JIMOK_OTHER, 'noCasePolicy': FALLBACK_POLICY, 'boundaryPolicy': 'hold-missing-or-conflicting-evidence'},
             "label": "사용자 지정 비교군 대표액 합계" if len(rows) > 1 else "예상 토지매입대금",
             "status": "토지사례 재조회 필요" if reason else "부분 수집 · 판정 보류" if incomplete else "산출 완료 · 중앙값 대체 포함" if complete and fallback['used'] else "산출 완료" if complete else "필지 분류·비교사례 확인 필요",
             "sourceStatus": "공개자료 기반 추정", "assumption": "같은 지역·용도지역·지목 비교군 우선. 동일 그룹 사례가 없으면 다른 유효 그룹 거래 단가 중앙값 대체. 경제적 동질성·개발 가능성 보장이 아님"}
