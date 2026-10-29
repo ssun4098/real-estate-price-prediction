@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>사업성 분석 콘솔</title>
+<link rel="stylesheet" href="/console/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/console/build/console.css">
+</head>
+<body>
+<header class="top">
+ <h1>사업성 분석 콘솔</h1>
+ <span class="tag" id="siteTag">사업지 미선택</span>
+ <span class="tag" id="calcTag">준비 중</span>
+ <span class="spacer"></span>
+ <label class="tag-select"><span class="sr">저장 샘플</span><select id="sampleSelect" aria-label="저장 샘플 열기"><option value="">저장 샘플 불러오는 중…</option></select></label>
+ <button class="btn" id="saveSample" type="button">샘플로 저장</button>
+ <button class="btn" id="exportJson" type="button">JSON 내보내기</button>
+ <label class="btn" for="importJson">JSON 불러오기</label><input type="file" id="importJson" accept="application/json,.json" hidden>
+ <button class="btn primary" id="pdfBtn" type="button">PDF 저장</button>
+ <a class="btn ghost" href="/" title="기존 화면으로">기존 화면</a>
+</header>
+<div class="app">
+ <aside id="aside">
+  <section><h2>사업</h2>
+   <div class="field"><label for="projName">사업명</label><input id="projName" class="inp" placeholder="예: 장상동 공동주택" maxlength="60"></div>
+   <div class="field"><label for="asOf">분석 기준일</label><input id="asOf" class="inp" type="date"></div>
+  </section>
+  <section><h2>개발규모</h2>
+   <div class="p-row"><label for="far">용적률 %</label><input type="number" id="far" class="inp num" min="0" step="5"><input type="range" data-for="far" min="0" max="500" step="5" aria-label="용적률 조절"></div>
+   <div class="p-row"><label for="farMax">최대 용적률 %</label><input type="number" id="farMax" class="inp num" min="50" step="10"></div>
+   <div class="field"><span class="lbl">호당 공급면적</span><div class="seg" role="group" aria-label="호당 공급면적 기준"><button type="button" data-area="median">비교단지 중앙값</button><button type="button" data-area="manual">직접 입력</button></div></div>
+   <div class="p-row" id="manualAreaRow"><label for="manualArea">호당 ㎡</label><input type="number" id="manualArea" class="inp num" min="20" step="0.1"></div>
+  </section>
+  <section><h2>수입</h2>
+   <div class="p-row"><label for="revAdj">분양가 보정 %</label><input type="number" id="revAdj" class="inp num" min="-50" max="50" step="1"><input type="range" data-for="revAdj" min="-30" max="30" step="1" aria-label="분양가 보정 조절"></div>
+   <div class="field"><span class="lbl">대표값</span><div class="seg" role="group" aria-label="분양가 대표값"><button type="button" data-method="median">중앙값</button><button type="button" data-method="mean">평균</button></div></div>
+   <div class="p-row"><label for="radius">분양사례 반경 km</label><input type="number" id="radius" class="inp num" min="1" max="20" step="1"></div>
+  </section>
+  <section><h2>토지비</h2>
+   <div class="p-row"><label for="landAdj">토지비 보정 %</label><input type="number" id="landAdj" class="inp num" min="-50" max="50" step="1"><input type="range" data-for="landAdj" min="-30" max="30" step="1" aria-label="토지비 보정 조절"></div>
+  </section>
+  <section class="actions">
+   <button class="btn" id="requery" type="button">비교사례 다시 조회</button>
+   <button class="btn" id="recalc" type="button">다시 계산</button>
+   <button class="btn" id="pin" type="button">현재값을 기준안으로</button>
+  </section>
+  <p class="note" id="asideNote"></p>
+ </aside>
+ <main id="main">
+  <section class="page" id="page1" aria-label="개요·필지·토지 예측">
+   <div class="tile kpi" id="k1"></div><div class="tile kpi" id="k2"></div><div class="tile kpi" id="k3"></div><div class="tile kpi" id="k4"></div><div class="tile kpi" id="k5"></div><div class="tile kpi" id="k6"></div>
+   <div class="tile span7 maptile">
+    <h3>필지 선택 · VWorld 위성<span class="r"><span id="mapHint" class="hint"></span></span></h3>
+    <div class="search"><input id="addr" class="inp" placeholder="주소 검색 (예: 장상동 82)" autocomplete="off" aria-label="주소 검색"><button class="btn" id="addrBtn" type="button">검색</button><div id="cands" class="cands" hidden></div></div>
+    <div id="map" role="application" aria-label="필지 선택 지도. 확대하면 필지 경계가 나오고, 누르면 선택하거나 해제합니다."></div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>선택 · 조회 완료</span><span><i style="background:var(--warn)"></i>조회 중·경계 보류</span><span><i style="background:var(--bad)"></i>조회 실패</span><span><i class="ring"></i>선택 가능한 필지</span><label class="chk"><input type="checkbox" id="showFac" checked>주변시설</label></div>
+   </div>
+   <div class="tile span5"><h3>선택 필지<span class="r num" id="parcelSum"></span></h3><div id="parcelList" class="scroll"></div></div>
+  </section>
+  <section class="page" id="page2" aria-label="토지비 예측">
+   <div class="tile span8"><h3>토지 그룹 단가 추이 · 6개월 뒤 예측<span class="r chips" id="grpChips"></span></h3><div id="fc"></div><div class="note">점: 월 거래 중앙값 · 선: 12개월 이동 중앙값 · 점선/빈 원: 모델 예측 · 회색 막대: 월 거래 건수(낮을수록 선이 불안정)</div></div>
+   <div class="tile span4"><h3>토지비 예측 요약<span class="r tag" id="modelTag"></span></h3><div id="fcTable"></div><div class="alert" id="fcAlert" hidden></div></div>
+  </section>
+  <section class="page" id="page3" aria-label="수지분석">
+   <div class="tile span7"><h3>수지 폭포 · 억원</h3><div id="wf"></div></div>
+   <div class="tile span5"><h3>수지 항목<span class="r num" id="totalTag"></span></h3><div id="costbar"></div><div id="finance"></div></div>
+  </section>
+  <section class="page" id="page4" aria-label="민감도·분양 비교">
+   <div class="tile span4"><h3>민감도 · ±10%</h3><div id="tor"></div></div>
+   <div class="tile span4"><h3>목표 수익률 · 평당 공사비 × 용적률</h3><div id="heat"></div></div>
+   <div class="tile span4"><h3>분양 비교단지 · 평당가</h3><div id="strip"></div><div id="cxTable"></div></div>
+  </section>
+  <section class="page" id="page5" aria-label="비교사례·입지·지역 지표">
+   <div class="tile span7"><h3>토지 실거래 사례<span class="r"><label class="chk"><input type="checkbox" id="showExcluded">제외 사례도 보기</label></span></h3><div id="landCases" class="scroll tall"></div></div>
+   <div class="tile span5"><h3>입지 · 규제</h3><div id="loc"></div></div>
+   <div class="tile span6"><h3 id="m1h">월간 지가변동률 %</h3><div id="m1"></div></div>
+   <div class="tile span6"><h3>COFIX 신규취급액 %</h3><div id="m2"></div></div>
+   <div class="tile span12"><h3>자료 출처·계산 상태</h3><div id="sources"></div></div>
+  </section>
+ </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="tip" role="tooltip"></div>
+<script src="/console/vendor/leaflet/leaflet.js"></script>
+<script type="module" src="/console/build/console.js"></script>
+</body>
+</html>

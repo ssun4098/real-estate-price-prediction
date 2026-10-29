@@ -14,7 +14,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
 from server import db
-from server.features import daily_load, model, pages, portfolio, public_data, snapshots, system
+from server.features import console, daily_load, model, pages, portfolio, public_data, snapshots, system
 from server.features.land_store_mysql import MySqlLandStore
 from server.features.applyhome_table import ApplyhomeTable
 from server.features.land_trade_table import LandTradeTable
@@ -93,6 +93,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_exception_handler(HTTPException, lambda _request, exc: error_response(exc))
     app.add_exception_handler(RequestValidationError, lambda _request, exc: error_response(exc))
 
-    for feature in (pages, system, public_data, snapshots, portfolio, model, daily_load):
+    for feature in (pages, system, public_data, snapshots, portfolio, model, daily_load, console):
         app.include_router(feature.router)
     return app
