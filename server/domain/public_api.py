@@ -29,6 +29,7 @@ MAX_BODY = 16 * 1024 * 1024
 COVERAGE_SEED = {"minMonth":"2020-02","maxMonth":"2026-10","observedMinDate":"2020-02-04","observedMaxDate":"2026-10-08","checkedAt":"2026-10-09T10:58:29.879402+00:00","status":"observed_seed","officialCoverageGuarantee":False,"sourceUrl":"https://www.data.go.kr/data/15098547/openapi.do","dateBasis":"모집공고일"}
 LAND_START_DATE = "2006-01-01"
 REVENUE_START_DATE = "2020-02-04"
+ADDRESS_LIMIT = 1000  # 주소 검색 결과 최대 건수 (도로명주소 API 100건 × 10페이지)
 KOREA_TIMEZONE = dt.timezone(dt.timedelta(hours=9))
 
 
@@ -808,23 +809,32 @@ class Collector:
         cache=self.session_cache if geocode else self.cache
         ck=("address",keyword,bool(geocode));hit=cache.get(ck)
         if hit is not None:return hit
-        p={"confmKey":self.require("juso"),"currentPage":1,"countPerPage":20,"keyword":keyword,"resultType":"json"}
-        data=self.request("https://business.juso.go.kr/addrlink/addrLinkApi.do",p).get("results",{})
-        c=data.get("common",{})
-        if str(c.get("errorCode"))!="0":raise ApiError("ADDRESS_REJECTED","주소 검색이 거절됐습니다. 인증키·검색어를 확인하세요.")
-        candidates=[]
-        for r in data.get("juso",[]) or []:
-            candidates.append({"label":text(r.get("roadAddr")),"address":text(r.get("jibunAddr")),"roadAddress":text(r.get("roadAddr")),"legalDongCode":text(r.get("admCd")),"legalDongName":" ".join(filter(None,[text(r.get("siNm")),text(r.get("sggNm")),text(r.get("emdNm")),text(r.get("liNm"))])),"dong":canonical_dong(" ".join(filter(None,[text(r.get("emdNm")),text(r.get("liNm"))]))),"lon":None,"lat":None,"coordinateStatus":"주소검색 API에는 좌표 없음"})
+        # 검색어에 해당하는 주소를 100건씩 끝까지 받는다 (너무 넓은 검색어로 멈추지 않게 최대 ADDRESS_LIMIT건).
+        candidates,total=[],0
+        for page in range(1,ADDRESS_LIMIT//100+1):
+            p={"confmKey":self.require("juso"),"currentPage":page,"countPerPage":100,"keyword":keyword,"resultType":"json"}
+            data=self.request("https://business.juso.go.kr/addrlink/addrLinkApi.do",p).get("results",{})
+            c=data.get("common",{})
+            if str(c.get("errorCode"))!="0":raise ApiError("ADDRESS_REJECTED","주소 검색이 거절됐습니다. 인증키·검색어를 확인하세요.")
+            rows=data.get("juso",[]) or [];total=int(c.get("totalCount") or 0)
+            candidates.extend(self._address_candidate(r) for r in rows)
+            if not rows or len(candidates)>=total:break
+        # 좌표는 앞의 몇 건만 미리 찾는다. 나머지는 화면에서 고를 때 그 주소 하나로 다시 검색해 좌표를 받는다.
         if geocode and self.keys.get("vworldGeocoder"):
             for candidate in candidates[:5]:
                 try:
                     point=self.geocode(candidate["address"])
                     if point.get("coordinateReturned"):candidate.update(point)
                 except ApiError:pass
-        result={"candidates":candidates,"totalCount":int(c.get("totalCount") or 0),"queriedAt":now(),"warnings":["주소 후보는 사업지 원문과 확인하세요. 견본주택 주소를 사용하지 마세요."]}
+        result={"candidates":candidates,"totalCount":total,"truncated":len(candidates)<total,"queriedAt":now(),"warnings":["주소 후보는 사업지 원문과 확인하세요. 견본주택 주소를 사용하지 마세요."]}
         if geocode:result.update(realtimeOnly=True,persistencePolicy="session_only")
         cache.set(ck,result)
         return result
+
+    @staticmethod
+    def _address_candidate(r):
+        """도로명주소 API 한 건 → 화면 주소 후보 (좌표는 아직 없음)."""
+        return {"label":text(r.get("roadAddr")),"address":text(r.get("jibunAddr")),"roadAddress":text(r.get("roadAddr")),"legalDongCode":text(r.get("admCd")),"legalDongName":" ".join(filter(None,[text(r.get("siNm")),text(r.get("sggNm")),text(r.get("emdNm")),text(r.get("liNm"))])),"dong":canonical_dong(" ".join(filter(None,[text(r.get("emdNm")),text(r.get("liNm"))]))),"lon":None,"lat":None,"coordinateStatus":"주소검색 API에는 좌표 없음"}
 
     def odcloud(self,path,conditions):
         if self.applyhome_table is not None:
