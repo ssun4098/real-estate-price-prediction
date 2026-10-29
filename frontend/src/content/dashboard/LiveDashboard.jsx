@@ -227,7 +227,7 @@ export function DashboardContent(){
   if(alive&&defaultLoadAllowed.current&&!currentInput.current.parcels.length)openSample(item,{restoreView:false});
  }).catch(e=>{if(alive)setSampleError(e.message)});return()=>{alive=false}},[status.mode]);
  const sampleLibrary={items:sampleItems,activeId:sampleActive?.id,onSave:saveSample,onLoad:loadSample,saving:sampleBusy==='save',loading:sampleBusy==='save'?'':sampleBusy,disabled:printBlocked,local,error:sampleError,
-  notice:sampleNotice||(sampleActive?`저장 시점 결과 · ${new Date(sampleActive.capturedAt).toLocaleString('ko-KR')} · 값을 바꾼 뒤 저장하면 새 항목으로 보관됩니다.`:'')};
+  notice:sampleNotice};
  const exportJson=()=>local?run('JSON 저장',async()=>{const d=await request('/api/export-json',{method:'POST',body:JSON.stringify(sanitizeSnapshot(result))});setMessage(`JSON 저장 완료 · ${d.filePath||d.fileName}`);await reload()}):download(`pf-study-v6-${result.id||'result'}.json`,JSON.stringify(sanitizeSnapshot(result),null,2));
  const importFile=async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;await run('분석 결과 불러오기',async()=>{if(file.size>64*1024*1024)throw new Error('64MB 이하의 결과 파일을 선택하세요.');const raw=JSON.parse(await file.text());if(raw?.schemaVersion!==1||!raw.inputs||!raw.results)throw new Error('지원하는 PF Study 분석 결과 파일이 아닙니다.');const x=sanitizeSnapshot(raw);if(online){const d=await request('/api/snapshots',{method:'POST',body:JSON.stringify(x)});await reload();load(d.snapshot||x);setMessage('사이트에 저장했습니다. 다른 PC에서도 같은 권한으로 열 수 있습니다.')}else load(x)})};
  // PDF is a capture of the visible dashboard, including its current calculations.
