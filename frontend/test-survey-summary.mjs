@@ -51,6 +51,16 @@ test('failed planning source is not counted as no-regulation',()=>{
  const result=designationSummary([{pnu,attributes:{landUse:{status:'failed',rows:[zone('자연녹지지역','UQA430')]}}}],'zone');
  assert.equal(result.assignments,0);assert.equal(result.unknownParcels,1);assert.deepEqual(result.rows,[{label:'미확인',value:1}]);
 });
+test('district with no designation is 미지정, but a failed lookup stays 미확인',()=>{
+ const none={pnu,attributes:{landUse:{status:'success',rows:[zone('자연녹지지역','UQA430')]}}};
+ const failed={pnu:'4136025321107100001',attributes:{landUse:{status:'failed',rows:[]}}};
+ const result=designationSummary([none,failed],'district');
+ assert.deepEqual(result.rows,[{label:'미지정',value:1},{label:'미확인',value:1}]);
+ assert.equal(result.unknownParcels,2);assert.equal(result.unspecifiedParcels,1);
+ assert.match(result.note,/미확인 1필지 · 미지정 1필지/);
+ // 용도지역·용도구역은 그대로 '미확인'
+ assert.deepEqual(designationSummary([{pnu,attributes:{landUse:{status:'success',rows:[]}}}],'useArea').rows,[{label:'미확인',value:1}]);
+});
 test('district plan area belongs to useArea, not district, while preserving its source row',()=>{
  const plan=zone('지구단위계획구역','UQQ300','1',{cnflcAtNm:'포함',manageNo:'PLAN-A'});
  const development=zone('택지개발지구','SOURCE-DISTRICT','1',{cnflcAtNm:'포함'});
@@ -81,7 +91,7 @@ test('combined regulation composition gives 40/60 percent and each category its 
  const original=JSON.stringify(parcels),groups=designationComposition(parcels);
  assert.equal(JSON.stringify(parcels),original);assert.deepEqual(groups.map(g=>g.total),[20,20,20]);
  assert.deepEqual(groups[0].rows.map(r=>[r.value,r.percentage]),[[8,40],[12,60]]);
- assert.deepEqual(groups[1].rows.map(r=>[r.label,r.value,r.percentage]),[['미확인',8,40],['택지개발지구',12,60]]);
+ assert.deepEqual(groups[1].rows.map(r=>[r.label,r.value,r.percentage]),[['미지정',8,40],['택지개발지구',12,60]]);
  assert.deepEqual(groups[2].rows.map(r=>r.percentage),[40,40,20]);
 });
 
@@ -91,6 +101,6 @@ test('overlapping designations use summed assignments; unknown and duplicate par
  const groups=designationComposition([one,one,unknown]);
  assert.equal(groups[0].parcelCount,2);assert.equal(groups[0].multipleParcels,1);assert.equal(groups[0].total,3);
  assert.deepEqual(groups[0].rows.map(r=>r.value),[1,1,1]);assert.ok(groups[0].rows.every(r=>Math.abs(r.percentage-100/3)<1e-10));
- assert.equal(groups[1].total,2);assert.equal(groups[1].rows[0].percentage,100);
+ assert.equal(groups[1].total,2);assert.deepEqual(groups[1].rows.map(r=>[r.label,r.percentage]),[['미지정',50],['미확인',50]]);
  assert.ok(designationComposition([]).every(g=>g.total===0&&g.rows.length===0));
 });

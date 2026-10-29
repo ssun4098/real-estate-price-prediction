@@ -43,7 +43,7 @@ export function buildingSummary(parcels){
 
 /** Count each (parcel, designation) once; retain all original relationship rows. */
 export function designationSummary(parcels,kind){
- const unique=uniqueSurveyParcels(parcels),counts=new Map(),evidence=[],adjacentNames=new Set();let assignments=0,multipleParcels=0,unknownParcels=0;
+ const unique=uniqueSurveyParcels(parcels),counts=new Map(),evidence=[],adjacentNames=new Set();let assignments=0,multipleParcels=0,unknownParcels=0,unspecifiedParcels=0;
  for(const [pi,p] of unique.entries()){
   const profile=parcelProfile(p),failed=['error','failed','partial','조회 실패','unavailable'].includes(profile.sourceBasis.planningStatus),names=new Set();
   for(const row of (Array.isArray(profile.zoneRawRows)?profile.zoneRawRows:[]).filter(record)){
@@ -56,11 +56,15 @@ export function designationSummary(parcels,kind){
    evidence.push({parcelNumber:pi+1,pnu:p.pnu,designation:name,code,relation:actual||expected||'미확인',decision:reason,updatedAt:row.lastUpdtDt||'미확인',source:row});
   }
   if(names.size){assignments+=names.size;if(names.size>1)multipleParcels++;for(const name of names)counts.set(name,(counts.get(name)||0)+1);}
-  else{unknownParcels++;counts.set('미확인',(counts.get('미확인')||0)+1);}
+  else{
+   // 용도지구는 조회가 됐는데 지정이 없으면 '미지정'. 조회 자체가 실패한 필지는 모르는 상태라 '미확인'.
+   const none=kind==='district'&&!failed?'미지정':'미확인';
+   unknownParcels++;if(none==='미지정')unspecifiedParcels++;counts.set(none,(counts.get(none)||0)+1);
+  }
  }
  const adjacent=[...adjacentNames];
- return {rows:[...counts].map(([label,value])=>({label,value})),evidence,parcelCount:unique.length,assignments,multipleParcels,unknownParcels,adjacentNames:adjacent,
-  note:`선택 ${unique.length}필지 · 포함·저촉 ${assignments}건${multipleParcels?` · 복수 지정 ${multipleParcels}필지`:''}${unknownParcels?` · 미확인 ${unknownParcels}필지`:''}. 같은 필지에 여러 지정이 있으면 합계가 필지 수를 넘습니다. ${adjacent.length?`접함 제외: ${adjacent.slice(0,2).join(', ')}${adjacent.length>2?` 외 ${adjacent.length-2}개`:''}.`:'접함은 제외.'}`};
+ return {rows:[...counts].map(([label,value])=>({label,value})),evidence,parcelCount:unique.length,assignments,multipleParcels,unknownParcels,unspecifiedParcels,adjacentNames:adjacent,
+  note:`선택 ${unique.length}필지 · 포함·저촉 ${assignments}건${multipleParcels?` · 복수 지정 ${multipleParcels}필지`:''}${unknownParcels-unspecifiedParcels?` · 미확인 ${unknownParcels-unspecifiedParcels}필지`:''}${unspecifiedParcels?` · 미지정 ${unspecifiedParcels}필지`:''}. 같은 필지에 여러 지정이 있으면 합계가 필지 수를 넘습니다. ${adjacent.length?`접함 제외: ${adjacent.slice(0,2).join(', ')}${adjacent.length>2?` 외 ${adjacent.length-2}개`:''}.`:'접함은 제외.'}`};
 }
 
 /** Composition denominator is each category's assignment count plus unknown

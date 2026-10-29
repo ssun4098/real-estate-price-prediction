@@ -80,7 +80,8 @@
 │       ├─ survey.py          입지 조사
 │       └─ land.py, boundary.py, regions.py …  토지 분류·경계 배분·지역 목록
 │
-├─ frontend/build/      ← 화면 HTML 파일 하나 (V6.template.html, 스크립트·스타일 포함)
+├─ frontend/            ← 화면 원본 소스 (건드리지 않음)
+│   └─ build/           │  완성된 화면 (서버가 브라우저로 보내는 HTML)
 ├─ data/                ← 코드가 아닌 자료
 │   ├─ samples/         │  기본으로 들어 있는 예시 분석 (안산 장상동 27필지)
 │   └─ models/          │  학습 모델 (land_price_linear.py + linear/model.joblib, 예전 CatBoost)

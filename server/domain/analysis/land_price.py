@@ -58,7 +58,7 @@ def model_parcels(land):
 def combine_land_model(rows, adjustment=1.0):
     """모델 금액 = Σ(구한 필지 단가 × 면적) + 평균 단가 × 못 구한 필지 면적. 한 필지도 못 구하면 None.
 
-    화면(frontend/build/V6.template.html 안의 combineLandModel)과 같은 계산.
+    화면(frontend/src/content/dashboard/model-land-estimate.mjs 의 combineLandModel)과 같은 계산.
     """
     def positive(value):
         return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0

@@ -242,7 +242,7 @@ class LandModelInAnalysisTests(unittest.TestCase):
     """분석(analyze)의 토지매입대금이 모델 금액으로 바뀌는지. 모델 파일 없이 가짜 모델 함수로 검사한다."""
 
     def test_combine_matches_screen_formula(self):
-        # 화면 계산(V6.template.html 안의 combineLandModel)과 같은 숫자: 3억 + 평균 2백만 × 50㎡ = 4억
+        # 화면 테스트(model-land-estimate.test.mjs)와 같은 숫자: 3억 + 평균 2백만 × 50㎡ = 4억
         from server.domain.analysis.land_price import combine_land_model
         m = combine_land_model([{"areaM2": 100, "unitPriceKrwPerM2": 1e6}, {"areaM2": 50, "unitPriceKrwPerM2": 4e6},
                                 {"areaM2": 30}, {"areaM2": 20, "status": "분류 불가"}])

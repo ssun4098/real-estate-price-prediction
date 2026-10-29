@@ -23,7 +23,7 @@
 | DB | MySQL 8.4 (Docker), SQLAlchemy, PyMySQL | 토지 실거래·청약홈 분양정보 적재, 분석 결과 저장 |
 | 공간 계산 | Shapely, pyproj | 필지 경계와 용도지역 경계를 겹쳐 면적 배분 |
 | 예측 모델 | scikit-learn 선형회귀 (예전 모델: CatBoost) | 토지 그룹(시군구·지목·용도지역)의 6개월 뒤 단가 예측 |
-| 프론트엔드 | React 19, Recharts (완성된 HTML 파일 하나) | 대시보드 화면과 차트 |
+| 프론트엔드 | React 19, Vite, Recharts | 대시보드 화면과 차트 |
 | 배포 | Docker Compose, Nginx, AWS EC2 (Ubuntu) | 컨테이너 실행, 80·443 포트 연결 |
 | 기타 | Git LFS | 용량이 큰 예전 CatBoost 모델 파일(`model.cbm`) 관리 |
 
@@ -80,7 +80,8 @@ flowchart TB
 │   ├─ features/           기능별 URL 창구 (분석 저장, 공공데이터 조회, 모델 예측, 매일 자동 적재 등)
 │   └─ domain/             공공 API 연결, 토지 분류·면적 배분
 │       └─ analysis/       사업성 계산 (수입·토지비·비용·현금흐름)
-├─ frontend/build/V6.template.html   화면 파일 하나 (스크립트·스타일 포함. 서버가 샘플을 끼워 브라우저로 보냄)
+├─ frontend/               React 화면 소스
+│   └─ build/V6.template.html   완성된 화면 파일 (서버가 브라우저로 보냄)
 ├─ data/
 │   ├─ samples/            기본 제공 예시 분석 (안산 장상동 27필지)
 │   └─ models/             토지 단가 예측 모델 (선형회귀, 예전 CatBoost)과 입력 자료
