@@ -67,6 +67,12 @@ main.page[data-data-app-content="dashboard"]{--data-app-content-width:var(--data
   .pf-v3-page:not(.v6-pdf-desktop) .v3-finance-row>:first-child{grid-column:1/-1}
   .pf-v3-page:not(.v6-pdf-desktop) .v3-finance-row>output{white-space:nowrap;min-width:64px}
 }
+
+/* 한글 줄바꿈 (2026-10-29): 화면 폭이 줄어도 "설|정", "필|지"처럼 단어 중간에서 끊기지 않게 띄어쓰기 단위로 줄을 바꾼다.
+   띄어쓰기 없는 아주 긴 글자는 칸을 넘칠 때만 중간에서 바꾼다. 팝업(.dialog)은 본문 밖에 붙어서 따로 지정. PDF·인쇄는 그대로. */
+@media screen{
+  .pf-live-page:not(.v6-pdf-desktop),body>.dialog{word-break:keep-all;overflow-wrap:anywhere}
+}
 </style>
 </head>
 <body>
