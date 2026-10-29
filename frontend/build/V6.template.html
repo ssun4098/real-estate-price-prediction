@@ -73,6 +73,14 @@ main.page[data-data-app-content="dashboard"]{--data-app-content-width:var(--data
 @media screen{
   .pf-live-page:not(.v6-pdf-desktop),body>.dialog{word-break:keep-all;overflow-wrap:anywhere}
 }
+
+/* 작은 화면 (2026-10-29): 화면은 원래 브라우저 창 높이 한 화면에 모든 카드를 끼워 맞추고 넘치는 부분을 숨긴다.
+   창 높이가 낮거나(노트북·윈도우 배율 125~150%·브라우저 확대) 폭이 좁으면 카드가 눌려 글자가 겹치고, 아래 내용이 잘려 스크롤도 안 된다.
+   그런 화면에서는 창 높이 고정을 풀고 페이지를 스크롤하게 한다. 넓고 높은 화면은 그대로 한 화면 배치. PDF 저장 모드는 제외. */
+@media screen and (max-width:1180px), screen and (max-height:860px){
+  .dashboard-root:has(>main[data-data-app-content=dashboard]>.pf-live-page:not(.v6-pdf-desktop)){height:auto;min-height:100dvh;overflow:visible}
+  main[data-data-app-content=dashboard]:has(>.pf-live-page:not(.v6-pdf-desktop)){height:auto;overflow:visible}
+}
 </style>
 </head>
 <body>
