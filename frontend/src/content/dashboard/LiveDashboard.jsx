@@ -1,5 +1,6 @@
 import React,{useEffect,useState,useRef,useMemo} from 'react';
-import {DataComponent,Dialog,SortableRegion,SortableItem,SectionNavigator} from '../../data-app-public.jsx';
+import {Dialog,SortableRegion,SortableItem,SectionNavigator} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {Field,Select,Empty,Metric,SatelliteMap,VerticalBox,request,number,eok,uid,download,safeUrl} from './pf-live-widgets.jsx';
 import LiveFinance from './LiveFinance.jsx';
 import {RevenueFormula} from './PriceFormula.jsx';

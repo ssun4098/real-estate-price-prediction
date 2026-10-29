@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { DataComponent, EvidenceChart } from '../../data-app-public.jsx';
+import {DataComponent,EvidenceChart} from './data-component.jsx';
 import { calculateModel, MODEL_NOTES } from './financial-model.mjs';
 
 const nf=new Intl.NumberFormat('ko-KR',{maximumFractionDigits:2});

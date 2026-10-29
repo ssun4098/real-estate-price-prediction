@@ -1,5 +1,6 @@
 import React from 'react';
-import {DataComponent,DataTable} from '../../data-app-public.jsx';
+import {DataTable} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {boundaryView,boundaryNumber as fmt} from './boundary-display.mjs';
 import {landAmountStatus} from './land-completeness.mjs';
 import './boundary-allocation.css';

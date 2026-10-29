@@ -1,5 +1,6 @@
 import React,{useState} from 'react';
-import {DataComponent,ChartMark,ChartTooltip} from '../../data-app-public.jsx';
+import {ChartMark,ChartTooltip} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {number,eok,VerticalBox} from './pf-live-widgets.jsx';
 import {landAmountStatus} from './land-completeness.mjs';
 import './land-distribution.css';

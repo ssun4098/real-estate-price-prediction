@@ -1,5 +1,5 @@
 import React from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {designationComposition} from './survey-summary.mjs';
 import {number} from './pf-live-widgets.jsx';
 import './regulation-composition.css';

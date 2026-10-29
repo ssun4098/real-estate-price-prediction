@@ -1,5 +1,5 @@
 import React from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {Field,Select,Metric,CashflowChart,number,eok,uid} from './pf-live-widgets.jsx';
 import {UnitField} from './ui-inputs.jsx';
 import {DebtMode,ScheduleWizard,EventsEditor,PlanHistory} from './FinanceTools.jsx';

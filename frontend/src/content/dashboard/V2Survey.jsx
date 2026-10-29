@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {Field,Select,number,safeUrl,uid} from './pf-live-widgets.jsx';
 import {evaluateSite,REALTIME_NOTICE} from './v2-policy.mjs';
 import {withoutRetailSurvey,isOutOfScopeFacility} from './map-overlays.mjs';

@@ -1,5 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {DataComponent,Dialog} from '../../data-app-public.jsx';
+import {Dialog} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {number,eok,VerticalBox} from './pf-live-widgets.jsx';
 import {financeRowSetting,revisionStats} from './revision-model.mjs';
 import {parcelProfile} from './land-comparison.mjs';

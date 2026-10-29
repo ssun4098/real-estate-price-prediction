@@ -1,5 +1,5 @@
 import React from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {facilityDistanceBands} from './map-overlays.mjs';
 import {FacilityIcon} from './FacilityIcon.jsx';
 import './facility-bands.css';

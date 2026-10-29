@@ -1,5 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {Dialog,EvidenceChart} from '../../data-app-public.jsx';
+import {Dialog} from '../../data-app-public.jsx';
+import {EvidenceChart} from './data-component.jsx';
 import {number} from './pf-live-widgets.jsx';
 import './survey-charts.css';
 

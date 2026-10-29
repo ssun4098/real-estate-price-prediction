@@ -1,6 +1,6 @@
 import {publicRevenueEvidence} from './v2-policy.mjs';
 import React from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {DataComponent} from './data-component.jsx';
 import {Metric,VerticalBox,number,eok} from './pf-live-widgets.jsx';
 import {LINKED_DEFAULTS,BUDGET_DEFAULTS,BUDGET_ROWS,calculateBudget,linkedDevelopment,acceptedComplexes} from './revision-model.mjs';
 import './revision.css';
