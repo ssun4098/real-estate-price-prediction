@@ -45,7 +45,7 @@ test('empty direct group completes its amount with an explicitly identified subs
  const substituted=result.groups.find(group=>group.fallback.used);assert.equal(substituted.stats.n,0);assert.equal(substituted.representativeUnitPriceWonM2,1e6);assert.deepEqual(substituted.fallback.sourceCaseIds,['A']);
 });
 test('held boundary is distinguished from missing transaction price',()=>{
- const input=fixture('multi-group');delete input.parcels[1].boundaryAllocation;
+ const input=fixture('multi-group');delete input.parcels[1].boundaryAllocation;input.parcels[1].areaM2+=1;
  const result=calculateLand(input),c=result.completeness;
  assert.equal(c.classificationHeldParcelCount,1);assert.equal(c.unpricedGroupCount,0);
  assert.equal(c.pricedParcelCount,1);assert.match(c.reasons.join(' '),/경계 조회 필요/);assert.equal(result.representativeWon,null);
@@ -58,7 +58,7 @@ test('mixed parcel retains separate direct and substituted parts and counts the 
  assert.equal(result.fallback.groupCount,1);assert.equal(result.fallback.parcelCount,1);assert.equal(result.groups.find(group=>group.fallback.used).stats.n,0);
 });
 test('manual amount remains visibly manual and does not turn evidence complete',()=>{
- const input=fixture('partial-group');delete input.parcels[1].boundaryAllocation;
+ const input=fixture('partial-group');delete input.parcels[1].boundaryAllocation;input.parcels[1].areaM2+=1;
  const result=calculateLand(input);
  const manual=landAmountStatus({...result,representativeWon:3e9,comparableWon:null,appliedSetting:{mode:'amount',value:3e9}});
  assert.equal(manual.status,'manual');assert.equal(manual.appliedWon,3e9);assert.equal(manual.completeness.complete,false);assert.equal(manual.adjustedSubtotalWon,null);

@@ -91,7 +91,8 @@ class MedianFallbackTests(unittest.TestCase):
         for scenario in ('empty', 'boundary', 'area'):
             data = fallback_fixture()
             if scenario == 'empty': data['comparables']['landCases'] = []
-            elif scenario == 'boundary': data['parcels'][0].pop('boundaryAllocation')
+            elif scenario == 'boundary':  # 경계 없음 + 선택 면적이 대장과 다름 → 단일 용도지역 대체도 불가
+                data['parcels'][0].pop('boundaryAllocation'); data['parcels'][0]['areaM2'] += 1
             else: data['parcels'][0]['areaM2'] = None
             with self.subTest(scenario=scenario):
                 land = analyze(data, partial=True)['results']['land']

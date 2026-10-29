@@ -32,6 +32,13 @@ class LandReferenceTests(unittest.TestCase):
     def test_missing_boundary_holds_total_without_hiding_reference_distribution(self):
         data = reference_fixture()
         data['parcels'][0].pop('boundaryAllocation')
+        # 단일 용도지역이면 경계 없이도 대장 면적 전체로 계산 (2026-10-29).
+        result = analyze(data)['results']['land']
+        self.assertIsNotNone(result['representativeWon'])
+        self.assertEqual(result['referenceGroups'][0]['stats']['n'], 3)
+        data = reference_fixture()
+        data['parcels'][0].pop('boundaryAllocation')
+        data['parcels'][0]['areaM2'] += 1  # 선택 면적이 대장과 다르면 보류
         result = analyze(data)['results']['land']
         self.assertIsNone(result['representativeWon'])
         self.assertEqual(result['groups'], [])

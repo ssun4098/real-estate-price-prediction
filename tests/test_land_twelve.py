@@ -131,9 +131,10 @@ class TwelveGroupsTests(unittest.TestCase):
             self.assertIsNone(analyze(data, partial=True)['results']['land']['representativeWon'])
 
     def test_no_boundary_or_conflicting_jimok_still_holds(self):
+        # 경계가 없어도 용도지역이 하나뿐이면 대장 면적 전체로 계산 (2026-10-29). 지목이 어긋나면 여전히 보류.
         data = make_input(); data['parcels'][0].pop('boundaryAllocation')
         result = analyze(data)['results']['land']
-        self.assertIsNone(result['representativeWon'])
+        self.assertIsNotNone(result['representativeWon'])
         self.assertEqual(result['referenceGroups'][0]['stats']['n'], 1)
         data = make_input()
         data['parcels'][0]['attributes']['landRegister']['rows'][0]['lndcgrCode'] = '08'

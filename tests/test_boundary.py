@@ -128,10 +128,21 @@ class OverlayTests(unittest.TestCase):
         self.assertIsNone(analyze(data)['results']['land']['representativeWon'])
 
     def test_missing_single_zone_boundary_and_changed_register_hold(self):
+        # 2026-10-29 사용자 결정: 경계가 없어도 토지이용계획의 포함·저촉 용도지역이 하나뿐이면 대장 면적 전체를 그 용도지역으로 계산한다.
         data=fixture();p=data['parcels'][0];p.pop('boundaryAllocation')
-        self.assertIsNone(analyze(data)['results']['land']['representativeWon'])
+        profile=parcel_area_profile(p)
+        self.assertEqual((profile['status'],profile['zoneBasis']),('ready','land-use-plan-single-zone'))
+        self.assertEqual([(a['ratio'],a['areaM2']) for a in profile['areaAllocations']],[(1.0,100.0)])
+        self.assertIsNotNone(analyze(data)['results']['land']['representativeWon'])
+        p=fixture()['parcels'][0];p.pop('boundaryAllocation');p['areaM2']=101
+        self.assertEqual(parcel_area_profile(p)['status'],'missing')
         p=fixture()['parcels'][0];p['areaM2']=101
         self.assertEqual(parcel_area_profile(p)['status'],'missing')
+
+    def test_two_zones_without_boundary_still_hold(self):
+        data=multi_fixture();data['parcels'][0].pop('boundaryAllocation')
+        self.assertEqual(parcel_area_profile(data['parcels'][0])['status'],'missing')
+        self.assertIsNone(analyze(data)['results']['land']['representativeWon'])
 
     def test_empty_group_uses_marked_fallback_for_its_verified_boundary_area(self):
         data=multi_fixture();data['comparables']['landCases']=data['comparables']['landCases'][:1]

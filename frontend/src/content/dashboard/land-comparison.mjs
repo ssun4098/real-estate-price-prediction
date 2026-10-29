@@ -36,12 +36,28 @@ export function parcelProfile(parcel){
  const allReasons=unique(reasons),status=!allReasons.length?'ready':zoneKeys.length>1||categoryNames.length>1||allReasons.some(x=>x.includes('불일치'))?'ambiguous':'missing',pnu=String(parcel.pnu||'');
  return {pnu,status,ruleVersion:LAND_RULE_VERSION,zoneMatchKey:zoneKeys.length===1&&!allReasons.length?zoneKeys[0]:null,jimokMatchKey:categoryKeys.length===1&&!allReasons.length?categoryKeys[0]:null,zoneBroadClasses:unique(zones.map(z=>z.broadClass)).sort(),jimokRaw:categoryNames,jimokStatus:missingCategory?'missing':categoryNames.length?'known':'unclassified',jimokGroupKeys:categoryKeys,zoneRawRows:zoneRaw,jimokRawRows:regRaw,adjacentRows:adjacent,sourceBasis:{zoning:'current-land-use-plan',jimok:'current-land-register',historicalReconstruction:false,planningStatus:Object.hasOwn(planning,'status')?planning.status:'미확보',registerStatus:Object.hasOwn(register,'status')?register.status:'미확보',planningQueriedAt:planning.queriedAt??null,registerQueriedAt:register.queriedAt??null,planningUpdatedAt:unique(zoneRows.map(r=>r.lastUpdtDt).filter(Boolean).map(String)).sort(),registerUpdatedAt:unique(regRows.map(r=>r.lastUpdtDt).filter(Boolean).map(String)).sort()},reasons:allReasons,fingerprint:JSON.stringify([LAND_RULE_VERSION,pnu,status,zoneKeys,categoryNames,allReasons])};
 }
+// 경계 계산이 보류여도, 토지이용계획의 '포함·저촉' 용도지역이 하나뿐이면 대장 면적 전체를 그 용도지역으로 본다.
+// 브이월드 용도지역 경계 자료에 꼬인 도형·이름 없는 도형이 섞여 경계 계산이 보류되는 필지(예: 역삼동 826-37) 대응 (2026-10-29).
+// 분류에 문제가 있거나(용도지역 둘 이상 포함), 대장 면적이 하나가 아니거나, 계산용 면적과 다르면 null (지금처럼 보류).
+// 서버(server/domain/land.py 의 _single_zone_allocation)와 같은 규칙이다.
+export function singleZoneAllocation(parcel,base=parcelProfile(parcel)){
+ if(base.status!=='ready')return null;
+ const zones=(base.zoneRawRows||[]).filter(row=>row&&typeof row==='object'&&['1','2'].includes(String(row.cnflcAt||''))).map(row=>classifyZone(row.prposAreaDstrcCodeNm,row.prposAreaDstrcCode)).filter(zone=>zone.status==='ready');
+ if(new Set(zones.map(zone=>zone.matchKey)).size!==1)return null;
+ const num=value=>{if(typeof value==='boolean'||value==null||value==='')return null;const n=Number(String(value).replace(/,/g,''));return Number.isFinite(n)?n:null;};
+ const rows=Array.isArray(parcel.attributes?.landRegister?.rows)?parcel.attributes.landRegister.rows:[],areas=rows.filter(row=>row&&typeof row==='object'&&!Array.isArray(row)).map(row=>num(row.lndpclAr));
+ if(areas.length!==1||areas[0]===null||areas[0]<=0)return null;
+ const selected=num(parcel.areaM2);if(selected===null||Math.abs(selected-areas[0])>Math.max(.01,areas[0]*1e-8))return null;
+ const zone=zones[0];
+ return {allocationId:`${String(parcel.pnu||'')}:${zone.code}`,zoneName:zone.raw,zoneCode:zone.code,zoneMatchKey:zone.matchKey,ratio:1,areaM2:areas[0],geometryAreaM2:null,geometry:null,basis:'토지이용계획 단일 용도지역 · 대장 면적 전체'};
+}
 export function parcelAreaProfile(parcel){
  const base=parcelProfile(parcel),boundary=validateBoundaryAllocation(parcel);
  const reasons=unique([...base.reasons.filter(reason=>reason!=='혼합 용도지역·면적 배분 미확인'),...(boundary.status==='ready'?[]:boundary.reasons)]);
  const categories=base.jimokGroupKeys,status=reasons.length?'missing':'ready';
  const jimokMatchKey=categories.length===1?categories[0]:null;
  const allocations=status==='ready'?boundary.parts.filter(part=>!part.pricingExcluded).map((part,index)=>({allocationId:part.allocationId||`${parcel.pnu}:${part.zoneCode||part.zoneName}:${index}`,zoneMatchKey:part.zoneMatchKey,zoneName:part.zoneName,zoneCode:part.zoneCode,ratio:part.ratio,areaM2:part.allocatedAreaM2,geometryAreaM2:part.geometryAreaM2,geometry:part.geometry})):[];
+ if(boundary.status!=='ready'){const single=singleZoneAllocation(parcel,base);if(single)return {...base,status:'ready',reasons:[],jimokMatchKey,zoneMatchKey:single.zoneMatchKey,boundaryStatus:boundary.status,boundaryReasons:unique(boundary.reasons||[]),zoneBasis:'land-use-plan-single-zone',areaAllocations:[single]};}
  return {...base,status,reasons,jimokMatchKey:status==='ready'?jimokMatchKey:null,zoneMatchKey:status==='ready'&&new Set(allocations.map(part=>part.zoneMatchKey)).size===1?allocations[0].zoneMatchKey:null,boundaryStatus:boundary.status,areaAllocations:allocations};
 }
 function stats(values){

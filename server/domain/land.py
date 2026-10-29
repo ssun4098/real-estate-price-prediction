@@ -192,6 +192,43 @@ def parcel_profile(parcel):
             "adjacentRows": adjacent, "sourceBasis": source, "reasons": reasons, "fingerprint": fingerprint}
 
 
+def _single_zone_allocation(parcel, profile):
+    """경계 계산이 보류여도, 토지이용계획의 '포함·저촉' 용도지역이 하나뿐이면 대장 면적 전체를 그 용도지역으로 본다.
+
+    브이월드 용도지역 경계 자료에 꼬인 도형·이름 없는 도형이 섞여 있으면 경계 계산이 보류되는데
+    (예: 강남구 역삼동 826-37), 용도지역이 하나뿐인 필지는 경계를 겹쳐 볼 필요가 없다 (2026-10-29 사용자 결정).
+    근거는 현재 토지이용계획과 토지대장이다. 아래 중 하나라도 해당하면 None (지금처럼 보류).
+      - 용도지역·지목 분류에 문제가 있음 (용도지역이 둘 이상인 경우 포함)
+      - 토지대장 면적이 하나로 확인되지 않음, 또는 계산용 면적과 다름
+    화면(land-comparison.mjs 의 singleZoneAllocation)도 같은 규칙이다.
+    """
+    if profile['status'] != 'ready': return None
+    zones = []
+    for row in profile['zoneRawRows']:
+        if not isinstance(row, dict) or str(row.get('cnflcAt') or '') not in ('1', '2'): continue
+        zone = classify_zone(row.get('prposAreaDstrcCodeNm'), row.get('prposAreaDstrcCode'))
+        if zone['status'] == 'ready': zones.append(zone)
+    if len({zone['matchKey'] for zone in zones}) != 1: return None
+    attrs = parcel.get('attributes') if isinstance(parcel.get('attributes'), dict) else {}
+    register = attrs.get('landRegister') if isinstance(attrs.get('landRegister'), dict) else {}
+    rows = register.get('rows') if isinstance(register.get('rows'), list) else []
+    areas = [_area_number(row.get('lndpclAr')) for row in rows if isinstance(row, dict)]
+    if len(areas) != 1 or areas[0] is None or areas[0] <= 0: return None
+    selected = _area_number(parcel.get('areaM2'))
+    if selected is None or abs(selected - areas[0]) > max(.01, areas[0] * 1e-8): return None
+    zone, pnu = zones[0], str(parcel.get('pnu') or '')
+    return {'allocationId': f"{pnu}:{zone['code']}", 'zoneName': zone['raw'], 'zoneCode': zone['code'],
+            'zoneMatchKey': zone['matchKey'], 'ratio': 1.0, 'areaM2': areas[0], 'geometryAreaM2': None, 'geometry': None,
+            'basis': '토지이용계획 단일 용도지역 · 대장 면적 전체'}
+
+
+def _area_number(value):
+    if isinstance(value, bool): return None
+    try: number = float(str(value).replace(',', ''))
+    except (TypeError, ValueError): return None
+    return number if math.isfinite(number) else None
+
+
 def parcel_area_profile(parcel):
     """Classifications plus independently recomputed, mandatory V5 allocation."""
     from server.domain.boundary import recompute_boundary
@@ -201,6 +238,13 @@ def parcel_area_profile(parcel):
     reasons.extend(allocation['reasons'])
     jimok = profile['jimokGroupKeys'][0] if len(profile['jimokGroupKeys']) == 1 else None
     if allocation['status'] != 'ready' and not allocation['reasons']: reasons.append('필지·용도지역 경계 확인 필요')
+    if allocation['status'] != 'ready':
+        single = _single_zone_allocation(parcel, profile)
+        if single:
+            profile.update(status='ready', reasons=[], boundaryStatus=allocation['status'],
+                           boundaryReasons=list(dict.fromkeys(allocation['reasons'])), zoneBasis='land-use-plan-single-zone',
+                           areaAllocations=[single], zoneMatchKey=single['zoneMatchKey'], jimokMatchKey=jimok)
+            return profile
     profile.update(status='missing' if reasons else 'ready', reasons=list(dict.fromkeys(reasons)),
                    boundaryStatus=allocation['status'], areaAllocations=[],
                    zoneMatchKey=profile['zoneMatchKey'] if not reasons else None,

@@ -63,5 +63,12 @@ class AdjacentResidualTests(unittest.TestCase):
         self.assertEqual(first['inputs']['parcels'][0]['boundaryAllocation']['status'],'ready')
         invalid=residual_fixture();invalid['parcels'][0]['boundaryAllocation']['attributeBasis']['pnu']='mismatch'
         first=analyze(invalid,partial=True);second=analyze(first['inputs'],partial=True)
-        self.assertIsNone(first['results']['land']['representativeWon']);self.assertIsNone(second['results']['land']['representativeWon'])
+        # 경계 근거는 버리지만, 포함 용도지역이 하나(나머지는 '접함')라서 대장 면적 전체로 계산한다 (2026-10-29).
+        self.assertEqual(first['results']['land']['representativeWon'],second['results']['land']['representativeWon'])
+        self.assertIsNotNone(first['results']['land']['representativeWon'])
+        row=first['results']['land']['parcelAssignments'][0]
+        self.assertEqual((row['ratio'],row['areaM2'],row['geometry']),(1.0,100.0,None))
+        both=residual_fixture();both['parcels'][0]['attributes']['landUse']['rows'][1].update(cnflcAt='2',cnflcAtNm='저촉')
+        both['parcels'][0]['boundaryAllocation']['attributeBasis']['pnu']='mismatch'
+        self.assertIsNone(analyze(both,partial=True)['results']['land']['representativeWon'])
         self.assertEqual(first['inputs']['parcels'][0]['boundaryAllocation']['attributeBasis']['pnu'],'mismatch')

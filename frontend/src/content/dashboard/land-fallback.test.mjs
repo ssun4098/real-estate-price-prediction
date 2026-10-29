@@ -42,7 +42,7 @@ test('missing donors, incomplete collection, stale scope and invalid boundary st
  for(const cases of [[],[trade('cancelled',1e6,{cancelled:true})]])assert.equal(calculateLand(fixture(cases)).representativeWon,null);
  const partial=fixture([trade('valid')]);partial.comparables.landCollectionStatus='partial';assert.equal(calculateLand(partial).representativeWon,null);assert.equal(calculateLand(partial).fallback.used,false);
  const stale=fixture([trade('valid')]);stale.comparisonFilters={sgg:'11110',dong:'다른동',start:'2026-01',end:'2026-09'};assert.equal(calculateLand(stale).representativeWon,null);assert.equal(calculateLand(stale).fallback.used,false);
- const boundary=fixture([trade('valid')]);delete boundary.parcels[0].boundaryAllocation;const land=calculateLand(boundary);assert.equal(land.representativeWon,null);assert.equal(land.fallback.used,false);assert.equal(land.referenceGroups[0].fallback.used,false);
+ const boundary=fixture([trade('valid')]);delete boundary.parcels[0].boundaryAllocation;boundary.parcels[0].areaM2+=1;const land=calculateLand(boundary);assert.equal(land.representativeWon,null);assert.equal(land.fallback.used,false);assert.equal(land.referenceGroups[0].fallback.used,false);
 });
 
 test('current region, date window and manual category filters also apply to donor groups',()=>{
