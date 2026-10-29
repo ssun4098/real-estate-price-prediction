@@ -46,7 +46,7 @@ export function sanitizeSnapshot(value={}){
  const revenueSetting=financeRowSetting(inputs,'revenue'),manualRevenue=revenueSetting.mode==='amount'?applyFinanceAmount(revenueSetting):null;
  const discount=inputs.assumptions?.discountPct??0,sales=inputs.assumptions?.finalSalesPct??100,full=manualRevenue!==null&&Number.isFinite(discount)&&discount>=0&&discount<=100?manualRevenue*(1-discount/100):null;
  const revenue={status:manualRevenue!==null?'사용자 가정':'Python 연결 후 위치 재조회 필요',representativeWon:manualRevenue,comparableWon:null,potentialRevenueWon:manualRevenue,fullNetRevenueWon:full,netRevenueWon:full!==null&&Number.isFinite(sales)&&sales>=0&&sales<=100?full*sales/100:null,points:[],stats:null,appliedSetting:revenueSetting};
- const budget=calculateBudget(inputs,manualRevenue,land.representativeWon);
+ const budget=calculateBudget(inputs,manualRevenue,land.representativeWon,development.supplyAreaM2);
  return withoutTransient({schemaVersion:value.schemaVersion||1,analysisVersion:'pf-study-5',appVersion:'V5',landRulesVersion:LAND_RULE_VERSION,id:value.id,name:value.name,scenario:value.scenario,createdAt:value.createdAt,inputs,results:{development,land,costs:keepCosts,revenue,budget,cashflow:{status:'실시간 수입 연계 결과 제외'},okr:{status:'실적 미확인 · 실시간 연계 결과 제외'},validation:{mode:'saved-independent-only',fieldErrors:[...(baseline.fieldErrors||[]),...budget.fieldErrors]}},sources:cleanSources(value.sources||[]),warnings:[REALTIME_NOTICE,...(baseline.comparisonReason?[baseline.comparisonReason]:[])],persistencePolicy:'v3_independent_only',realtimeExcluded:true});
 }
 // Radius-selected membership is itself Geocoder-dependent. Keep the shared

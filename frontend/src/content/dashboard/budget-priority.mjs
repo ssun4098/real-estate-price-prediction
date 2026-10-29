@@ -1,22 +1,31 @@
-// Expense settings take precedence over the requested target margin. Matching
-// implementation: pf_engine._expense_priority_basis. Inputs are already validated.
-export function expensePriorityBasis(revenueWon,landWon,targetMarginPct,rows,ready){
+// 수지분석 총지출·목표 수익률 (2026-10-29 요청). 서버 costs._expense_priority_basis 와 같은 계산.
+// 총지출 T = 토지비 + 각 항목. 공사비%는 허용 공사비, 지출%는 T 자신이 기준이라
+// T = (토지비 + 금액·수입%·평당 항목 + 공사비% 몫) ÷ (1 − 지출% 합계) 로 풀린다.
+// 목표 수익률 = (총수입 − T) ÷ 총수입 × 100 (입력값이 아니라 결과, 음수일 수 있음). 입력은 이미 검증된 값.
+export const PYEONG_M2=3.3;
+export function expensePriorityBasis(revenueWon,landWon,supplyM2,rows,ready){
  const finite=Number.isFinite;
- const requestedAllowableWon=finite(revenueWon)&&finite(targetMarginPct)?revenueWon*(1-targetMarginPct/100):null;
- const result={requestedTargetMarginPct:targetMarginPct,appliedTargetMarginPct:null,requestedAllowableWon,allowableWon:requestedAllowableWon,minimumRequiredBudgetWon:null,fixedExpenseWon:null,budgetExpensePct:null,targetAdjusted:false,targetAdjustmentStatus:'pending',adjustmentError:null};
- if(!ready)return result;
- const share=rows.reduce((s,r)=>s+(r.mode==='budgetPct'?r.value:0),0)/100;
- const fixed=landWon+rows.reduce((s,r)=>s+(r.mode==='amount'?r.value:r.mode==='revenuePct'?revenueWon*(r.value/100):0),0);
+ const result={requestedTargetMarginPct:null,appliedTargetMarginPct:null,requestedAllowableWon:null,allowableWon:null,totalExpenseWon:null,constructionWon:null,supplyAreaM2:finite(supplyM2)?supplyM2:null,rowAmounts:{},minimumRequiredBudgetWon:null,fixedExpenseWon:null,budgetExpensePct:null,targetAdjusted:false,targetAdjustmentStatus:'pending',adjustmentError:null};
+ // 총지출과 관계없이 정해지는 금액 (근거가 없으면 null)
+ const direct=r=>!finite(r.value)?null:r.mode==='amount'?r.value:r.mode==='revenuePct'?(finite(revenueWon)?revenueWon*(r.value/100):null):r.mode==='areaUnit'?(finite(supplyM2)&&supplyM2>=0?supplyM2/PYEONG_M2*r.value*10000:null):null;
+ const construction=rows.find(r=>r.id==='construction');
+ if(!ready){
+  // 입력이 덜 됐어도 다른 항목에 의존하지 않는 금액은 보여 준다 (지출%는 총지출이 필요해 보류).
+  const known=direct(construction),partial=rows.map(r=>[r.id,r.mode==='constructionPct'&&finite(known)&&finite(r.value)?known*r.value/100:direct(r)]);
+  return {...result,rowAmounts:Object.fromEntries(partial.filter(([,v])=>finite(v)))};
+ }
+ const fail=(status,message)=>({...result,targetAdjustmentStatus:status,adjustmentError:message});
+ if(construction.mode==='areaUnit'&&!(finite(supplyM2)&&supplyM2>=0))return fail('missing-supply','계획 공급면적이 없어 평당 공사비를 계산할 수 없습니다. 개발규모의 공급계획(호수·호당 면적)을 확인하세요.');
+ let share=rows.reduce((s,r)=>s+(r.mode==='budgetPct'?r.value:0),0)/100;
+ const constructionShare=rows.reduce((s,r)=>s+(r.mode==='constructionPct'?r.value:0),0)/100;
+ let fixed=landWon+rows.reduce((s,r)=>s+(['amount','revenuePct','areaUnit'].includes(r.mode)?direct(r):0),0);
+ if(construction.mode==='budgetPct')share+=constructionShare*construction.value/100;else fixed+=constructionShare*direct(construction);
  result.fixedExpenseWon=finite(fixed)?fixed:null;result.budgetExpensePct=share*100;
- const fail=(status,message)=>({...result,allowableWon:null,targetAdjustmentStatus:status,adjustmentError:message});
- if(!finite(fixed)||!finite(requestedAllowableWon))return fail('overflow','지출 합계가 계산 범위를 초과했습니다. 금액·비율의 입력 단위를 확인하세요.');
- // 100% or more cannot leave room for positive fixed expense, irrespective of
- // the target margin. The all-zero case is well-defined at a zero budget.
- if(share>=1&&(fixed>0||(share>1&&requestedAllowableWon>0)))return fail('infeasible','지출% 합계가 100% 이상이어서 토지비·금액·수입% 비용을 함께 충당할 수 없습니다. 지출 비율 또는 입력 기준을 확인하세요.');
- const required=share<1?fixed/(1-share):0,allowable=Math.max(requestedAllowableWon,required);
- const tolerance=Math.max(1e-7,Number.EPSILON*Math.max(1,Math.abs(allowable),Math.abs(requestedAllowableWon))*32);
- const adjusted=allowable-requestedAllowableWon>tolerance;
- const applied=revenueWon>0?(adjusted?(1-allowable/revenueWon)*100:targetMarginPct):null;
- if(!finite(required)||!finite(allowable)||(revenueWon>0&&!finite(applied)))return fail('overflow','지출 설정을 유지하는 목표 수익률 계산이 숫자 범위를 초과했습니다. 입력 금액과 지출 비율을 확인하세요.');
- return {...result,allowableWon:allowable,minimumRequiredBudgetWon:required,appliedTargetMarginPct:applied,targetAdjusted:adjusted,targetAdjustmentStatus:revenueWon===0?'zero-revenue':adjusted?'lowered':'unchanged'};
+ if(!finite(fixed))return fail('overflow','지출 합계가 계산 범위를 초과했습니다. 금액·비율의 입력 단위를 확인하세요.');
+ if(share>=1&&(fixed>0||share>1))return fail('infeasible','지출% 합계가 100% 이상이어서 토지비와 다른 지출을 함께 충당할 수 없습니다. 지출 비율 또는 입력 기준을 확인하세요.');
+ const total=share<1?fixed/(1-share):0,constructionWon=construction.mode==='budgetPct'?total*construction.value/100:direct(construction);
+ const rowAmounts=Object.fromEntries(rows.map(r=>[r.id,r.mode==='budgetPct'?total*r.value/100:r.mode==='constructionPct'?constructionWon*r.value/100:direct(r)]));
+ const margin=revenueWon>0?(revenueWon-total)/revenueWon*100:null;
+ if(!finite(total)||!Object.values(rowAmounts).every(finite)||(margin!==null&&!finite(margin)))return fail('overflow','지출 합계가 계산 범위를 초과했습니다. 입력 금액과 지출 비율을 확인하세요.');
+ return {...result,allowableWon:total,totalExpenseWon:total,minimumRequiredBudgetWon:total,constructionWon,rowAmounts,appliedTargetMarginPct:margin,targetAdjustmentStatus:revenueWon===0?'zero-revenue':'computed'};
 }

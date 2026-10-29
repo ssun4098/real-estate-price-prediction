@@ -33,14 +33,15 @@ export function workflowState(input,result,coverage){
  const supply=input.linkedScenario?.enabled===true?Number.isInteger(result?.results?.development?.units)&&result.results.development.units>0:manualSupply;
  const revenueReady=Number.isFinite(result?.results?.revenue?.representativeWon);
  const basisConfirmed=!!input.uiProgress?.confirmedRevenueBasis&&input.uiProgress.confirmedRevenueBasis===revenueBasis(input);
- const target=Number.isFinite(input.assumptions?.targetMarginPct)&&input.assumptions.targetMarginPct>=0&&input.assumptions.targetMarginPct<100;
+ // 목표 수익률은 입력값이 아니라 수지 계산 결과다 (2026-10-29). 사업 예상수지 단계는 수지 계산이 끝났는지로 본다.
+ const target=result?.results?.budget?Number.isFinite(result.results.budget.targetMarginPct):true;
  const costsReady=Number.isFinite(result?.results?.costs?.totalWon);
  return {step1,area,supply,revenueReady,basisConfirmed,target,costsReady,periodProblems,region,
   steps:[{label:'사업·조회 조건',target:'live-conditions',ready:step1,hint:!regionKnown?'사업지 지역명을 선택하거나 지도에서 필지를 선택하세요.':periodProblems[0]?.message||'조회 조건 준비 완료'},
   {label:'필지·공급계획',target:'live-parcels',ready:area&&supply,hint:!area?'개발 필지와 대장 면적을 확인하세요.':!supply?'계획 호수·호당 공급면적을 입력하세요.':'필지·공급계획 입력 완료'},
   {label:'비교사례·예상액',target:'live-compare',ready:basisConfirmed,hint:!revenueReady?'비교사례를 조회하고 분양수입 산정 근거를 확인하세요.':!basisConfirmed?'분양수입 기준 확인 버튼을 누르세요.':'분양수입 기준 확인 완료'},
-  {label:'사업 예상수지',target:'live-costs',ready:basisConfirmed&&target&&costsReady,hint:!basisConfirmed?'3단계에서 분양수입 기준을 확인하세요.':!target?'목표 이익률을 입력하세요.':!costsReady?'미확보 비용을 확인하세요.':'비용 입력 완료'},
-  {label:'현금흐름·기관별 결과',target:'live-cashflow',ready:Number.isFinite(result?.results?.cashflow?.summary?.maxUnfundedWon),hint:!basisConfirmed?'3단계에서 분양수입 기준을 먼저 확인하세요.':!target?'목표 이익률을 먼저 입력하세요.':'지급·수납·조달 일정을 확인하세요.'}]};
+  {label:'사업 예상수지',target:'live-costs',ready:basisConfirmed&&target&&costsReady,hint:!basisConfirmed?'3단계에서 분양수입 기준을 확인하세요.':!target?'수지분석 지출 항목·공급계획을 확인하세요.':!costsReady?'미확보 비용을 확인하세요.':'비용 입력 완료'},
+  {label:'현금흐름·기관별 결과',target:'live-cashflow',ready:Number.isFinite(result?.results?.cashflow?.summary?.maxUnfundedWon),hint:!basisConfirmed?'3단계에서 분양수입 기준을 먼저 확인하세요.':!target?'수지분석 지출 항목·공급계획을 먼저 확인하세요.':'지급·수납·조달 일정을 확인하세요.'}]};
 }
 export function makeDraft(input){
  input=sanitizeInputs(input);

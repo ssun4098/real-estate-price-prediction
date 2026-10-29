@@ -4,9 +4,11 @@ import {applyLandModel,landAdjustmentFactor} from './model-land-estimate.mjs';
 import {expensePriorityBasis} from './budget-priority.mjs';
 
 export const LINKED_DEFAULTS={enabled:true,farDefaultPct:200,farMaxPct:500,farPct:200,areaMode:'median',supplyAreaM2:null};
-export const BUDGET_DEFAULTS={constructionPct:60,indirectPct:4,salesPct:4,taxPct:3,financePct:4,trustType:'',trustRatePct:1};
+// 수지분석 지출 기본값 (2026-10-29 요청): 공사비 = 계획 공급면적÷3.3×평당 1,000만원, 간접 7%·분양제 6%·제세 5%·금융 6.5% = 공사비 대비, 신탁 1% = 총수입 대비.
+// 목표 수익률은 기본값 없이 (총수입−총지출)÷총수입으로 계산한다. 예전 저장값의 budgetAllocation.constructionPct 등은 더 쓰지 않는다.
+export const BUDGET_DEFAULTS={trustType:'',trustRatePct:1};
 export const BUDGET_ROWS=[['construction','허용 공사비'],['indirect','허용 간접 공사비'],['sales','허용 분양제비용'],['tax','허용 제세공과금'],['finance','허용 금융비용']];
-export const FINANCE_DEFAULTS={revenue:{mode:'comparablePct',value:100},land:{mode:'comparablePct',value:100},expenses:{construction:{mode:'budgetPct',value:60},indirect:{mode:'budgetPct',value:4},sales:{mode:'budgetPct',value:4},tax:{mode:'budgetPct',value:3},finance:{mode:'budgetPct',value:4},trust:{mode:'revenuePct',value:1}}};
+export const FINANCE_DEFAULTS={revenue:{mode:'comparablePct',value:100},land:{mode:'comparablePct',value:100},expenses:{construction:{mode:'areaUnit',value:1000},indirect:{mode:'constructionPct',value:7},sales:{mode:'constructionPct',value:6},tax:{mode:'constructionPct',value:5},finance:{mode:'constructionPct',value:6.5},trust:{mode:'revenuePct',value:1}}};
 const finite=Number.isFinite,positive=x=>finite(x)&&x>0;
 const blank=value=>value==null||typeof value==='string'&&value.trim()==='';
 // Restore previously unset defaults on file/draft load. In-session explicit
@@ -25,7 +27,7 @@ export function restoreTrustDefaults(input){
 }
 export function financeRowSetting(input,id){
  if(['revenue','land'].includes(id))return {...FINANCE_DEFAULTS[id],...input.financeEditor?.[id]};
- const legacy=id==='trust'?input.budgetAllocation?.trustRatePct:input.budgetAllocation?.[id+'Pct'];
+ const legacy=id==='trust'?input.budgetAllocation?.trustRatePct:undefined;
  return {...FINANCE_DEFAULTS.expenses[id],...(legacy!==undefined&&!(id==='trust'&&blank(legacy))?{value:legacy}:{}),...input.financeEditor?.expenses?.[id]};
 }
 export function applyFinanceAmount(setting,baseline=null,budget=null,revenue=null){
@@ -87,36 +89,34 @@ export function linkedDevelopment(input,complexes=[]){
  if(S!==null&&positive(a)&&counts.units===null){err('linkedScenario.farPct','분양 호수 계산 범위 초과 → 면적 단위가 잘못됐을 수 있습니다 → 대지·호당 면적의 ㎡ 단위를 확인하세요.');S=null;counts={units:null,assigned:null,remainder:null}}
  return {linkedMode:true,landAreaM2:A,knownLandAreaM2:known,missingParcelCount:missing,parcelCount:parcels.length,capacitySupplyAreaM2:S,farLimitAreaM2:S,assignedSupplyAreaM2:counts.assigned,unassignedSupplyAreaM2:counts.remainder,supplyAreaM2:counts.assigned,units:counts.units,unitSupplyAreaM2:positive(a)?a:null,farAreaPerUnitM2:counts.units>0?S/counts.units:null,areaPoints,areaStats,fieldErrors,status:fieldErrors.length?'입력 확인 필요':counts.units===0?'1호 미만 · 분양수입 0원 시나리오':'간이 규모 가정 · 인허가 미확인'};
 }
-export function calculateBudget(input,revenueWon,landWon){
- const b={...BUDGET_DEFAULTS,...input.budgetAllocation},margin=input.assumptions?.targetMarginPct,fieldErrors=[];
+export function calculateBudget(input,revenueWon,landWon,supplyM2=null){
+ const b={...BUDGET_DEFAULTS,...input.budgetAllocation},fieldErrors=[];
  const trustType=b.trustType??'',trustAllowed=['','management','completion'].includes(trustType);
  const err=(path,message)=>fieldErrors.push({section:'budget',path,message});
- const validMargin=finite(margin)&&margin>=0&&margin<=99;
- if(!validMargin)err('assumptions.targetMarginPct','목표 수익률을 0~99% 범위로 입력하세요.');
- const requestedAllowable=finite(revenueWon)&&validMargin?revenueWon*(1-margin/100):null;
  const row=(id,label)=>{
   const setting=financeRowSetting(input,id),{mode,value}=setting;
-  const valid=['amount','budgetPct','revenuePct'].includes(mode)&&finite(value)&&value>=0&&(mode==='amount'||value<=100);
-  if(!valid)err('financeEditor.expenses.'+id+'.value',`${label}: 금액은 0 이상, 비율은 0~100%로 입력하세요.`);
-  const amountWon=valid?applyFinanceAmount(setting,null,requestedAllowable,revenueWon):null;
-  if(valid&&mode==='amount'&&amountWon===null)err('financeEditor.expenses.'+id+'.value',`${label}: 계산 가능한 금액 범위를 초과했습니다.`);
-  return {id,label:label.replace(/^허용 /,''),...setting,pct:mode==='budgetPct'?value:null,amountWon,sourceStatus:mode==='amount'?'사용자 가정':'사용자 비율 가정'};
+  const modes=id==='construction'?['amount','revenuePct','budgetPct','areaUnit']:['amount','revenuePct','budgetPct','constructionPct'];
+  const valid=modes.includes(mode)&&finite(value)&&value>=0&&(['amount','areaUnit'].includes(mode)||value<=100);
+  if(!valid)err('financeEditor.expenses.'+id+'.value',`${label}: 금액·평당 단가는 0 이상, 비율은 0~100%로 입력하세요.`);
+  return {id,label:label.replace(/^허용 /,''),...setting,pct:mode==='budgetPct'?value:null,amountWon:null,valid,sourceStatus:mode==='amount'?'사용자 가정':'사용자 비율 가정'};
  };
  const allocationRows=BUDGET_ROWS.map(([id,label])=>row(id,label)),trust=row('trust','신탁보수');
  if(trustType==='distribution')err('budgetAllocation.trustType','분양관리신탁은 순수 아파트에 동일 요율을 적용할 수 없습니다. 적용 대상·보수 조건을 확인하세요.');
  else if(!trustAllowed)err('budgetAllocation.trustType','관리형 또는 책임준공관리형 신탁상품을 선택하세요.');
- if(!trustAllowed)trust.amountWon=null;
- const allRows=[...allocationRows,trust],ready=!fieldErrors.length&&finite(revenueWon)&&revenueWon>=0&&finite(landWon)&&landWon>=0&&allRows.every(r=>finite(r.value));
- const priority=expensePriorityBasis(revenueWon,landWon,validMargin?margin:null,allRows,ready),allowable=priority.allowableWon;
+ const allRows=trustAllowed?[...allocationRows,trust]:[...allocationRows,{...trust,mode:'amount',value:null}],ready=!fieldErrors.length&&finite(revenueWon)&&revenueWon>=0&&finite(landWon)&&landWon>=0&&allRows.every(r=>finite(r.value));
+ const {rowAmounts,...priority}=expensePriorityBasis(revenueWon,landWon,supplyM2,allRows.map(r=>r.valid?r:{...r,value:null}),ready);
  if(priority.adjustmentError)err('financeEditor.expenses',priority.adjustmentError);
- for(const r of allRows)if(r.mode==='budgetPct')r.amountWon=applyFinanceAmount(r,null,allowable,revenueWon);
- if(!trustAllowed)trust.amountWon=null;
- const trustWon=trustAllowed?trust.amountWon:null;
- let knownAllocatedWon=allocationRows.reduce((s,r)=>s+(r.amountWon??0),0)+(landWon??0)+(trustWon??0);
- if(!finite(knownAllocatedWon)){knownAllocatedWon=null;err('financeEditor','금액 합계가 계산 범위를 초과했습니다. 입력 단위를 확인하세요.');}
- const complete=!fieldErrors.length&&knownAllocatedWon!==null&&allowable!==null&&finite(landWon)&&finite(trustWon)&&allocationRows.every(r=>finite(r.amountWon));
- const allocatedWon=complete?knownAllocatedWon:null,rawGap=complete?allowable-allocatedWon:null,tolerance=Math.max(1e-7,Number.EPSILON*Math.max(1,Math.abs(allowable??0),Math.abs(allocatedWon??0))*32),gap=rawGap!==null&&Math.abs(rawGap)<=tolerance?0:rawGap,profitWon=complete?revenueWon-allocatedWon:null;
- return {revenueWon,...priority,targetMarginPct:margin,landWon,trustWon,trustType,trustRatePct:trust.mode==='revenuePct'?trust.value:null,trustRow:trust,allocationRows,allocationPctTotal:allocationRows.every(r=>finite(r.pct))?allocationRows.reduce((s,r)=>s+r.pct,0):null,knownAllocatedWon,allocatedWon,profitWon,profitMarginPct:profitWon!==null&&revenueWon>0?profitWon/revenueWon*100:null,unallocatedWon:gap===null?null:Math.max(0,gap),overallocatedWon:gap===null?null:Math.max(0,-gap),status:priority.targetAdjustmentStatus==='infeasible'?'지출 비율 조합 확인 필요':!complete?'입력 확인 필요':priority.targetAdjustmentStatus==='zero-revenue'?'수입 0원 · 수익률 산정 불가':priority.targetAdjusted?'지출 설정 유지 · 목표 수익률 조정':'예산 배분 완료',complete,fieldErrors,note:'지출 입력 설정을 우선 유지한 허용 예산입니다. 독립 예상비용·현금흐름과 중복 합산하지 않습니다.'};
+ for(const r of allocationRows)r.amountWon=rowAmounts[r.id]??null;
+ trust.amountWon=trustAllowed?rowAmounts.trust??null:null;
+ const trustWon=trust.amountWon,total=priority.totalExpenseWon,complete=!fieldErrors.length&&finite(total),margin=priority.appliedTargetMarginPct;
+ const status=priority.targetAdjustmentStatus==='infeasible'?'지출 비율 조합 확인 필요':priority.targetAdjustmentStatus==='missing-supply'?'공급계획 확인 필요':!complete?'입력 확인 필요':priority.targetAdjustmentStatus==='zero-revenue'?'수입 0원 · 수익률 산정 불가':'수지 계산 완료 · 목표 수익률 자동 산정';
+ return {revenueWon,...priority,targetMarginPct:margin,landWon,trustWon,trustType,trustRatePct:trust.mode==='revenuePct'?trust.value:null,trustRow:trust,allocationRows,allocationPctTotal:allocationRows.every(r=>finite(r.pct))?allocationRows.reduce((s,r)=>s+r.pct,0):null,knownAllocatedWon:total,allocatedWon:complete?total:null,profitWon:complete?revenueWon-total:null,profitMarginPct:complete?margin:null,unallocatedWon:complete?0:null,overallocatedWon:complete?0:null,status,complete,fieldErrors,note:'지출 항목 계산식으로 총지출을 구하고 목표 수익률=(총수입−총지출)÷총수입으로 산정합니다. 독립 예상비용·현금흐름과 중복 합산하지 않습니다.'};
+}
+// 2026-10-29 이전 계산식으로 저장된 결과(목표 수익률 입력·허용지출 배분)는 화면에서 새 계산식으로 다시 계산해 보여 준다.
+export function currentBudget(input,results={}){
+ const saved=results?.budget;
+ if(saved&&Object.hasOwn(saved,'totalExpenseWon'))return saved;
+ return calculateBudget(input,results?.revenue?.representativeWon??null,results?.land?.representativeWon??null,results?.development?.supplyAreaM2??null);
 }
 export function projectRevision(input,base,{preview=true,offline=false}={}){
  const old=base?.results||{},complexes=acceptedComplexes(input,base),enabled=input.linkedScenario?.enabled===true;
@@ -126,7 +126,7 @@ export function projectRevision(input,base,{preview=true,offline=false}={}){
  const disc=ac.discountPct??0,sales=ac.finalSalesPct??100,full=finite(R)&&finite(disc)&&disc>=0&&disc<=100?R*(1-disc/100):null;
  const revenue={...old.revenue,points,eligibleComplexes:complexes,stats,baseStats:revisionStats(points.map(p=>p.baseValueWon)),unitPriceStats:revisionStats(complexes.map(p=>p.unitPriceWonM2)),supplyAreaStats:revisionStats(complexes.map(p=>p.medianSupplyAreaM2)),comparableWon,appliedSetting:revenueSetting,sourceStatus:revenueSetting.mode==='amount'?'사용자 가정':'비교사례 적용',representativeWon:R,potentialRevenueWon:R,fullNetRevenueWon:full,netRevenueWon:finite(full)&&finite(sales)&&sales>=0&&sales<=100?full*sales/100:null,status:revenueSetting.mode==='amount'&&finite(R)?'사용자 가정':!complexes.length?'비교사례 확인 필요':!finite(supply)?'공급면적 필요':!validAdj?'분양가격 보정 입력 오류':stats.status};
  const baselineLand=applyLandModel(calculateLand(input),old.land?.modelEstimate,landAdjustmentFactor(input)),landSetting=financeRowSetting(input,'land'),land={...baselineLand,comparableWon:baselineLand.representativeWon,appliedSetting:landSetting,representativeWon:applyFinanceAmount(landSetting,baselineLand.representativeWon),sourceStatus:landSetting.mode==='amount'?'사용자 가정':'공개자료 기반 추정'};
- const budget=calculateBudget(input,R,land.representativeWon??null),fieldErrors=[...(enabled?development.fieldErrors||[]:[]),...budget.fieldErrors,...(baselineLand.fieldErrors||[])];
+ const budget=calculateBudget(input,R,land.representativeWon??null,development.supplyAreaM2),fieldErrors=[...(enabled?development.fieldErrors||[]:[]),...budget.fieldErrors,...(baselineLand.fieldErrors||[])];
  for(const [id,setting] of [['revenue',revenueSetting],['land',landSetting]])if(!['amount','comparablePct'].includes(setting.mode)||!finite(setting.value)||setting.value<0||(setting.mode==='comparablePct'&&setting.value>200))fieldErrors.push({section:id,path:'financeEditor.'+id+'.value',message:'금액은 0 이상, 사례 적용 비율은 0~200%로 입력하세요.'});
  if(overflowRevenue)fieldErrors.push({section:'revenue',path:'linkedScenario.farPct',message:'분양수입 계산 범위 초과 → 면적·단가의 단위를 확인하고 용적률을 수정하세요.'});
  if(!validAdj)fieldErrors.push({section:'revenue',path:'assumptions.revenueAdjustmentPct',message:'분양가격 보정률 → -100%보다 커야 합니다 → 가격 보정값을 확인하세요.'});

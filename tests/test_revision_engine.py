@@ -21,6 +21,13 @@ def revision_fixture():
     return data
 
 
+# 수지분석 기본 계산식 (2026-10-29): 공사비 = 공급면적÷3.3×1,000만원, 간접 7%·분양 6%·제세 5%·금융 6.5% = 공사비 대비, 신탁 1% = 총수입 대비
+def expected_budget(supply_m2, revenue, land, trust_pct=1):
+    construction = supply_m2 / 3.3 * 1000 * 10_000
+    total = land + construction * (1 + .07 + .06 + .05 + .065) + revenue * trust_pct / 100
+    return construction, total, ((revenue - total) / revenue * 100 if revenue else None)
+
+
 class LinkedScaleTests(unittest.TestCase):
     def result(self, data=None):
         return analyze(data or revision_fixture(), partial=True)["results"]
@@ -31,9 +38,18 @@ class LinkedScaleTests(unittest.TestCase):
         self.assertEqual((dev["landAreaM2"], dev["capacitySupplyAreaM2"], dev["units"]), (1000, 2000, 20))
         self.assertEqual((dev["assignedSupplyAreaM2"], dev["unassignedSupplyAreaM2"], dev["farAreaPerUnitM2"]), (2000, 0, 100))
         self.assertEqual(result["revenue"]["representativeWon"], 20_000_000_000)
-        self.assertEqual((budget["allowableWon"], budget["allocatedWon"], budget["unallocatedWon"]), (17_000_000_000, 15_950_000_000, 1_050_000_000))
-        self.assertEqual(budget["allocationPctTotal"], 75)
+        construction, total, margin = expected_budget(2000, 20_000_000_000, 3_000_000_000)
+        self.assertAlmostEqual(budget["allocationRows"][0]["amountWon"], construction, delta=1)
+        self.assertAlmostEqual(budget["allocationRows"][1]["amountWon"], construction * .07, delta=1)
+        self.assertAlmostEqual(budget["allocationRows"][4]["amountWon"], construction * .065, delta=1)
+        self.assertAlmostEqual(budget["totalExpenseWon"], total, delta=1)
+        self.assertAlmostEqual(budget["allocatedWon"], total, delta=1)
+        self.assertEqual(budget["unallocatedWon"], 0)
+        self.assertAlmostEqual(budget["targetMarginPct"], margin)
+        self.assertAlmostEqual(budget["profitWon"], 20_000_000_000 - total, delta=1)
+        self.assertIsNone(budget["allocationPctTotal"])
         self.assertEqual(budget["trustWon"], 200_000_000)
+        self.assertTrue(budget["complete"])
 
     def test_integer_units_use_assigned_area(self):
         data = revision_fixture()
@@ -61,8 +77,7 @@ class LinkedScaleTests(unittest.TestCase):
         self.assertEqual(result["development"]["units"], 0)
         self.assertIsNone(result["development"]["farAreaPerUnitM2"])
         self.assertEqual(result["revenue"]["representativeWon"], 0)
-        self.assertEqual(result["budget"]["requestedAllowableWon"], 0)
-        self.assertEqual(result["budget"]["allowableWon"], 12_000_000_000)
+        self.assertEqual(result["budget"]["allowableWon"], 3_000_000_000)  # 공급면적 0 → 공사비 0, 남는 건 토지비
         self.assertEqual(result["budget"]["overallocatedWon"], 0)
         self.assertIsNone(result["budget"]["appliedTargetMarginPct"])
         self.assertEqual(result["budget"]["targetAdjustmentStatus"], "zero-revenue")
@@ -193,26 +208,29 @@ class LinkedScaleTests(unittest.TestCase):
 
 
 class BudgetEnvelopeTests(unittest.TestCase):
-    def test_land_overallocation_lowers_target_without_changing_expense_settings(self):
+    def test_large_land_makes_target_negative_without_changing_expense_settings(self):
         data = revision_fixture()
-        data["comparables"]["landCases"][0]["priceManwon"] = 500000
+        data["comparables"]["landCases"][0]["priceManwon"] = 2_000_000  # 토지비 200억 = 총수입과 같음
         result = analyze(data, partial=True)["results"]
         budget = result["budget"]
         self.assertTrue(budget["complete"])
-        self.assertEqual((budget["allocatedWon"], budget["overallocatedWon"]), (20_800_000_000, 0))
-        self.assertEqual(budget["requestedTargetMarginPct"], 15)
-        self.assertAlmostEqual(budget["appliedTargetMarginPct"], -4)
-        self.assertEqual(budget["allocationRows"][0]["value"], 60)
-        self.assertEqual(budget["status"], "지출 설정 유지 · 목표 수익률 조정")
-        self.assertEqual(result["costs"]["totalWon"], 5_000_000_000)
+        construction, total, margin = expected_budget(2000, 20_000_000_000, 20_000_000_000)
+        self.assertAlmostEqual(budget["allocatedWon"], total, delta=1)
+        self.assertLess(budget["targetMarginPct"], 0)
+        self.assertAlmostEqual(budget["appliedTargetMarginPct"], margin)
+        self.assertEqual((budget["allocationRows"][0]["mode"], budget["allocationRows"][0]["value"]), ("areaUnit", 1000))
+        self.assertAlmostEqual(budget["allocationRows"][0]["amountWon"], construction, delta=1)
+        self.assertEqual(budget["status"], "수지 계산 완료 · 목표 수익률 자동 산정")
+        self.assertEqual(result["costs"]["totalWon"], 20_000_000_000)
 
     def test_margin_change_does_not_reduce_independent_costs(self):
         data = revision_fixture()
         base = analyze(data, partial=True)["results"]
-        data["assumptions"]["targetMarginPct"] = 20
+        data["assumptions"]["targetMarginPct"] = 20  # 예전 입력값은 수지분석에 쓰지 않는다
         changed = analyze(data, partial=True)["results"]
         self.assertEqual(base["costs"]["totalWon"], changed["costs"]["totalWon"])
-        self.assertEqual(changed["budget"]["allowableWon"], 16_000_000_000)
+        self.assertEqual(base["budget"]["totalExpenseWon"], changed["budget"]["totalExpenseWon"])
+        self.assertEqual(base["budget"]["targetMarginPct"], changed["budget"]["targetMarginPct"])
 
     def test_unsupported_or_distribution_product_has_no_invented_fee(self):
         for choice in ("other", "distribution"):
@@ -222,7 +240,8 @@ class BudgetEnvelopeTests(unittest.TestCase):
             self.assertIsNone(budget["trustWon"])
             self.assertFalse(budget["complete"])
             self.assertIsNone(budget["allocatedWon"])
-            self.assertEqual(budget["allowableWon"], 17_000_000_000)
+            self.assertIsNone(budget["targetMarginPct"])
+            self.assertAlmostEqual(budget["allocationRows"][0]["amountWon"], expected_budget(2000, 1, 0)[0], delta=1)
             self.assertTrue(budget["fieldErrors"])
 
     def test_completion_rate_and_user_override(self):
@@ -256,15 +275,17 @@ class BudgetEnvelopeTests(unittest.TestCase):
         self.assertTrue(any(e["section"] == "cashflow" for e in result["validation"]["fieldErrors"]))
         self.assertEqual(result["revenue"]["representativeWon"], 20_000_000_000)
         self.assertEqual(result["land"]["representativeWon"], 3_000_000_000)
-        self.assertEqual(result["budget"]["allowableWon"], 17_000_000_000)
+        self.assertAlmostEqual(result["budget"]["allowableWon"], expected_budget(2000, 20_000_000_000, 3_000_000_000)[1], delta=1)
         self.assertTrue(result["budget"]["complete"])
 
     def test_bad_rate_preserves_other_rows_and_land(self):
         data = revision_fixture()
-        data["budgetAllocation"]["constructionPct"] = 101
+        data["financeEditor"] = {"expenses": {"indirect": {"mode": "constructionPct", "value": 101}}}
         result = analyze(data, partial=True)["results"]
-        self.assertIsNone(result["budget"]["allocationRows"][0]["amountWon"])
-        self.assertEqual(result["budget"]["allocationRows"][1]["amountWon"], 680_000_000)
+        construction = expected_budget(2000, 1, 0)[0]
+        self.assertIsNone(result["budget"]["allocationRows"][1]["amountWon"])
+        self.assertAlmostEqual(result["budget"]["allocationRows"][0]["amountWon"], construction, delta=1)
+        self.assertAlmostEqual(result["budget"]["allocationRows"][2]["amountWon"], construction * .06, delta=1)
         self.assertEqual(result["land"]["representativeWon"], 3_000_000_000)
         self.assertFalse(result["budget"]["complete"])
 
@@ -282,13 +303,12 @@ class BudgetEnvelopeTests(unittest.TestCase):
         result = analyze(data, partial=True)["results"]
         self.assertAlmostEqual(result["revenue"]["representativeWon"] / 1e308, 1)
         self.assertTrue(result["budget"]["complete"])
-        self.assertAlmostEqual(result["budget"]["allowableWon"] / 1e308, .85)
-        self.assertAlmostEqual(result["budget"]["allocationRows"][0]["amountWon"] / 1e308, .51)
-        for key in ("constructionPct", "indirectPct", "salesPct", "taxPct", "financePct"):
-            data["budgetAllocation"][key] = 100
+        self.assertAlmostEqual(result["budget"]["allowableWon"] / 1e306, 1)  # 신탁 1%가 대부분
+        self.assertAlmostEqual(result["budget"]["targetMarginPct"], 99)
+        data["financeEditor"] = {"expenses": {key: {"mode": "budgetPct", "value": 100}
+                                              for key in ("construction", "indirect", "sales", "tax", "finance")}}
         result = analyze(data, partial=True)["results"]
         self.assertIsNone(result["budget"]["allocatedWon"])
-        self.assertEqual(result["budget"]["knownAllocatedWon"], 1e306)
         self.assertEqual(result["budget"]["targetAdjustmentStatus"], "infeasible")
         self.assertTrue(all(row["amountWon"] is None for row in result["budget"]["allocationRows"]))
         self.assertTrue(result["budget"]["fieldErrors"])

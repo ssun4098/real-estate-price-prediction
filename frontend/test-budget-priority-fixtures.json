@@ -1,338 +1,214 @@
 [
   {
-    "name": "within-target",
-    "revenue": 1000,
-    "land": 200,
-    "expected": {
-      "complete": true,
-      "applied": 15,
-      "allowable": 850,
-      "allocated": 847.5,
-      "adjusted": false
-    }
-  },
-  {
-    "name": "lower-positive-margin",
-    "revenue": 1000,
-    "land": 230,
-    "expected": {
-      "complete": true,
-      "applied": 4,
-      "allowable": 960,
-      "allocated": 960,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "negative-margin",
-    "revenue": 1000,
-    "land": 300,
-    "expected": {
-      "complete": true,
-      "applied": -24,
-      "allowable": 1240,
-      "allocated": 1240,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "trust-budget-basis",
-    "revenue": 1000,
-    "land": 200,
-    "expenses": {
-      "trust": {
-        "mode": "budgetPct",
-        "value": 5
-      }
-    },
-    "expected": {
-      "complete": true,
-      "applied": 0,
-      "allowable": 1000,
-      "allocated": 1000,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "mixed-bases",
-    "revenue": 1000,
-    "land": 300,
-    "expenses": {
-      "construction": {
-        "mode": "amount",
-        "value": 400
-      },
-      "indirect": {
-        "mode": "budgetPct",
-        "value": 10
-      },
-      "sales": {
-        "mode": "revenuePct",
-        "value": 2
-      },
-      "tax": {
-        "mode": "amount",
-        "value": 10
-      },
-      "finance": {
-        "mode": "budgetPct",
-        "value": 5
-      },
-      "trust": {
-        "mode": "budgetPct",
-        "value": 5
-      }
-    },
-    "expected": {
-      "complete": true,
-      "applied": 8.75,
-      "allowable": 912.5,
-      "allocated": 912.5,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "request-is-upper-bound",
-    "revenue": 1000,
-    "land": 230,
-    "target": 30,
-    "expected": {
-      "complete": true,
-      "applied": 4,
-      "allowable": 960,
-      "allocated": 960,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "missing-land",
-    "revenue": 1000,
-    "land": null,
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": 850,
-      "allocated": null,
-      "adjusted": false,
-      "state": "pending"
-    }
-  },
-  {
-    "name": "explicit-blank-trust-editor",
-    "revenue": 1000,
-    "land": 230,
-    "trustRate": null,
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": 850,
-      "allocated": null,
-      "adjusted": false,
-      "state": "pending"
-    },
-    "expenses": {
-      "trust": {
-        "mode": "revenuePct",
-        "value": null
-      }
-    }
-  },
-  {
-    "name": "unselected-product-user-assumption",
-    "revenue": 1000,
-    "land": 230,
+    "name": "기본값 · 평당 1,000만원·공사비 대비 비율·수입 1%",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {},
     "trustType": "",
     "expected": {
       "complete": true,
-      "applied": 4,
-      "allowable": 960,
-      "allocated": 960,
-      "adjusted": true
+      "total": 3345000000.0,
+      "construction": 1000000000.0,
+      "margin": 66.55,
+      "state": "computed"
     }
   },
   {
-    "name": "missing-revenue",
-    "revenue": null,
-    "land": 230,
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": null,
-      "allocated": null,
-      "adjusted": false,
-      "state": "pending"
-    }
-  },
-  {
-    "name": "share100-fixed-cost",
-    "revenue": 1000,
-    "land": 200,
-    "expenses": {
-      "construction": {
-        "mode": "budgetPct",
-        "value": 85
-      }
-    },
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": null,
-      "allocated": null,
-      "adjusted": false,
-      "state": "infeasible"
-    }
-  },
-  {
-    "name": "share-over100",
-    "revenue": 1000,
-    "land": 0,
-    "trustRate": 0,
-    "expenses": {
-      "construction": {
-        "mode": "budgetPct",
-        "value": 100
-      }
-    },
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": null,
-      "allocated": null,
-      "adjusted": false,
-      "state": "infeasible"
-    }
-  },
-  {
-    "name": "share100-no-fixed-cost",
-    "revenue": 1000,
-    "land": 0,
-    "trustRate": 0,
-    "expenses": {
-      "construction": {
-        "mode": "budgetPct",
-        "value": 85
-      }
-    },
+    "name": "토지비가 크면 목표 수익률이 음수",
+    "revenue": 10000000000.0,
+    "land": 9000000000.0,
+    "supply": 330,
+    "expenses": {},
+    "trustType": "",
     "expected": {
       "complete": true,
-      "applied": 15,
-      "allowable": 850,
-      "allocated": 850,
-      "adjusted": false
+      "total": 10345000000.0,
+      "construction": 1000000000.0,
+      "margin": -3.45,
+      "state": "computed"
     }
   },
   {
-    "name": "zero-revenue",
+    "name": "평당 1,500만원",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {
+      "construction": {
+        "mode": "areaUnit",
+        "value": 1500
+      }
+    },
+    "trustType": "",
+    "expected": {
+      "complete": true,
+      "total": 3967500000.0,
+      "construction": 1500000000.0,
+      "margin": 60.324999999999996,
+      "state": "computed"
+    }
+  },
+  {
+    "name": "공사비 직접 금액",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {
+      "construction": {
+        "mode": "amount",
+        "value": 2000000000.0
+      }
+    },
+    "trustType": "",
+    "expected": {
+      "complete": true,
+      "total": 4590000000.0,
+      "construction": 2000000000.0,
+      "margin": 54.1,
+      "state": "computed"
+    }
+  },
+  {
+    "name": "간접공사비 지출% 10",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {
+      "indirect": {
+        "mode": "budgetPct",
+        "value": 10
+      }
+    },
+    "trustType": "",
+    "expected": {
+      "complete": true,
+      "total": 3638888888.888889,
+      "construction": 1000000000.0,
+      "margin": 63.61111111111111,
+      "state": "computed"
+    }
+  },
+  {
+    "name": "공사비 지출% 50 · 나머지 공사비%",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {
+      "construction": {
+        "mode": "budgetPct",
+        "value": 50
+      }
+    },
+    "trustType": "",
+    "expected": {
+      "complete": true,
+      "total": 5562913907.284768,
+      "construction": 2781456953.642384,
+      "margin": 44.370860927152314,
+      "state": "computed"
+    }
+  },
+  {
+    "name": "신탁보수 공사비% 2",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {
+      "trust": {
+        "mode": "constructionPct",
+        "value": 2
+      }
+    },
+    "trustType": "",
+    "expected": {
+      "complete": true,
+      "total": 3265000000.0,
+      "construction": 1000000000.0,
+      "margin": 67.35,
+      "state": "computed"
+    }
+  },
+  {
+    "name": "지출% 합계 150%",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {
+      "construction": {
+        "mode": "budgetPct",
+        "value": 30
+      },
+      "indirect": {
+        "mode": "budgetPct",
+        "value": 30
+      },
+      "sales": {
+        "mode": "budgetPct",
+        "value": 30
+      },
+      "tax": {
+        "mode": "budgetPct",
+        "value": 30
+      },
+      "finance": {
+        "mode": "budgetPct",
+        "value": 30
+      }
+    },
+    "trustType": "",
+    "expected": {
+      "complete": false,
+      "total": null,
+      "construction": null,
+      "margin": null,
+      "state": "infeasible"
+    }
+  },
+  {
+    "name": "공급면적 없음",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": null,
+    "expenses": {},
+    "trustType": "",
+    "expected": {
+      "complete": false,
+      "total": null,
+      "construction": null,
+      "margin": null,
+      "state": "missing-supply"
+    }
+  },
+  {
+    "name": "수입 0원",
     "revenue": 0,
-    "land": 300,
+    "land": 2000000000.0,
+    "supply": 0,
+    "expenses": {},
+    "trustType": "",
     "expected": {
       "complete": true,
-      "applied": null,
-      "allowable": 1200,
-      "allocated": 1200,
-      "adjusted": true,
+      "total": 2000000000.0,
+      "construction": 0,
+      "margin": null,
       "state": "zero-revenue"
     }
   },
   {
-    "name": "large-cost-overflow",
-    "revenue": 1e+308,
-    "land": 1e+308,
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": null,
-      "allocated": null,
-      "adjusted": false,
-      "state": "overflow"
-    }
-  },
-  {
-    "name": "legacy-unset-trust-default",
-    "revenue": 1000,
-    "land": 230,
-    "trustRate": null,
-    "trustType": "",
-    "expected": {
-      "complete": true,
-      "applied": 4,
-      "allowable": 960,
-      "allocated": 960,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "explicit-zero-trust-no-product",
-    "revenue": 1000,
-    "land": 230,
-    "trustRate": 0,
-    "trustType": "",
-    "expected": {
-      "complete": true,
-      "applied": 8,
-      "allowable": 920,
-      "allocated": 920,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "changed-trust-no-product",
-    "revenue": 1000,
-    "land": 230,
-    "trustType": "",
-    "expenses": {
-      "trust": {
-        "mode": "revenuePct",
-        "value": 3
-      }
-    },
-    "expected": {
-      "complete": true,
-      "applied": -4,
-      "allowable": 1040,
-      "allocated": 1040,
-      "adjusted": true
-    }
-  },
-  {
-    "name": "changed-revenue-no-product",
-    "revenue": 2000,
-    "land": 230,
-    "trustType": "",
-    "expected": {
-      "complete": true,
-      "applied": 15,
-      "allowable": 1700,
-      "allocated": 1525,
-      "adjusted": false
-    }
-  },
-  {
-    "name": "unsupported-product-held",
-    "revenue": 1000,
-    "land": 230,
-    "trustType": "other",
-    "expected": {
-      "complete": false,
-      "applied": null,
-      "allowable": 850,
-      "allocated": null,
-      "adjusted": false,
-      "state": "pending"
-    }
-  },
-  {
-    "name": "distribution-product-held",
-    "revenue": 1000,
-    "land": 230,
+    "name": "분양관리신탁 보류",
+    "revenue": 10000000000.0,
+    "land": 2000000000.0,
+    "supply": 330,
+    "expenses": {},
     "trustType": "distribution",
     "expected": {
       "complete": false,
-      "applied": null,
-      "allowable": 850,
-      "allocated": null,
-      "adjusted": false,
-      "state": "pending"
+      "total": null,
+      "construction": null,
+      "margin": null,
+      "state": "pending",
+      "constructionShown": 1000000000.0
     }
   }
 ]

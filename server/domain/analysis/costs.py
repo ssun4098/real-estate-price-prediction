@@ -17,49 +17,86 @@ COST_LABELS = {
 }
 
 
-def _expense_priority_basis(income, land_won, target, rows, ready):
-    """Preserve expense settings; solve budget = fixed + budget * share.
+# 수지분석 지출 항목 기본값 (2026-10-29 요청). 목표 수익률은 입력하지 않고 총수입·총지출에서 계산한다.
+#   허용 공사비 = 계획 공급면적 ÷ 3.3 × 평당 1,000만원
+#   간접공사비 7% · 분양제비용 6% · 제세공과금 5% · 금융비용 6.5% = 허용 공사비 대비, 신탁보수 1% = 예상 총수입 대비
+PYEONG_M2 = 3.3
+EXPENSE_DEFAULTS = {"construction": ("areaUnit", 1000), "indirect": ("constructionPct", 7),
+                    "sales": ("constructionPct", 6), "tax": ("constructionPct", 5),
+                    "finance": ("constructionPct", 6.5), "trust": ("revenuePct", 1)}
+# 입력 방식: 금액(원) / 수입%(예상 총수입 대비) / 지출%(예상 총지출 대비) / 공사비%(허용 공사비 대비) / 평당(만원, 공사비만)
+EXPENSE_MODES = ("amount", "revenuePct", "budgetPct", "constructionPct", "areaUnit")
 
-    Keep requested and applied margins separate. A partial estimate must never
-    claim that lowering the margin makes all expenses affordable.
+
+def _expense_priority_basis(income, land_won, supply_m2, rows, ready):
+    """총지출과 목표 수익률을 지출 항목 계산식으로 구한다.
+
+    총지출 T = 토지비 + 각 항목.  공사비%는 허용 공사비를, 지출%는 T 자신을 기준으로 하므로
+    T = (토지비 + 금액·수입%·평당 항목 + 공사비% 몫) ÷ (1 − 지출% 합계) 로 한 번에 풀린다.
+    목표 수익률 = (총수입 − T) ÷ 총수입 × 100 (토지비가 크면 음수일 수 있다).
     Browser counterpart: budget-priority.mjs / expensePriorityBasis.
     """
-    requested = income * (1 - target / 100) if income is not None and target is not None else None
-    result = {"requestedTargetMarginPct": target, "appliedTargetMarginPct": None,
-              "requestedAllowableWon": requested, "allowableWon": requested,
+    result = {"requestedTargetMarginPct": None, "appliedTargetMarginPct": None,
+              "requestedAllowableWon": None, "allowableWon": None, "totalExpenseWon": None,
+              "constructionWon": None, "supplyAreaM2": supply_m2, "rowAmounts": {},
               "minimumRequiredBudgetWon": None, "fixedExpenseWon": None,
               "budgetExpensePct": None, "targetAdjusted": False,
               "targetAdjustmentStatus": "pending", "adjustmentError": None}
+    def direct(row):  # 총지출과 관계없이 정해지는 금액 (근거가 없으면 None)
+        mode, value = row.get("mode"), row.get("value")
+        if value is None:
+            return None
+        if mode == "amount":
+            return value
+        if mode == "revenuePct":
+            return income * (value / 100) if income is not None else None
+        if mode == "areaUnit":
+            return supply_m2 / PYEONG_M2 * value * 10_000 if supply_m2 is not None and supply_m2 >= 0 else None
+        return None
+    construction = next(r for r in rows if r["id"] == "construction")
     if not ready:
-        return result
-    share = sum(r["value"] for r in rows if r["mode"] == "budgetPct") / 100
-    fixed = land_won + sum(r["value"] if r["mode"] == "amount" else income * (r["value"] / 100)
-                           if r["mode"] == "revenuePct" else 0 for r in rows)
-    result.update(fixedExpenseWon=fixed if math.isfinite(fixed) else None, budgetExpensePct=share * 100)
+        # 입력이 덜 됐어도 다른 항목에 의존하지 않는 금액은 보여 준다 (지출%는 총지출이 필요해 보류).
+        known = direct(construction)
+        partial = {r["id"]: (known * r["value"] / 100 if r.get("mode") == "constructionPct" and known is not None and r.get("value") is not None
+                             else direct(r)) for r in rows}
+        return dict(result, rowAmounts={k: v for k, v in partial.items() if v is not None and math.isfinite(v)})
     def fail(status, message):
-        return dict(result, allowableWon=None, targetAdjustmentStatus=status, adjustmentError=message)
-    if not math.isfinite(fixed) or not math.isfinite(requested):
+        return dict(result, targetAdjustmentStatus=status, adjustmentError=message)
+    if construction["mode"] == "areaUnit" and (supply_m2 is None or supply_m2 < 0):
+        return fail("missing-supply", "계획 공급면적이 없어 평당 공사비를 계산할 수 없습니다. 개발규모의 공급계획(호수·호당 면적)을 확인하세요.")
+    share = sum(r["value"] for r in rows if r["mode"] == "budgetPct") / 100
+    construction_share = sum(r["value"] for r in rows if r["mode"] == "constructionPct") / 100
+    fixed = land_won + sum(direct(r) for r in rows if r["mode"] in ("amount", "revenuePct", "areaUnit"))
+    if construction["mode"] == "budgetPct":
+        share += construction_share * construction["value"] / 100
+    else:
+        fixed += construction_share * direct(construction)
+    result.update(fixedExpenseWon=fixed if math.isfinite(fixed) else None, budgetExpensePct=share * 100)
+    if not math.isfinite(fixed):
         return fail("overflow", "지출 합계가 계산 범위를 초과했습니다. 금액·비율의 입력 단위를 확인하세요.")
-    if share >= 1 and (fixed > 0 or (share > 1 and requested > 0)):
-        return fail("infeasible", "지출% 합계가 100% 이상이어서 토지비·금액·수입% 비용을 함께 충당할 수 없습니다. 지출 비율 또는 입력 기준을 확인하세요.")
-    required = fixed / (1 - share) if share < 1 else 0
-    allowable = max(requested, required)
-    tolerance = max(1e-7, 2.220446049250313e-16 * max(1, abs(allowable), abs(requested)) * 32)
-    adjusted = allowable - requested > tolerance
-    applied = ((1 - allowable / income) * 100 if adjusted else target) if income > 0 else None
-    if not math.isfinite(required) or not math.isfinite(allowable) or (income > 0 and not math.isfinite(applied)):
-        return fail("overflow", "지출 설정을 유지하는 목표 수익률 계산이 숫자 범위를 초과했습니다. 입력 금액과 지출 비율을 확인하세요.")
-    result.update(allowableWon=allowable, minimumRequiredBudgetWon=required,
-                  appliedTargetMarginPct=applied, targetAdjusted=adjusted,
-                  targetAdjustmentStatus="zero-revenue" if income == 0 else "lowered" if adjusted else "unchanged")
+    if share >= 1 and (fixed > 0 or share > 1):
+        return fail("infeasible", "지출% 합계가 100% 이상이어서 토지비와 다른 지출을 함께 충당할 수 없습니다. 지출 비율 또는 입력 기준을 확인하세요.")
+    total = fixed / (1 - share) if share < 1 else 0.0
+    construction_won = total * construction["value"] / 100 if construction["mode"] == "budgetPct" else direct(construction)
+    amounts = {}
+    for row in rows:
+        mode, value = row["mode"], row["value"]
+        amounts[row["id"]] = (total * value / 100 if mode == "budgetPct"
+                              else construction_won * value / 100 if mode == "constructionPct" else direct(row))
+    margin = (income - total) / income * 100 if income > 0 else None
+    if not math.isfinite(total) or not all(math.isfinite(v) for v in amounts.values()) or (margin is not None and not math.isfinite(margin)):
+        return fail("overflow", "지출 합계가 계산 범위를 초과했습니다. 입력 금액과 지출 비율을 확인하세요.")
+    result.update(allowableWon=total, totalExpenseWon=total, minimumRequiredBudgetWon=total,
+                  constructionWon=construction_won, rowAmounts=amounts, appliedTargetMarginPct=margin,
+                  targetAdjustmentStatus="zero-revenue" if income == 0 else "computed")
     return result
 
 
-def _budget_allocation(inputs, revenue, land, errors):
-    """Budget envelopes never replace independent cost estimates or cash flows."""
+def _budget_allocation(inputs, revenue, land, errors, development=None):
+    """수지분석 표: 지출 항목 계산식 → 총지출 → 목표 수익률. 독립 예상비용·현금흐름과 합치지 않는다."""
     config = inputs.get("budgetAllocation") or {}
-    fields = (("construction", "공사비", 60), ("indirect", "간접 공사비", 4),
-              ("sales", "분양제비용", 4), ("tax", "제세공과금", 3), ("finance", "금융비용", 4))
+    fields = (("construction", "공사비"), ("indirect", "간접 공사비"),
+              ("sales", "분양제비용"), ("tax", "제세공과금"), ("finance", "금융비용"))
     local_errors = []
     def error(path, value, reason, action):
         item = {"section": "budget", "path": path,
@@ -71,13 +108,10 @@ def _budget_allocation(inputs, revenue, land, errors):
         try:
             return number(value, label, minimum=minimum, maximum=maximum, required=True)
         except ValueError:
-            error(path, value, label + "이 없거나 허용 범위를 벗어났습니다", f"{minimum}~{maximum} 범위의 숫자로 수정하세요")
+            error(path, value, label + "이 없거나 허용 범위를 벗어났습니다", f"{minimum}~{maximum if maximum is not None else ''} 범위의 숫자로 수정하세요")
             return None
-    target_raw = inputs.get("assumptions", {}).get("targetMarginPct")
-    target = numeric(target_raw, "assumptions.targetMarginPct", "기대 수익률", maximum=99)
     income = revenue["representativeWon"]
-    allowable = income * (1 - target / 100) if income is not None and target is not None else None
-    rows = []
+    supply = (development or {}).get("supplyAreaM2")
     expense_edits = (inputs.get("financeEditor") or {}).get("expenses") or {}
     if not isinstance(expense_edits, dict):
         error("financeEditor.expenses", expense_edits, "비용 편집 항목은 객체여야 합니다", "비용 입력 형식을 확인하세요")
@@ -85,79 +119,68 @@ def _budget_allocation(inputs, revenue, land, errors):
     def expense_value(key, default_mode, default_value, label):
         edit = expense_edits.get(key, {"mode": default_mode, "value": default_value})
         path = "financeEditor.expenses." + key
-        value_path = path + ".value" if key in expense_edits else "budgetAllocation." + ("trustRatePct" if key == "trust" else key + "Pct")
-        if not isinstance(edit, dict) or edit.get("mode") not in ("budgetPct", "revenuePct", "amount"):
-            error(path, edit, "지원하지 않는 비용 입력 방식입니다", "허용예산 비율·수입 비율·금액 중 선택하세요")
-            return None, None, None
+        value_path = path + ".value" if key in expense_edits else "budgetAllocation." + ("trustRatePct" if key == "trust" else key)
+        allowed = ("amount", "revenuePct", "budgetPct", "areaUnit") if key == "construction" else ("amount", "revenuePct", "budgetPct", "constructionPct")
+        if not isinstance(edit, dict) or edit.get("mode") not in allowed:
+            error(path, edit, "지원하지 않는 비용 입력 방식입니다", "평당·공사비%·지출%·수입%·금액 중 선택하세요")
+            return None, None
         mode = edit["mode"]
-        value = numeric(edit.get("value"), value_path, label, maximum=None if mode == "amount" else 100)
-        base = allowable if mode == "budgetPct" else income
-        amount = value if mode == "amount" else base * (value / 100) if base is not None and value is not None else None
-        if amount is not None and not math.isfinite(amount):
-            error(path + ".value", value, "비용 계산 범위를 초과했습니다", "금액·비율의 단위를 확인하세요")
-            amount = None
-        return mode, value, amount
-    for key, label, default in fields:
-        mode, value, amount = expense_value(key, "budgetPct", config.get(key + "Pct", default), label + " 배분값")
-        pct = value if mode == "budgetPct" else None
-        rows.append({"id": key, "label": "허용 " + label, "pct": pct,
-                     "mode": mode, "value": value, "amountWon": amount})
+        value = numeric(edit.get("value"), value_path, label, maximum=None if mode in ("amount", "areaUnit") else 100)
+        return mode, value
+    rows = []
+    for key, label in fields:
+        mode, value = expense_value(key, *EXPENSE_DEFAULTS[key], label)
+        rows.append({"id": key, "label": "허용 " + label, "pct": value if mode == "budgetPct" else None,
+                     "mode": mode, "value": value, "amountWon": None})
     trust_type = config.get("trustType", "")
     if trust_type is None:
         trust_type = ""
-    trust_rate = trust_won = None
+    trust_mode = trust_value = trust_rate = trust_won = None
     # An unselected product can use the user's 1% budget assumption; this does
     # not choose a trust contract or change the separate cash-flow fee schedule.
     if trust_type in ("", "management", "completion"):
         default_rate = config.get("trustRatePct")
         if default_rate is None or isinstance(default_rate, str) and not default_rate.strip():
-            default_rate = 1
-        trust_mode, trust_value, trust_won = expense_value("trust", "revenuePct", default_rate, "참고 신탁보수")
+            default_rate = EXPENSE_DEFAULTS["trust"][1]
+        trust_mode, trust_value = expense_value("trust", "revenuePct", default_rate, "참고 신탁보수")
         trust_rate = trust_value if trust_mode == "revenuePct" else None
     elif trust_type == "distribution":
         error("budgetAllocation.trustType", "분양관리신탁", "순수 아파트 사업에 단일 매출액 요율을 적용할 수 없습니다", "적용 대상·보수 조건을 확인하세요. 관리형 상품을 검토하거나 조건 확정 전에는 신탁보수 산출을 보류하세요")
     else:
         error("budgetAllocation.trustType", trust_type, "지원하지 않는 신탁상품입니다", "상품 미선택의 사용자 가정 또는 지원하는 신탁상품을 선택하세요")
-    trust_row = {"id": "trust", "mode": locals().get("trust_mode"), "value": locals().get("trust_value")}
+    trust_row = {"id": "trust", "mode": trust_mode, "value": trust_value}
     all_rows = rows + [trust_row]
     ready = (not local_errors and income is not None and income >= 0
              and land.get("representativeWon") is not None and land["representativeWon"] >= 0
              and all(r.get("value") is not None for r in all_rows))
-    priority = _expense_priority_basis(income, land.get("representativeWon"), target, all_rows, ready)
-    allowable = priority["allowableWon"]
+    priority = _expense_priority_basis(income, land.get("representativeWon"), supply, all_rows, ready)
     if priority["adjustmentError"]:
-        error("financeEditor.expenses", "지출 설정", priority["adjustmentError"], "지출 입력 기준·금액·비율을 확인하세요")
+        error("financeEditor.expenses", "지출 설정", priority["adjustmentError"], "지출 입력 기준·금액·비율과 공급계획을 확인하세요")
+    amounts = priority.pop("rowAmounts")
     for row in rows:
-        if row["mode"] == "budgetPct":
-            row["amountWon"] = allowable * (row["value"] / 100) if allowable is not None and row["value"] is not None else None
-    if trust_row["mode"] == "budgetPct":
-        trust_won = allowable * (trust_row["value"] / 100) if allowable is not None and trust_row["value"] is not None else None
-    values = [r["amountWon"] for r in rows] + [land["representativeWon"], trust_won]
-    known = sum(v for v in values if v is not None)
-    if not math.isfinite(known):
-        error("budgetAllocation", "금액 합계 초과", "배분 지출 합계가 숫자 범위를 초과합니다", "분양수입·토지비·배분율과 입력 단위를 확인하여 수정하세요")
-        known = None
-    complete = allowable is not None and all(v is not None for v in values) and not local_errors
-    allocated = known if complete else None
-    gap = allowable - allocated if complete else None
-    tolerance = max(1e-7, 2.220446049250313e-16 * max(1, abs(allowable or 0), abs(allocated or 0)) * 32)
-    if gap is not None and abs(gap) <= tolerance:
-        gap = 0
+        row["amountWon"] = amounts.get(row["id"])
+    trust_won = amounts.get("trust")
+    total = priority["totalExpenseWon"]
+    complete = total is not None and not local_errors
+    margin = priority["appliedTargetMarginPct"]
     total_pct = sum(r["pct"] for r in rows) if all(r["pct"] is not None for r in rows) else None
-    return {"revenueWon": income, **priority, "targetMarginPct": target,
+    status = ("지출 비율 조합 확인 필요" if priority["targetAdjustmentStatus"] == "infeasible"
+              else "공급계획 확인 필요" if priority["targetAdjustmentStatus"] == "missing-supply"
+              else "입력 확인 · 계산 미완료" if not complete
+              else "수입 0원 · 수익률 산정 불가" if priority["targetAdjustmentStatus"] == "zero-revenue"
+              else "수지 계산 완료 · 목표 수익률 자동 산정")
+    return {"revenueWon": income, **priority, "targetMarginPct": margin,
             "landWon": land["representativeWon"], "trustWon": trust_won,
             "trustType": trust_type, "trustRatePct": trust_rate,
             "trustRateSource": "사용자 예산 가정 · 기본 총수입의 1% · 계약 확정 아님" if trust_rate is not None else None,
             "allocationRows": rows, "allocationPctTotal": total_pct,
-            "knownAllocatedWon": known, "allocatedWon": allocated,
-            "unallocatedWon": max(gap, 0) if gap is not None else None,
-            "overallocatedWon": max(-gap, 0) if gap is not None else None,
-            "profitWon": income - allocated if income is not None and allocated is not None else None,
-            "profitMarginPct": (income - allocated) / income * 100 if income and allocated is not None else None,
-            "trustMode": locals().get("trust_mode"), "trustValue": locals().get("trust_value"),
-            "complete": complete, "fieldErrors": local_errors,
-            "status": "지출 비율 조합 확인 필요" if priority["targetAdjustmentStatus"] == "infeasible" else "입력 확인 · 배분 미완료" if not complete else "수입 0원 · 수익률 산정 불가" if priority["targetAdjustmentStatus"] == "zero-revenue" else "지출 설정 유지 · 목표 수익률 조정" if priority["targetAdjusted"] else "허용 예산 배분 완료",
-            "note": "지출 입력 설정을 우선 유지한 허용 예산입니다. 독립 예상비용·현금흐름과 중복 합산하지 않습니다."}
+            "knownAllocatedWon": total, "allocatedWon": total if complete else None,
+            "unallocatedWon": 0 if complete else None, "overallocatedWon": 0 if complete else None,
+            "profitWon": income - total if complete and income is not None else None,
+            "profitMarginPct": margin if complete else None,
+            "trustMode": trust_mode, "trustValue": trust_value,
+            "complete": complete, "fieldErrors": local_errors, "status": status,
+            "note": "지출 항목 계산식으로 총지출을 구하고 목표 수익률=(총수입−총지출)÷총수입으로 산정합니다. 독립 예상비용·현금흐름과 중복 합산하지 않습니다."}
 
 
 def _apply_finance_price(inputs, result, kind, errors):

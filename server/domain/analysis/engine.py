@@ -144,7 +144,7 @@ def analyze(inputs, partial=False, land_model=None):
     land = _apply_finance_price(safe, land, "land", errors if partial else None)
     for parcel in safe.get("parcels", []):
         if isinstance(parcel, dict): parcel["comparisonProfile"] = parcel_profile(parcel)
-    budget = _budget_allocation(safe, revenue, land, errors if partial else None) if linked_enabled or "budgetAllocation" in safe or "financeEditor" in safe else None
+    budget = _budget_allocation(safe, revenue, land, errors if partial else None, development) if linked_enabled or "budgetAllocation" in safe or "financeEditor" in safe else None
     if partial:
         _cashflow_scalar_errors(safe.get("cashflow"), errors)
     if any(e["section"] == "cashflow" for e in errors):

@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {Dialog} from '../../data-app-public.jsx';
 import {DataComponent} from './data-component.jsx';
 import {number,eok,VerticalBox} from './pf-live-widgets.jsx';
-import {financeRowSetting,revisionStats} from './revision-model.mjs';
+import {financeRowSetting,revisionStats,currentBudget} from './revision-model.mjs';
 import {parcelProfile} from './land-comparison.mjs';
 import {buildingSummary,designationSummary} from './survey-summary.mjs';
 import SurveyFloorChart from './SurveyFloorChart.jsx';
@@ -78,19 +78,20 @@ const costRows=[['land','예상 토지매입대금'],['construction','허용 공
 export {V5LandPlot as V3LandPlot} from './LandDistribution.jsx';
 
 function FinanceRow({id,label,input,budget,result,onChange,disabled,onDetail}){
- const setting=financeRowSetting(input,id),amount=setting.mode==='amount',value=finite(setting.value)?setting.value/(amount?1e8:1):setting.value??'';
+ const setting=financeRowSetting(input,id),amount=setting.mode==='amount',perPyeong=setting.mode==='areaUnit',value=finite(setting.value)?setting.value/(amount?1e8:1):setting.value??'';
  const applied=id==='revenue'?budget.revenueWon:id==='land'?budget.landWon:id==='trust'?budget.trustWon:budget.allocationRows?.find(r=>r.id===id)?.amountWon;
- const comparable=id==='revenue'||id==='land',max=amount?Math.max(1000,finite(value)?Math.ceil(value/100)*100:0):setting.mode==='comparablePct'?200:100;
+ const comparable=id==='revenue'||id==='land',max=amount?Math.max(1000,finite(value)?Math.ceil(value/100)*100:0):perPyeong?Math.max(3000,finite(value)?Math.ceil(value/1000)*1000:0):setting.mode==='comparablePct'?200:100;
  const landModel=id==='land'&&result?.results?.land?.amountBasis==='model';
- const choices=comparable?[['comparablePct',landModel?'모델%':'사례%'],['amount','금액']]:[['budgetPct','지출%'],['revenuePct','수입%'],['amount','금액']];
+ // 지출 입력 방식 (2026-10-29): 평당 = 만원/3.3㎡ × 계획 공급면적(공사비만), 공사비% = 허용 공사비 대비, 지출% = 예상 총지출 대비, 수입% = 예상 총수입 대비
+ const choices=comparable?[['comparablePct',landModel?'모델%':'사례%'],['amount','금액']]:id==='construction'?[['areaUnit','평당'],['budgetPct','지출%'],['revenuePct','수입%'],['amount','금액']]:id==='trust'?[['revenuePct','수입%'],['constructionPct','공사비%'],['budgetPct','지출%'],['amount','금액']]:[['constructionPct','공사비%'],['budgetPct','지출%'],['revenuePct','수입%'],['amount','금액']];
  const update=raw=>{const n=raw.trim()===''?null:Number(raw);onChange(id,{...setting,value:raw.trim()===''?null:finite(n)?n*(amount?1e8:1):raw});};
- const modeChange=mode=>{const baseline=result?.results?.[id]?.comparableWon;const base=mode==='comparablePct'?baseline:mode==='budgetPct'?budget.allowableWon:mode==='revenuePct'?budget.revenueWon:null;onChange(id,{mode,value:mode==='amount'?(finite(applied)?applied:null):finite(base)&&base>0&&finite(applied)?applied/base*100:mode==='comparablePct'?100:null});};
+ const modeChange=mode=>{const baseline=result?.results?.[id]?.comparableWon;const base=mode==='comparablePct'?baseline:mode==='budgetPct'?budget.allowableWon:mode==='revenuePct'?budget.revenueWon:mode==='constructionPct'?budget.constructionWon:mode==='areaUnit'&&finite(budget.supplyAreaM2)?budget.supplyAreaM2/3.3*1e4:null;onChange(id,{mode,value:mode==='amount'?(finite(applied)?applied:null):finite(base)&&base>0&&finite(applied)?applied/base*(mode==='areaUnit'?1:100):mode==='comparablePct'?100:mode==='areaUnit'?1000:null});};
  const valid=setting.value==null||finite(setting.value)&&setting.value>=0&&(amount||setting.value<=max);
  const landStatus=id==='land'?landAmountStatus(result?.results?.land||{}):null,held=landStatus&&!finite(applied);
  return <div className={'v3-finance-row v3-finance-row-'+id} data-reviewed-rows>
   <label htmlFor={'v3-finance-'+id}>{label}</label>
   <select aria-label={label+' 입력 기준'} value={setting.mode} disabled={disabled} onChange={e=>modeChange(e.target.value)}>{choices.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
-  <div className="v3-row-input"><input id={'v3-finance-'+id} aria-label={label+(amount?' 금액, 억원':' 비율, 퍼센트')} aria-invalid={!valid} inputMode="decimal" value={value} disabled={disabled} onChange={e=>update(e.target.value)}/><input aria-label={label+' 조절'} type="range" min="0" max={max} step={amount?'.1':'.1'} value={finite(value)?Math.min(max,Math.max(0,value)):0} disabled={disabled} onChange={e=>update(e.target.value)}/></div>
+  <div className="v3-row-input"><input id={'v3-finance-'+id} aria-label={label+(amount?' 금액, 억원':perPyeong?' 평당 단가, 만원':' 비율, 퍼센트')} title={perPyeong?'평당 단가(만원) × 계획 공급면적 ÷ 3.3':undefined} aria-invalid={!valid} inputMode="decimal" value={value} disabled={disabled} onChange={e=>update(e.target.value)}/><input aria-label={label+' 조절'} type="range" min="0" max={max} step={perPyeong?'10':'.1'} value={finite(value)?Math.min(max,Math.max(0,value)):0} disabled={disabled} onChange={e=>update(e.target.value)}/></div>
   <output>{finite(applied)?number(applied/1e8,2):held?<button type="button" className="v5-held-amount" onClick={()=>onDetail('boundaries')}>산정 보류</button>:'—'}</output>
   {held&&<div className="v5-land-row-status"><span>{finite(landStatus.confirmedSubtotalWon)?`확인분 소계 ${number(landStatus.confirmedSubtotalWon/1e8,2)}억원 · `:''}{landStatus.summary} · 전체 토지비 미적용</span><button onClick={()=>onDetail('boundaries')} title={landStatus.reasons.join(' · ')}>보류 원인·근거</button></div>}
   {landStatus?.fallbackUsed&&<div className="v5-land-row-status v6-land-fallback-status"><span>동일 그룹 비교사례 없음 · {landStatus.fallbackSummary}</span><button onClick={()=>onDetail('boundaries')}>대체 근거</button></div>}
@@ -105,14 +106,13 @@ function PercentControl({id,label,sliderLabel,value,max,disabled,onChange,live=f
  return <div className="v5-percent-control"><label htmlFor={id}>{label}</label><span className="v5-percent-input"><input id={id} aria-label={label+' 직접 입력, 퍼센트'} type="number" inputMode="decimal" min="0" max={max} step=".1" value={draft} title={live?'입력하면 계획 면적과 분양호수에 바로 적용됩니다.':'숫자를 입력한 뒤 Enter 또는 다른 곳을 누르면 적용됩니다.'} disabled={disabled} aria-invalid={!valid} aria-describedby={!valid?id+'-error':undefined} onChange={e=>{const text=e.target.value;setDraft(text);if(live)onChange(text.trim()===''?null:Number(text))}} onBlur={commit} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();commit()}else if(e.key==='Escape'){setDraft(value==null?'':String(value))}}}/><span aria-hidden="true">%</span></span><input aria-label={sliderLabel} type="range" min="0" max={max} step=".1" value={finite(value)&&value>=0&&value<=max?value:0} disabled={disabled} onChange={e=>{setDraft(e.target.value);onChange(Number(e.target.value))}}/>{!valid&&<small id={id+'-error'} className="v5-percent-error">0~{number(max,1)}%로 입력하세요.</small>}</div>;
 }
 function FinancePanel({input,result,plots,disabled,onInput,onAssume,onDetail}){
- const budget=result?.results?.budget||{},linked=input.linkedScenario||{},far=linked.enabled?linked.farPct:input.assumptions?.farPct,farMax=finite(linked.farMaxPct)&&linked.farMaxPct>0?linked.farMaxPct:500;
+ const budget=currentBudget(input,result?.results),linked=input.linkedScenario||{},far=linked.enabled?linked.farPct:input.assumptions?.farPct,farMax=finite(linked.farMaxPct)&&linked.farMaxPct>0?linked.farMaxPct:500;
  const rowChange=(id,setting)=>onInput(s=>({...s,financeEditor:{...s.financeEditor,...(['revenue','land'].includes(id)?{[id]:setting}:{expenses:{...s.financeEditor?.expenses,[id]:setting}})}}));
- const margin=input.assumptions?.targetMarginPct;
  const setFar=value=>linked.enabled?onInput(s=>({...s,linkedScenario:{...s.linkedScenario,farPct:value}})):onAssume('farPct',value);
  return <div className="v3-finance-panel">
-  <div className="v3-finance-sliders"><PercentControl id="v5-far-input" label="용적률" sliderLabel="용적률 조절" value={far} max={farMax} disabled={disabled} onChange={setFar}/><PercentControl id="v5-margin-input" label="요청 목표 수익률" sliderLabel="총수입 대비 목표 수익률 조절" value={margin} max={99} disabled={disabled} onChange={value=>onAssume('targetMarginPct',value)}/><div className={'v5-margin-applied'+(budget.targetAdjusted?' is-adjusted':'')} role="status">{finite(budget.appliedTargetMarginPct)?<>적용 목표 수익률 <strong>{number(budget.appliedTargetMarginPct,2)}%</strong>{budget.targetAdjusted?` · 지출 설정을 유지하기 위해 요청 ${number(margin,1)}%에서 자동 조정`:' · 지출 설정 우선'}</>:budget.targetAdjustmentStatus==='infeasible'?'적용 목표 수익률 보류 · 지출% 합계와 고정 비용 조합을 확인하세요.':budget.targetAdjustmentStatus==='zero-revenue'?'수입 0원 · 수익률 산정 불가':'적용 목표 수익률 보류 · 토지비·신탁 등 지출 확인 후 자동 조정'}</div></div>
-  <div className="v3-kpis" data-reviewed-rows>{[[financeRowSetting(input,'revenue').mode==='amount'?'예상 총수입 · 사용자 가정':'예상 총수입 · 사례 적용',eok(budget.revenueWon)],[budget.targetAdjusted?'지출 우선 허용 총지출':budget.complete?'적용 목표 기준 허용 총지출':'요청 목표 기준 총지출 · 잠정',eok(budget.allowableWon)],['입력 지출 기준 이익률',finite(budget.profitMarginPct)?number(budget.profitMarginPct,1)+'%':'—']].map(([l,v])=><div key={l}><small>{l}</small><strong>{v}</strong></div>)}</div>
-  <div className="v3-finance-content"><div className="v3-finance-heading"><h2>수지분석</h2><small>금액: 억원·사용자 가정 · 지출%: 허용지출 대비 · 수입%: 총수입 대비</small></div>
+  <div className="v3-finance-sliders"><PercentControl id="v5-far-input" label="용적률" sliderLabel="용적률 조절" value={far} max={farMax} disabled={disabled} onChange={setFar}/><div className="v5-margin-applied" role="status">{finite(budget.targetMarginPct)?<>목표 수익률 <strong>{number(budget.targetMarginPct,2)}%</strong> · (예상 총수입 − 예상 총지출) ÷ 예상 총수입 · 자동 산정</>:budget.targetAdjustmentStatus==='infeasible'?'목표 수익률 보류 · 지출% 합계와 고정 비용 조합을 확인하세요.':budget.targetAdjustmentStatus==='missing-supply'?'목표 수익률 보류 · 공급계획(계획 공급면적)을 확인하세요.':budget.targetAdjustmentStatus==='zero-revenue'?'수입 0원 · 수익률 산정 불가':'목표 수익률 보류 · 총수입·토지비·지출 확인 후 자동 산정'}</div></div>
+  <div className="v3-kpis" data-reviewed-rows>{[[financeRowSetting(input,'revenue').mode==='amount'?'예상 총수입 · 사용자 가정':'예상 총수입 · 사례 적용',eok(budget.revenueWon)],['예상 총지출 · 토지비 포함',eok(budget.totalExpenseWon)],['목표 수익률 · 자동 산정',finite(budget.profitMarginPct)?number(budget.profitMarginPct,1)+'%':'—']].map(([l,v])=><div key={l}><small>{l}</small><strong>{v}</strong></div>)}</div>
+  <div className="v3-finance-content"><div className="v3-finance-heading"><h2>수지분석</h2><small>금액: 억원 · 평당: 만원(계획 공급면적÷3.3) · 공사비%: 허용 공사비 대비 · 지출%: 총지출 대비 · 수입%: 총수입 대비</small></div>
    <div className="v3-finance-body"><div className="v3-finance-plots">{plots}</div><div className="v3-budget-editor">
     <div className="v3-finance-row v3-row-head"><span>수입 항목</span><span>기준</span><span>금액 / 비율 조절</span><span>적용·억원</span></div>
     <FinanceRow id="revenue" label="예상 총수입" {...{input,budget,result,disabled,onDetail}} onChange={rowChange}/>
@@ -120,7 +120,7 @@ function FinancePanel({input,result,plots,disabled,onInput,onAssume,onDetail}){
     <div className="v3-finance-row v3-row-head"><span>지출 항목</span><span>기준</span><span>금액 / 비율 조절</span><span>적용·억원</span></div>
     <div className="v3-expense-rows">{costRows.map(([id,label])=><FinanceRow key={id} {...{id,label,input,budget,result,disabled,onDetail}} onChange={rowChange}/>)}</div>
     <label className="v3-trust-type">신탁상품<select aria-label="신탁상품" disabled={disabled} value={input.budgetAllocation?.trustType||''} onChange={e=>{const type=e.target.value;onInput(s=>({...s,budgetAllocation:{...s.budgetAllocation,trustType:type}}));}}><option value="">상품 미선택 · 보수 가정</option><option value="management">관리형</option><option value="completion">책임준공관리형</option><option value="distribution">분양관리 · 적용 검토</option></select><button disabled={disabled} onClick={()=>rowChange('land',{mode:'comparablePct',value:100})}>토지 사례 100%</button></label>
-    <p className="v3-finance-status" role="status">{budget.complete?`${budget.status||'계산 완료'} · 입력 지출 ${eok(budget.allocatedWon)}`:'총수입·토지 사례·지출 입력을 확인하세요. 미확보는 0원이 아닙니다.'}{!input.budgetAllocation?.trustType&&' · 신탁보수는 사용자 가정이며 기본값은 총수입의 1%입니다.'}</p>
+    <p className="v3-finance-status" role="status">{budget.complete?`${budget.status||'계산 완료'} · 예상 총지출 ${eok(budget.allocatedWon)}`:budget.adjustmentError||'총수입·토지비·공급계획·지출 입력을 확인하세요. 미확보는 0원이 아닙니다.'}{!input.budgetAllocation?.trustType&&' · 신탁보수는 사용자 가정이며 기본값은 총수입의 1%입니다.'}</p>
    </div></div>
   </div>
   <div className="v3-finance-actions"><button onClick={()=>onDetail('compare')}>비교사례·상세 테이블</button><button onClick={()=>onDetail('boundaries')}>토지 면적·단가</button><button onClick={()=>onDetail('development')}>개발규모 설정</button><button onClick={()=>onDetail('costs')}>독립 비용</button><button onClick={()=>onDetail('cashflow')}>현금흐름·기관별 결과</button></div>
