@@ -51,7 +51,8 @@ export function usePdfPrint(rootRef,{blocked,blockedReason,onNotice,onError,view
   if(current.blocked||!root){current.onNotice?.(current.blockedReason||'조회·계산을 마친 뒤 PDF로 저장하세요.');return;}
   const controller=new AbortController();running.current=controller;
   const originalView={...current.viewState},originalStyle=root.getAttribute('style'),originalInert=root.inert,originalScroll=scrollState(root),focused=document.activeElement;
-  const rect=root.getBoundingClientRect(),compact=window.innerWidth<1101;
+  // 반응형 규칙(V6.template.html 의 v6-responsive: 폭 1180px 이하 또는 높이 860px 이하)이 걸리는 창에서는 PC 배치(1280×800)로 고정해 찍는다. (2026-10-29)
+  const rect=root.getBoundingClientRect(),compact=window.innerWidth<1181||window.innerHeight<861;
   const width=compact?1280:Math.round(rect.width),height=compact?800:Math.round(rect.height);
   const timestamp=new Date(),pages=[],resourceCache=new Map();
   let completed=false;
