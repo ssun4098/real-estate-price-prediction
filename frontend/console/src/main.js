@@ -396,15 +396,15 @@ function renderControls(){
 }
 // 이름표 + 값 (회색 이름표, 밝은 값) — KPI 아래 줄과 도면 범례에서 씀
 const kv=(label,value)=>`<span class="kv"><em>${esc(label)}</em><strong>${value}</strong></span>`;
-function delta(v,b,fmt,goodUp=true){if(!fin(v)||!fin(b))return '<span class="flat">—</span>';const d=v-b;if(Math.abs(d)<1e-6)return '';/* 기준안과 같으면 아무것도 쓰지 않는다 (2026-10-30 요청) */return `<span class="${(goodUp?d>0:d<0)?'up':'dn'}">${d>0?'▲':'▼'} ${fmt(Math.abs(d))}</span>`}  /* 'vs 기준안' 글자는 빼고 ▲▼와 차이만 (2026-10-30 요청) */
+// 숫자 카드 아래의 기준안 대비 증감(▲▼)은 2026-10-30 요청으로 없앴다.
 function renderKpis(r){
- const res=r.results||{},b=currentBudget(input,res),dev=res.development||{},land=res.land||{},m=b.targetMarginPct,t=!fin(m)?'ink':m<0?'bad':m<10?'warn':'good',B=baseline||{};
- const K=[['예상 총수입',eok(b.revenueWon,1),delta(b.revenueWon,B.R,v=>eok(v,1))],['예상 총지출',eok(b.totalExpenseWon,1),delta(b.totalExpenseWon,B.T,v=>eok(v,1),false)],['사업이익',eok(b.profitWon,1),delta(b.profitWon,B.P,v=>eok(v,1))],['목표 수익률',`<span style="color:var(--${t})">${pct(m,2)}</span>`,delta(m,B.M,v=>nf(v,2)+'%p')],['공급',fin(dev.units)?nf(dev.units)+'호':'—',kv('연면적',m2(dev.supplyAreaM2))+kv('대지면적',m2(dev.landAreaM2))+kv('용적률',`${nf(input.linkedScenario?.farPct)}%`)],['토지비 비중',fin(b.landWon)&&fin(b.totalExpenseWon)&&b.totalExpenseWon>0?pct(b.landWon/b.totalExpenseWon*100):'—',kv(land.amountBasis==='model'?'모델 예측':'실거래 비교',eok(b.landWon,1))]];
+ const res=r.results||{},b=currentBudget(input,res),dev=res.development||{},land=res.land||{},m=b.targetMarginPct,t=!fin(m)?'ink':m<0?'bad':m<10?'warn':'good';
+ const K=[['예상 총수입',eok(b.revenueWon,1),''],['예상 총지출',eok(b.totalExpenseWon,1),''],['사업이익',eok(b.profitWon,1),''],['목표 수익률',`<span style="color:var(--${t})">${pct(m,2)}</span>`,''],['공급',fin(dev.units)?nf(dev.units)+'호':'—',kv('연면적',m2(dev.supplyAreaM2))+kv('대지면적',m2(dev.landAreaM2))+kv('용적률',`${nf(input.linkedScenario?.farPct)}%`)],['토지비 비중',fin(b.landWon)&&fin(b.totalExpenseWon)&&b.totalExpenseWon>0?pct(b.landWon/b.totalExpenseWon*100):'—',kv(land.amountBasis==='model'?'모델 예측':'실거래 비교',eok(b.landWon,1))]];
  // 계산이 끝나지 않았으면 값 대신 움직이는 회색 막대(스켈레톤)를 보여 준다. 값이 없고 할 일도 없으면 이유를 적는다.
  const w=workState(),loading=w.kpi&&input.parcels.length>0,why=!input.parcels.length?'필지를 선택하면 계산합니다':'자료가 부족해 계산하지 못했습니다';
  K.forEach(([l,v,d],i)=>{const el=$('k'+(i+1));el.classList.toggle('loading',loading);el.setAttribute('aria-busy',String(loading));
-  el.innerHTML=loading?`<h3>${l}<span class="r kpi-wait">${esc(w.text)}</span></h3><div class="v"><span class="skel skel-v"></span></div><div class="d"><span class="skel skel-d"></span></div>`
-   :`<h3>${l}</h3><div class="v">${v}</div><div class="d">${String(v).includes('—')?`<span class="flat">${why}</span>`:d}</div>`});
+  el.innerHTML=loading?`<h3>${l}<span class="r kpi-wait">${esc(w.text)}</span></h3><div class="v"><span class="skel skel-v"></span></div>${d?'<div class="d"><span class="skel skel-d"></span></div>':''}`
+   :`<h3>${l}</h3><div class="v">${v}</div>${String(v).includes('—')?`<div class="d"><span class="flat">${why}</span></div>`:d?`<div class="d">${d}</div>`:''}`});
 }
 function renderParcels(){
  const ps=input.parcels,area=ps.reduce((t,p)=>t+(fin(p.areaM2)?p.areaM2:0),0);
