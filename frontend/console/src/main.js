@@ -251,7 +251,7 @@ async function importJson(file){
 }
 async function exportPdf(){
  if(calcing||parcelPending()||casesLoading)return toast('조회·계산이 끝난 뒤 저장하세요.',true);
- const btn=$('pdfBtn');btn.disabled=true;btn.textContent='PDF 만드는 중…';document.body.classList.add('capturing');printing=true;drawMap();
+ const btn=$('pdfBtn');btn.disabled=true;btn.textContent='PDF 만드는 중…';document.body.classList.add('capturing');printing=true;drawMap();if(document.querySelector('.tile.folded'))renderAll();
  const controller=new AbortController(),cache=new Map(),pages=[];
  try{
   await new Promise(r=>setTimeout(r,250));
@@ -595,6 +595,61 @@ async function boot(){
  let savedOff=false;try{savedOff=localStorage.getItem('console.asideOff')==='1'}catch{}
  if(savedOff)setAside(true,false);
  $('asideToggle').addEventListener('click',()=>setAside(!document.body.classList.contains('aside-off')));
+ // 카드 접기·펼치기 (2026-10-30 요청: 지우지 않고 접어 두기). 제목 줄의 ▾ 단추나 제목 글자를 누르면 접히고, 다시 누르면 펼쳐진다.
+ // 접은 상태는 이 브라우저에만 기억한다. PDF 저장 때는 접은 카드도 모두 펼친 모양으로 담는다.
+ let folded=[];try{folded=JSON.parse(localStorage.getItem('console.folded')||'[]')}catch{}
+ const foldKey=(tile,i)=>`${tile.closest('section.page')?.id||''}:${i}`;
+ document.querySelectorAll('section.page').forEach(page=>[...page.querySelectorAll(':scope>.tile')].filter(t=>t.querySelector(':scope>h3')).forEach((tile,i)=>{
+  const h=tile.querySelector(':scope>h3'),key=foldKey(tile,i),btn=document.createElement('button');
+  btn.type='button';btn.className='fold-btn';btn.innerHTML='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  h.prepend(btn);
+  const set=(off,remember=true)=>{tile.classList.toggle('folded',off);const name=(h.firstChild?.nextSibling?.textContent||h.textContent).trim(),t=`${name} ${off?'펼치기':'접기'}`;
+   btn.setAttribute('aria-expanded',String(!off));btn.setAttribute('aria-label',t);btn.title=t;
+   if(remember){folded=folded.filter(k=>k!==key);if(off)folded.push(key);try{localStorage.setItem('console.folded',JSON.stringify(folded))}catch{}}
+   if(!off)dispatchEvent(new Event('resize'))};  // 펼친 뒤 차트·지도를 지금 폭에 맞춰 다시 그린다
+  if(folded.includes(key))set(true,false);
+  const toggle=()=>set(!tile.classList.contains('folded'));
+  btn.addEventListener('click',toggle);
+  h.addEventListener('click',e=>{if(e.target===h)toggle()});  // 제목 글자를 눌러도 접힘 (안의 칩·체크박스는 제외)
+ }));
+ // 카드 단위 스크롤 (2026-10-30 요청: 스크롤 한 번에 다음 카드 줄로). 외부 라이브러리 없이 직접 구현:
+ // 브라우저 기본 scroll-snap 은 휠을 조금 굴리면 가장 가까운 줄로 되돌아가 다음 줄로 넘어가지 않아서 쓰지 않는다.
+ // 휠 한 번(트랙패드는 한 번 쓸어 넘기기) = 다음/이전 카드 줄. 화면보다 긴 줄은 화면 높이만큼씩 나눠 내려간다.
+ // 안쪽에 스크롤이 있는 곳(왼쪽 패널, 목록, 주소 후보)은 끝에 닿을 때까지 평소처럼 동작한다. 지도는 휠을 쓰지 않으므로(확대는 +/− 단추) 지도 위에서도 카드가 넘어간다. PageDown·PageUp·스페이스도 같다.
+ // 상단 단추로 끄고 켤 수 있고, 상태는 이 브라우저에만 기억한다 (기본: 켬).
+ const snapOn=()=>document.documentElement.classList.contains('snap');
+ const setSnap=(on,remember=true)=>{document.documentElement.classList.toggle('snap',on);const b=$('snapToggle'),t=`카드 단위 스크롤 ${on?'끄기':'켜기'}`;
+  b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',t);b.title=t;if(remember)try{localStorage.setItem('console.snap',on?'1':'0')}catch{}};
+ let saved=true;try{saved=localStorage.getItem('console.snap')!=='0'}catch{}
+ setSnap(saved,false);
+ $('snapToggle').addEventListener('click',()=>{setSnap(!snapOn());toast(snapOn()?'카드 단위 스크롤을 켰습니다':'카드 단위 스크롤을 껐습니다')});
+ const topGap=()=>(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h'))||64)+12;
+ const rowTops=()=>{const max=document.documentElement.scrollHeight-innerHeight,gap=topGap();   // 카드 줄 맨 위가 상단 바 바로 아래 오는 스크롤 위치들
+  const v=[...document.querySelectorAll('main .page>.tile')].filter(t=>t.offsetParent).map(t=>Math.max(0,Math.min(max,Math.round(t.getBoundingClientRect().top+scrollY-gap))));
+  return [...new Set([0,...v,max])].sort((a,b)=>a-b)};
+ const stepTo=dir=>{const y=scrollY,pts=rowTops(),view=innerHeight-topGap(),stepMax=Math.max(120,view*.85);
+  let target=dir>0?pts.find(p=>p>y+2):[...pts].reverse().find(p=>p<y-2);
+  if(target==null)return false;
+  if(Math.abs(target-y)>view)target=y+dir*stepMax;   // 화면보다 긴 줄: 끝을 건너뛰지 않도록 화면 높이만큼만
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  scrollTo({top:Math.round(target),behavior:reduce?'instant':'smooth'});return true};
+ const innerScroll=(el,dir)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){   // 안쪽 스크롤 영역이 그 방향으로 더 움직일 수 있으면 그쪽에 맡긴다
+   const st=getComputedStyle(el);if(!/(auto|scroll)/.test(st.overflowY)||el.scrollHeight<=el.clientHeight+1)continue;
+   if(dir>0?el.scrollTop+el.clientHeight<el.scrollHeight-1:el.scrollTop>0)return true}return false};
+ let lastWheel=0,movedInGesture=false;
+ addEventListener('wheel',e=>{
+  if(!snapOn()||e.ctrlKey||e.defaultPrevented||document.body.classList.contains('capturing'))return;
+  const dy=e.deltaMode?e.deltaY*40:e.deltaY;if(Math.abs(dy)<Math.abs(e.deltaX)||Math.abs(dy)<2)return;   // 가로 스크롤·아주 작은 움직임은 그대로
+  const dir=Math.sign(dy);if(innerScroll(e.target,dir))return;
+  e.preventDefault();
+  const now=performance.now(),newGesture=now-lastWheel>220;lastWheel=now;   // 휠·트랙패드가 한 번에 여러 번 보내는 신호를 한 동작으로 묶는다
+  if(newGesture)movedInGesture=false;if(movedInGesture)return;
+  movedInGesture=stepTo(dir)||true;
+ },{passive:false});
+ addEventListener('keydown',e=>{
+  if(!snapOn()||e.altKey||e.ctrlKey||e.metaKey)return;const tag=e.target?.tagName;if(/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(tag)||e.target?.isContentEditable)return;
+  const dir=e.key==='PageDown'||(e.key===' '&&!e.shiftKey)?1:e.key==='PageUp'||(e.key===' '&&e.shiftKey)?-1:0;
+  if(dir&&!innerScroll(e.target,dir)){e.preventDefault();stepTo(dir)}});
  // 창 크기가 바뀌면 차트를 새 폭으로 다시 그린다
  let resizeTimer=0;addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderAll,200)});
  // 상단 바 높이(버튼이 줄바꿈되면 달라짐)에 맞춰 왼쪽 패널 위치를 정한다

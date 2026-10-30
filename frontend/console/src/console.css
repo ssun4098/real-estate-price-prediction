@@ -168,3 +168,20 @@ tr.off td{opacity:.45}
 @media (max-width:1280px){.span7,.span5,.span8,.span4,.span6{grid-column:span 12}}
 @media (max-width:860px){.app{grid-template-columns:minmax(0,1fr)}aside{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line)}.kpi{grid-column:span 6}main{padding:8px}#map.cmap .v3-map-panel{height:440px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.skel,.busybar i,.status.busy .status-icon{animation-duration:3s}}
+
+/* 카드 접기·펼치기 (2026-10-30): 접으면 제목 줄만 남는다. PDF 저장(capturing) 때는 모두 펼친 모양으로 담는다 */
+.fold-btn{display:inline-grid;place-items:center;width:24px;height:24px;margin:-4px 0 -4px -4px;padding:0;border:0;border-radius:6px;background:none;color:var(--ink-2);cursor:pointer;flex:none;transition:transform .15s}
+.fold-btn:hover{background:var(--line);color:var(--ink)}
+.fold-btn:focus-visible{outline:2px solid var(--accent,#5B9BFF);outline-offset:1px}
+.tile>h3{cursor:default}
+.tile:has(>h3>.fold-btn)>h3{cursor:pointer;user-select:none}
+.tile.folded>h3>.fold-btn{transform:rotate(-90deg)}
+body:not(.capturing) .tile.folded{align-self:start;padding-bottom:12px}
+body:not(.capturing) .tile.folded>h3{margin-bottom:0}
+body:not(.capturing) .tile.folded>:not(h3){display:none!important}
+body.capturing .fold-btn{display:none}
+
+/* 카드 단위 스크롤 (2026-10-30): 동작은 main.js(휠 → 다음 카드 줄). 여기서는 상단 단추 모양만. */
+#snapToggle[aria-pressed="false"]{color:var(--muted)}
+#snapToggle[aria-pressed="true"]{color:var(--ink)}
+#snapToggle[aria-pressed="false"] .snap-next{stroke-dasharray:3 3}
