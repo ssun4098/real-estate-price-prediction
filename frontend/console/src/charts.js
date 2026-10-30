@@ -121,6 +121,30 @@ export function strip(points,applied,{w=420,h=150}={}){
  if(fin(applied)){const x=X(applied);g+=`<line x1="${x}" x2="${x}" y1="${yA-34}" y2="${yA+12}" stroke="var(--fore)" stroke-width="2"/><text x="${Math.min(w-110,Math.max(110,x))}" y="${yA-42}" text-anchor="middle" class="lb" style="fill:var(--fore)">적용 ${man(applied,0)}원/평</text>`}
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="비교단지 평당 분양가와 적용값">${g}</svg>`;
 }
+/* 분양 비교단지 평당가 점 그래프 (2026-10-30 요청: 한 줄 띠는 점·이름이 겹쳐서 교체)
+   단지마다 한 줄, 평당가 높은 순. 축은 사례 범위로 잘라 차이가 잘 보이게, 적용 평당가는 노란 세로선.
+   points=[{label,value(원/평),on,km}] applied=원/평 */
+export function dotPlot(points,applied,{w=440,rowH=30}={}){
+ const list=points.filter(p=>fin(p.value)).sort((a,b)=>b.value-a.value);
+ if(!list.length)return '<p class="empty">분양 비교단지가 없습니다.</p>';
+ const vals=list.map(p=>p.value).concat(fin(applied)?[applied]:[]),lo0=Math.min(...vals),hi0=Math.max(...vals),span=Math.max(hi0-lo0,hi0*.04);
+ const labelW=Math.min(Math.max(120,w*.42),230),pad={l:labelW+12,r:74,t:34,b:30},h=pad.t+list.length*rowH+pad.b,iw=w-pad.l-pad.r;
+ // 눈금: 칸 폭에 들어가는 개수(라벨 약 75px마다)만큼, 1·2·2.5·5 단위
+ // 축은 사례 범위(+여유 6%)만, 눈금은 그 안의 딱 떨어지는 값에 (라벨 약 62px마다)
+ const room=Math.max(2,Math.floor(iw/62)),lo=lo0-span*.06,hi=hi0+span*.06;let step=niceMax(span/room);
+ for(let k=0;k<12&&Math.floor(hi/step)-Math.ceil(lo/step)+1>room;k++)step=niceMax(step*1.01);
+ const X=v=>pad.l+(v-lo)/(hi-lo||1)*iw,maxCh=Math.floor(labelW/14);
+ let g='';
+ for(let v=Math.ceil(lo/step)*step;v<=hi+1e-6;v+=step)g+=`<line x1="${X(v)}" x2="${X(v)}" y1="${pad.t-6}" y2="${h-pad.b}" stroke="var(--grid)"/><text x="${X(v)}" y="${h-pad.b+18}" text-anchor="middle" class="ax">${nf(v/1e4,0)}만</text>`;
+ list.forEach((p,i)=>{const y=pad.t+rowH*(i+.5),x=X(p.value),name=String(p.label||''),short=name.length>maxCh?name.slice(0,maxCh-1)+'…':name,op=p.on?1:.4;
+  if(i%2===0)g+=`<rect x="0" y="${y-rowH/2}" width="${w}" height="${rowH}" fill="var(--ink)" fill-opacity=".03"/>`;
+  g+=`<line x1="${pad.l}" x2="${pad.l+iw}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-dasharray="2 4"/>`;  // 줄 안내선 (축이 0에서 시작하지 않으므로 막대처럼 보이는 선은 쓰지 않음)
+  g+=`<text x="${labelW}" y="${y+5}" text-anchor="end" class="ax" style="fill:var(--ink);opacity:${op}">${esc(short)}<title>${esc(name)}</title></text>`;
+  g+=`<circle cx="${x}" cy="${y}" r="7" fill="${p.on?'var(--s1)':'var(--surface)'}" stroke="var(--s1)" stroke-width="2" opacity="${op}" data-tip="${esc(name)} · 평당 ${man(p.value,0)}원${fin(p.km)?` · ${nf(p.km,1)}km`:''}${p.on?'':' · 제외됨'}"/>`;
+  g+=`<text x="${w-pad.r+10}" y="${y+5}" class="ax" style="fill:var(--ink-2);opacity:${op}">${nf(p.value/1e4,0)}만</text>`});
+ if(fin(applied)){const x=X(applied);g+=`<line x1="${x}" x2="${x}" y1="${pad.t-8}" y2="${h-pad.b}" stroke="var(--fore)" stroke-width="2.5"/><text x="${Math.min(w-pad.r,Math.max(pad.l+60,x))}" y="${pad.t-14}" text-anchor="middle" class="lb" style="fill:var(--fore)">적용 ${man(applied,0)}원/평</text>`}
+ return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="비교단지별 평당 분양가와 적용 평당가">${g}</svg>`;
+}
 /* 민감도 표: rows×cols 목표 수익률 */
 export function heatmap(rows,cols,matrix,current,{w=420,h=250,rowLabel=v=>v,colLabel=v=>v,corner=''}={}){
  const pad={l:104,t:36,r:6,b:8},cw=(w-pad.l-pad.r)/cols.length,ch=(h-pad.t-pad.b)/rows.length;

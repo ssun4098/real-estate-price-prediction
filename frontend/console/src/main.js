@@ -16,7 +16,7 @@ import {withoutRetailSurvey} from '../../src/content/dashboard/map-overlays.mjs'
 import {calculationIdentity,periodErrors} from '../../src/content/dashboard/ui-workflow.mjs';
 import {cleanPortfolioValue} from '../../src/content/dashboard/portfolio-samples.mjs';
 import {captureScreen,buildScreenPdf} from '../../src/content/dashboard/screen-pdf.mjs';
-import {fin,nf,eok,man,m2,pct,signed,esc,PY,groupLabel,rolling,forecastChart,waterfall,strip,heatmap,tornado,lineSeries,radar,facIcon,parcelPlan} from './charts.js';
+import {fin,nf,eok,man,m2,pct,signed,esc,PY,groupLabel,rolling,forecastChart,waterfall,strip,dotPlot,heatmap,tornado,lineSeries,radar,facIcon,parcelPlan} from './charts.js';
 import {uniqueSurveyParcels} from '../../src/content/dashboard/survey-summary.mjs';
 import {classifyZone} from '../../src/content/dashboard/land-classification.mjs';
 import {renderMap} from './map.jsx';
@@ -471,9 +471,11 @@ function renderComparables(r){
  const cases=input.comparables.revenueCases||[],byComplex=new Map();
  for(const c of cases){const k=String(c.complexId||c.houseManageNo||c.id);if(!byComplex.has(k))byComplex.set(k,{id:k,name:c.name,date:c.date,dong:c.legalDongName,cases:[]});byComplex.get(k).cases.push(c)}
  const priced=new Map((rev.eligibleComplexes||rev.points||[]).map(p=>[String(p.id),p]));
- const list=[...byComplex.values()].map(c=>{const p=priced.get(c.id),off=c.cases.every(x=>(x.baseEligible??x.eligible)===false);return {...c,unit:p?.unitPriceWonM2,km:p?.distanceKm??c.cases[0]?.distanceKm,area:p?.medianSupplyAreaM2,on:!!p&&!off,off}}).sort((a,b)=>(b.on-a.on)||((b.unit||0)-(a.unit||0)));
+ // 제외된 단지는 서버 단가가 없으므로 같은 규칙(주택형별 분양가÷공급면적의 중앙값)으로 구해 그래프에 흐리게 남긴다
+ const caseMedianUnit=cs=>{const u=cs.map(x=>x.priceManwon*1e4/x.supplyAreaM2).filter(v=>fin(v)&&v>0).sort((a,b)=>a-b),n=u.length;return n?(n%2?u[(n-1)/2]:(u[n/2-1]+u[n/2])/2):null};
+ const list=[...byComplex.values()].map(c=>{const p=priced.get(c.id),off=c.cases.every(x=>(x.baseEligible??x.eligible)===false);return {...c,unit:p?.unitPriceWonM2??caseMedianUnit(c.cases),km:p?.distanceKm??c.cases[0]?.distanceKm,area:p?.medianSupplyAreaM2,on:!off&&(!priced.size||!!p),off}}).sort((a,b)=>(b.on-a.on)||((b.unit||0)-(a.unit||0)));
  const applied=fin(rev.representativeWon)&&fin(dev.supplyAreaM2)&&dev.supplyAreaM2>0?rev.representativeWon/dev.supplyAreaM2*PY:null;
- $('strip').innerHTML=strip(list.filter(c=>fin(c.unit)).map(c=>({label:c.name,value:c.unit*PY,on:c.on,km:c.km})),applied,{w:widthOf('strip',440),h:160});
+ $('strip').innerHTML=dotPlot(list.filter(c=>fin(c.unit)).map(c=>({label:c.name,value:c.unit*PY,on:c.on,km:c.km})),applied,{w:widthOf('strip',440)});
  $('cxTable').innerHTML=list.length?`<div class="scroll" style="max-height:220px"><table><thead><tr><th>단지</th><th class="r">거리</th><th class="r">평당</th><th></th></tr></thead><tbody>${list.map(c=>`<tr class="${c.on?'':'off'}"><td>${esc(c.name)}<div class="sub">${esc(c.date||'')} · ${c.cases.length}개 주택형</div></td><td class="r">${fin(c.km)?nf(c.km,1)+'km':'—'}</td><td class="r">${fin(c.unit)?man(c.unit*PY,0):'—'}</td><td><button class="btn sm" type="button" data-cx="${esc(c.id)}" data-on="${c.off?'1':'0'}" ${local()?'':'disabled'}>${c.off?'포함':'제외'}</button></td></tr>`).join('')}</tbody></table></div>`:`<p class="empty">${casesLoading?'비교사례 조회 중…':'필지를 선택하면 반경 안 분양사례를 조회합니다.'}</p>`;
  // 토지 사례
  const land=assessLandCases(input).filter(c=>showExcluded||c.eligible!==false||c.referenceEligible===true||c.fallbackGroupIds?.length).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
