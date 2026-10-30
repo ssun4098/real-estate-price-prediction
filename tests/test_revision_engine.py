@@ -25,7 +25,7 @@ def revision_fixture():
 def expected_budget(supply_m2, revenue, land, trust_pct=1):
     construction = supply_m2 / 3.3 * 1000 * 10_000
     total = land + construction * (1 + .07 + .06 + .05 + .065) + revenue * trust_pct / 100
-    return construction, total, (revenue / total * 100 if revenue and total else None)
+    return construction, total, (revenue / total * 100 - 100 if revenue and total else None)
 
 
 class LinkedScaleTests(unittest.TestCase):
@@ -208,7 +208,7 @@ class LinkedScaleTests(unittest.TestCase):
 
 
 class BudgetEnvelopeTests(unittest.TestCase):
-    def test_large_land_makes_target_below_break_even_without_changing_expense_settings(self):
+    def test_large_land_makes_target_negative_without_changing_expense_settings(self):
         data = revision_fixture()
         data["comparables"]["landCases"][0]["priceManwon"] = 2_000_000  # 토지비 200억 = 총수입과 같음
         result = analyze(data, partial=True)["results"]
@@ -216,7 +216,7 @@ class BudgetEnvelopeTests(unittest.TestCase):
         self.assertTrue(budget["complete"])
         construction, total, margin = expected_budget(2000, 20_000_000_000, 20_000_000_000)
         self.assertAlmostEqual(budget["allocatedWon"], total, delta=1)
-        self.assertLess(budget["targetMarginPct"], 100)  # 수입 ÷ 지출 × 100: 100% 미만 = 적자
+        self.assertLess(budget["targetMarginPct"], 0)  # (수입 ÷ 지출 × 100) − 100: 음수 = 적자
         self.assertAlmostEqual(budget["appliedTargetMarginPct"], margin)
         self.assertEqual((budget["allocationRows"][0]["mode"], budget["allocationRows"][0]["value"]), ("areaUnit", 1000))
         self.assertAlmostEqual(budget["allocationRows"][0]["amountWon"], construction, delta=1)
@@ -304,7 +304,7 @@ class BudgetEnvelopeTests(unittest.TestCase):
         self.assertAlmostEqual(result["revenue"]["representativeWon"] / 1e308, 1)
         self.assertTrue(result["budget"]["complete"])
         self.assertAlmostEqual(result["budget"]["allowableWon"] / 1e306, 1)  # 신탁 1%가 대부분
-        self.assertAlmostEqual(result["budget"]["targetMarginPct"] / 10_000, 1)  # 수입 ÷ 지출(≈신탁 1%) × 100
+        self.assertAlmostEqual(result["budget"]["targetMarginPct"] / 9_900, 1)  # (수입 ÷ 지출(≈신탁 1%) × 100) − 100
         data["financeEditor"] = {"expenses": {key: {"mode": "budgetPct", "value": 100}
                                               for key in ("construction", "indirect", "sales", "tax", "finance")}}
         result = analyze(data, partial=True)["results"]

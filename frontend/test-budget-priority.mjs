@@ -37,5 +37,5 @@ test('저장(내보내기)할 때 실시간 분양수입에 기대는 수지 결
  for(const key of ['appliedTargetMarginPct','targetMarginPct','allowableWon','totalExpenseWon','profitWon'])assert.equal(saved[key],null,key);
  x.financeEditor.revenue={mode:'amount',value:1000};
  const manual=sanitizeSnapshot(snapshot).results.budget;
- close(manual.totalExpenseWon,310);close(manual.targetMarginPct,1000/310*100);assert.equal(manual.complete,true);
+ close(manual.totalExpenseWon,310);close(manual.targetMarginPct,1000/310*100-100);assert.equal(manual.complete,true);
 });

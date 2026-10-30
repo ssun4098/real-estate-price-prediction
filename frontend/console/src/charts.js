@@ -148,8 +148,8 @@ export function dotPlot(points,applied,{w=440,rowH=30}={}){
 /* 민감도 표: rows×cols 목표 수익률 */
 export function heatmap(rows,cols,matrix,current,{w=420,h=250,rowLabel=v=>v,colLabel=v=>v,corner=''}={}){
  const pad={l:104,t:36,r:6,b:8},cw=(w-pad.l-pad.r)/cols.length,ch=(h-pad.t-pad.b)/rows.length;
- // 목표 수익률 = 수입 ÷ 지출 × 100 → 100% 가 손익분기. 색은 100% 와의 차이로 정한다.
- const color=v=>{if(!fin(v))return 'var(--grid)';const m=v-100;return m<0?`color-mix(in srgb,var(--bad) ${Math.min(85,25+(-m)*2)}%,var(--surface))`:m<10?`color-mix(in srgb,var(--warn) ${30+m*3}%,var(--surface))`:`color-mix(in srgb,var(--good) ${Math.min(85,20+m*1.4)}%,var(--surface))`};
+ // 목표 수익률 = (수입 ÷ 지출 × 100) − 100 → 0% 가 손익분기.
+ const color=m=>{if(!fin(m))return 'var(--grid)';return m<0?`color-mix(in srgb,var(--bad) ${Math.min(85,25+(-m)*2)}%,var(--surface))`:m<10?`color-mix(in srgb,var(--warn) ${30+m*3}%,var(--surface))`:`color-mix(in srgb,var(--good) ${Math.min(85,20+m*1.4)}%,var(--surface))`};
  let g=cols.map((c,j)=>`<text x="${pad.l+cw*(j+.5)}" y="${pad.t-10}" text-anchor="middle" class="ax">${esc(colLabel(c))}</text>`).join('')+`<text x="${pad.l-8}" y="${pad.t-10}" text-anchor="end" class="ax">${esc(corner)}</text>`;
  rows.forEach((r,i)=>{g+=`<text x="${pad.l-8}" y="${pad.t+ch*(i+.5)+4}" text-anchor="end" class="ax">${esc(rowLabel(r))}</text>`;cols.forEach((c,j)=>{const m=matrix[i][j],cur=current&&current[0]===r&&current[1]===c;g+=`<rect x="${pad.l+cw*j+2}" y="${pad.t+ch*i+2}" width="${cw-4}" height="${ch-4}" rx="5" fill="${color(m)}" ${cur?'stroke="var(--ink)" stroke-width="2.5"':''} data-tip="${esc(rowLabel(r))} · ${esc(colLabel(c))} → ${pct(m)}"/><text x="${pad.l+cw*(j+.5)}" y="${pad.t+ch*(i+.5)+4}" text-anchor="middle" class="lb" style="font-size:15px">${pct(m,0)}</text>`})});
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="민감도 표">${g}</svg>`;
