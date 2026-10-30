@@ -10,12 +10,12 @@
       "complete": true,
       "total": 3345000000.0,
       "construction": 1000000000.0,
-      "margin": 66.55,
+      "margin": 298.9536621823617,
       "state": "computed"
     }
   },
   {
-    "name": "토지비가 크면 목표 수익률이 음수",
+    "name": "토지비가 크면 목표 수익률이 100% 미만(적자)",
     "revenue": 10000000000.0,
     "land": 9000000000.0,
     "supply": 330,
@@ -25,7 +25,7 @@
       "complete": true,
       "total": 10345000000.0,
       "construction": 1000000000.0,
-      "margin": -3.45,
+      "margin": 96.66505558240695,
       "state": "computed"
     }
   },
@@ -45,7 +45,7 @@
       "complete": true,
       "total": 3967500000.0,
       "construction": 1500000000.0,
-      "margin": 60.324999999999996,
+      "margin": 252.04788909892878,
       "state": "computed"
     }
   },
@@ -65,7 +65,7 @@
       "complete": true,
       "total": 4590000000.0,
       "construction": 2000000000.0,
-      "margin": 54.1,
+      "margin": 217.8649237472767,
       "state": "computed"
     }
   },
@@ -85,7 +85,7 @@
       "complete": true,
       "total": 3638888888.888889,
       "construction": 1000000000.0,
-      "margin": 63.61111111111111,
+      "margin": 274.80916030534354,
       "state": "computed"
     }
   },
@@ -105,7 +105,7 @@
       "complete": true,
       "total": 5562913907.284768,
       "construction": 2781456953.642384,
-      "margin": 44.370860927152314,
+      "margin": 179.76190476190476,
       "state": "computed"
     }
   },
@@ -125,7 +125,7 @@
       "complete": true,
       "total": 3265000000.0,
       "construction": 1000000000.0,
-      "margin": 67.35,
+      "margin": 306.2787136294028,
       "state": "computed"
     }
   },

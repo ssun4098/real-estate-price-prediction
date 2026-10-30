@@ -83,7 +83,8 @@ def _expense_priority_basis(income, land_won, supply_m2, rows, ready):
         mode, value = row["mode"], row["value"]
         amounts[row["id"]] = (total * value / 100 if mode == "budgetPct"
                               else construction_won * value / 100 if mode == "constructionPct" else direct(row))
-    margin = (income - total) / income * 100 if income > 0 else None
+    # 목표 수익률 = 예상 총수입 ÷ 예상 총지출 × 100 (2026-10-30 사용자 요청; 100% = 손익분기). 브라우저 budget-priority.mjs 와 같은 식.
+    margin = income / total * 100 if income > 0 and total > 0 else None
     if not math.isfinite(total) or not all(math.isfinite(v) for v in amounts.values()) or (margin is not None and not math.isfinite(margin)):
         return fail("overflow", "지출 합계가 계산 범위를 초과했습니다. 입력 금액과 지출 비율을 확인하세요.")
     result.update(allowableWon=total, totalExpenseWon=total, minimumRequiredBudgetWon=total,

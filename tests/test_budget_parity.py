@@ -46,7 +46,7 @@ class BudgetParityTests(unittest.TestCase):
         self.assertEqual([(row["mode"], row["value"]) for row in r["allocationRows"]],
                          [("areaUnit", 1000), ("constructionPct", 7), ("constructionPct", 6), ("constructionPct", 5), ("constructionPct", 6.5)])
         close(self, r["totalExpenseWon"], 3.345e9)
-        close(self, r["targetMarginPct"], 66.55)
+        close(self, r["targetMarginPct"], 1e10 / 3.345e9 * 100)
 
 
 if __name__ == "__main__":
