@@ -147,7 +147,9 @@ export function dotPlot(points,applied,{w=440,rowH=30}={}){
 }
 /* 민감도 표: rows×cols 목표 수익률 */
 export function heatmap(rows,cols,matrix,current,{w=420,h=250,rowLabel=v=>v,colLabel=v=>v,corner=''}={}){
- const pad={l:104,t:36,r:6,b:8},cw=(w-pad.l-pad.r)/cols.length,ch=(h-pad.t-pad.b)/rows.length;
+ // 왼쪽 여백: 모서리 글자('평당 공사비\용적률')가 잘리지 않게 글자 폭만큼 (고정폭 글꼴 13.5px: 한글 ≈14px, 그 밖 ≈8.5px)
+ const textW=s=>[...String(s)].reduce((t,c)=>t+(/[\u3131-\uD79D]/.test(c)?14:8.5),0);
+ const pad={l:Math.max(104,Math.ceil(textW(corner))+16),t:36,r:6,b:8},cw=(w-pad.l-pad.r)/cols.length,ch=(h-pad.t-pad.b)/rows.length;
  // 목표 수익률 = (수입 ÷ 지출 × 100) − 100 → 0% 가 손익분기.
  const color=m=>{if(!fin(m))return 'var(--grid)';return m<0?`color-mix(in srgb,var(--bad) ${Math.min(85,25+(-m)*2)}%,var(--surface))`:m<10?`color-mix(in srgb,var(--warn) ${30+m*3}%,var(--surface))`:`color-mix(in srgb,var(--good) ${Math.min(85,20+m*1.4)}%,var(--surface))`};
  let g=cols.map((c,j)=>`<text x="${pad.l+cw*(j+.5)}" y="${pad.t-10}" text-anchor="middle" class="ax">${esc(colLabel(c))}</text>`).join('')+`<text x="${pad.l-8}" y="${pad.t-10}" text-anchor="end" class="ax">${esc(corner)}</text>`;

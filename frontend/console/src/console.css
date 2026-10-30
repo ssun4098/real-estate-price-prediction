@@ -154,6 +154,11 @@ tr.off td{opacity:.45}
 /* 선택 필지 목록·토지 실거래 사례: 옆 카드(지도, 입지·규제) 높이에 맞춰 카드 아래 끝까지 채운다 (2026-10-30 요청). 목록 높이는 줄 높이를 늘리지 않는다(flex-basis 0). */
 .listtile{display:flex;flex-direction:column}
 .listtile>.scroll{flex:1 1 0;min-height:220px;max-height:none}
+/* 분양 비교단지 카드 (2026-10-30): 옆 카드가 더 길어 빈 공간이 생기면 아래 단지 목록이 카드 맨 아래까지 늘어나 채운다.
+   이 카드가 가장 길 때는 목록이 220px(넘치면 스크롤) — 예전과 같은 크기. */
+.filltile{display:flex;flex-direction:column}
+.filltile>#cxTable{flex:1 1 0;min-height:220px;display:flex;flex-direction:column}
+.filltile>#cxTable>.scroll{flex:1 1 0;min-height:0;max-height:none}
 /* KPI 값이 커져서 화면 폭 1500px 미만에서는 한 줄에 3개씩 */
 @media (max-width:1500px){
  .kpi{grid-column:span 4}
@@ -162,6 +167,9 @@ tr.off td{opacity:.45}
  /* 지도 아래로 내려가면 옆 카드가 없으므로 목록 높이를 정해 둔다 */
  .listtile>.scroll{flex:none;max-height:420px}
  #page4 .span4{grid-column:span 6}
+ /* 2개씩 놓이면 세 번째인 분양 비교단지만 마지막 줄에 혼자 남아 오른쪽 절반이 비므로, 한 줄 전체로 늘린다 (2026-10-30 요청) */
+ #page4 .span4.filltile{grid-column:span 12}
+ .filltile>#cxTable{flex:none}.filltile>#cxTable>.scroll{flex:none;max-height:420px}
 }
 /* 상단 바가 한 줄에 들어가도록 사업지 표시와 샘플 목록 폭을 제한 */
 #siteTag{max-width:220px;overflow:hidden;text-overflow:ellipsis}
