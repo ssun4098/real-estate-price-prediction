@@ -139,11 +139,18 @@ tr.off td{opacity:.45}
 .capturing .maptile .search,.capturing .live-map-zoom{display:none}
 /* 사업지 도면 (지목·용도지역) */
 .plan-no{font-size:12px;font-weight:700;fill:#0D1117;font-family:var(--mono);paint-order:stroke;stroke:#ffffffb0;stroke-width:3px}
-.plan-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 16px;margin-top:8px;font-size:14px}
+.plan-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:6px 20px;margin-top:10px;font-size:14px}
 .plan-legend>div{display:flex;align-items:center;gap:8px;min-width:0}
 .plan-legend i{width:14px;height:14px;border-radius:3px;flex:none}
-.plan-legend b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.plan-legend span{margin-left:auto;color:var(--muted);font-family:var(--mono);font-size:13px;white-space:nowrap}
+.plan-legend b{font-weight:600;white-space:nowrap}
+.plan-legend>div>span{margin-left:auto;display:grid;grid-template-columns:64px 136px 76px;white-space:nowrap}
+.plan-legend>div>span>.kv{justify-content:flex-end;margin-right:0}
+/* 이름표 + 값: 이름표는 작은 회색, 값은 밝은 굵은 숫자 (2026-10-30 요청: 회색 글씨만 있어 읽기 어려움) */
+.kv{display:inline-flex;align-items:baseline;gap:4px;margin-right:12px;white-space:nowrap}
+.kv:last-child{margin-right:0}
+.kv em{font-style:normal;font-family:var(--sans);font-size:12.5px;color:var(--muted)}
+.kv strong{font-family:var(--mono);font-weight:600;color:var(--ink)}
+.kpi .d{display:flex;flex-wrap:wrap;gap:2px 0}
 /* 선택 필지 목록·토지 실거래 사례: 옆 카드(지도, 입지·규제) 높이에 맞춰 카드 아래 끝까지 채운다 (2026-10-30 요청). 목록 높이는 줄 높이를 늘리지 않는다(flex-basis 0). */
 .listtile{display:flex;flex-direction:column}
 .listtile>.scroll{flex:1 1 0;min-height:220px;max-height:none}

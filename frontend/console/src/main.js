@@ -311,7 +311,7 @@ const SPARE=['#7AA7FF','#E58FD3','#C9D36B','#4FD1A5','#F2A65A','#B392F0'];
 const colorFor=(map,name,used)=>{if(map[name])return map[name];if(!used.has(name))used.set(name,SPARE[used.size%SPARE.length]);return used.get(name)};
 const zoneColor=name=>(ZONE_COLOR.find(([re])=>re.test(name))||[])[1]||'#9AA7B8';
 function planLegend(rows,total){
- return rows.sort((a,b)=>b.area-a.area).map(x=>`<div data-tip="${esc(x.name)} · ${x.pnus.size}필지 · ${m2(x.area)}"><i style="${x.hatch?'background:repeating-linear-gradient(45deg,var(--panel-2) 0 3px,var(--muted) 3px 5px)':`background:${x.color}`}"></i><b>${esc(x.name)}</b><span>${x.pnus.size}필지 · ${nf(x.area)}㎡${total>0?` · ${nf(x.area/total*100,0)}%`:''}</span></div>`).join('');
+ return rows.sort((a,b)=>b.area-a.area).map(x=>`<div data-tip="${esc(x.name)} · ${x.pnus.size}필지 · ${m2(x.area)}"><i style="${x.hatch?'background:repeating-linear-gradient(45deg,var(--panel-2) 0 3px,var(--muted) 3px 5px)':`background:${x.color}`}"></i><b>${esc(x.name)}</b><span>${kv('필지',nf(x.pnus.size))}${kv('면적',nf(x.area)+'㎡')}${total>0?kv('비율',nf(x.area/total*100,0)+'%'):''}</span></div>`).join('');
 }
 function renderPlans(){
  const ps=uniqueSurveyParcels(input.parcels).filter(p=>p.geometry),number=new Map(uniqueSurveyParcels(input.parcels).map((p,i)=>[String(p.pnu),i+1]));
@@ -377,10 +377,12 @@ function renderControls(){
  set('radius',input.comparisonFilters.radiusKm??5);
  for(const id of ['far','farMax','manualArea','revAdj','landAdj','radius','requery','recalc','projName','asOf'])$(id).disabled=!local();
 }
-function delta(v,b,fmt,goodUp=true){if(!fin(v)||!fin(b))return '<span class="flat">—</span>';const d=v-b;if(Math.abs(d)<1e-6)return '<span class="flat">기준안과 같음</span>';return `<span class="${(goodUp?d>0:d<0)?'up':'dn'}">${d>0?'▲':'▼'} ${fmt(Math.abs(d))} vs 기준안</span>`}
+// 이름표 + 값 (회색 이름표, 밝은 값) — KPI 아래 줄과 도면 범례에서 씀
+const kv=(label,value)=>`<span class="kv"><em>${esc(label)}</em><strong>${value}</strong></span>`;
+function delta(v,b,fmt,goodUp=true){if(!fin(v)||!fin(b))return '<span class="flat">—</span>';const d=v-b;if(Math.abs(d)<1e-6)return '';/* 기준안과 같으면 아무것도 쓰지 않는다 (2026-10-30 요청) */return `<span class="${(goodUp?d>0:d<0)?'up':'dn'}">${d>0?'▲':'▼'} ${fmt(Math.abs(d))} vs 기준안</span>`}
 function renderKpis(r){
  const res=r.results||{},b=currentBudget(input,res),dev=res.development||{},land=res.land||{},m=b.targetMarginPct,t=!fin(m)?'ink':m<0?'bad':m<10?'warn':'good',B=baseline||{};
- const K=[['예상 총수입',eok(b.revenueWon,1),delta(b.revenueWon,B.R,v=>eok(v,1))],['예상 총지출',eok(b.totalExpenseWon,1),delta(b.totalExpenseWon,B.T,v=>eok(v,1),false)],['사업이익',eok(b.profitWon,1),delta(b.profitWon,B.P,v=>eok(v,1))],['목표 수익률',`<span style="color:var(--${t})">${pct(m,2)}</span>`,delta(m,B.M,v=>nf(v,2)+'%p')],['공급',fin(dev.units)?nf(dev.units)+'호':'—',`<span class="flat">${m2(dev.supplyAreaM2)} · 용적률 ${nf(input.linkedScenario?.farPct)}%</span>`],['토지비 비중',fin(b.landWon)&&fin(b.totalExpenseWon)&&b.totalExpenseWon>0?pct(b.landWon/b.totalExpenseWon*100):'—',`<span class="flat">${land.amountBasis==='model'?'모델 예측':'실거래 비교'} ${eok(b.landWon,1)}</span>`]];
+ const K=[['예상 총수입',eok(b.revenueWon,1),delta(b.revenueWon,B.R,v=>eok(v,1))],['예상 총지출',eok(b.totalExpenseWon,1),delta(b.totalExpenseWon,B.T,v=>eok(v,1),false)],['사업이익',eok(b.profitWon,1),delta(b.profitWon,B.P,v=>eok(v,1))],['목표 수익률',`<span style="color:var(--${t})">${pct(m,2)}</span>`,delta(m,B.M,v=>nf(v,2)+'%p')],['공급',fin(dev.units)?nf(dev.units)+'호':'—',kv('연면적',m2(dev.supplyAreaM2))+kv('대지면적',m2(dev.landAreaM2))+kv('용적률',`${nf(input.linkedScenario?.farPct)}%`)],['토지비 비중',fin(b.landWon)&&fin(b.totalExpenseWon)&&b.totalExpenseWon>0?pct(b.landWon/b.totalExpenseWon*100):'—',kv(land.amountBasis==='model'?'모델 예측':'실거래 비교',eok(b.landWon,1))]];
  // 계산이 끝나지 않았으면 값 대신 움직이는 회색 막대(스켈레톤)를 보여 준다. 값이 없고 할 일도 없으면 이유를 적는다.
  const w=workState(),loading=w.kpi&&input.parcels.length>0,why=!input.parcels.length?'필지를 선택하면 계산합니다':'자료가 부족해 계산하지 못했습니다';
  K.forEach(([l,v,d],i)=>{const el=$('k'+(i+1));el.classList.toggle('loading',loading);el.setAttribute('aria-busy',String(loading));
