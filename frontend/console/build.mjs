@@ -11,9 +11,9 @@ const here=path.dirname(fileURLToPath(import.meta.url));
 const dashboard=path.join(here,'..','src','content','dashboard');
 // 기존 화면 지도(SatelliteMap)가 쓰는 CSS. 기존 화면과 같은 모양이 되도록 그대로 붙인다.
 const MAP_CSS=['pf-live.css','ui-tools.css','v2-survey.css','v3-workbench.css','boundary-allocation.css'];
-// 지도 CSS 글씨를 콘솔에서만 1.5배로 키운다 (2026-10-30 요청; 기존 화면 파일은 그대로).
+// 지도 CSS 글씨를 콘솔에서만 1.25배로 키운다 (2026-10-30 요청: 1.5배 → 1.25배; 기존 화면 파일은 그대로).
 // 지도 그림(SVG) 안의 글자(필지 번호, 축척, 방위, 시설 이름표, 반경 표시)는 고정 크기 상자에 맞춰 그려지므로 키우지 않는다.
-const MAP_FONT_SCALE=1.5;
+const MAP_FONT_SCALE=1.25;
 const KEEP_SIZE=/svg|text\b|v2-facility-label|v2-map-compass|v2-map-scale|v2-radius-center|v5-parcel-number>|v5-radius-label|live-map-zoom/;
 const scaleFonts=css=>css.replace(/([^{}]+)\{([^{}]*)\}/g,(rule,selector,body)=>KEEP_SIZE.test(selector)?rule
  :`${selector}{${body.replace(/font-size:([\d.]+)px/g,(m,v)=>`font-size:${Math.round(v*MAP_FONT_SCALE*2)/2}px`)}}`);

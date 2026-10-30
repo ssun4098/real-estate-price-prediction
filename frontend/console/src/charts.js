@@ -55,7 +55,7 @@ export function forecastChart(groups,{w=820,h=320,from='2021-01',asOf}={}){
 /* 수지 폭포: 총수입 → 지출 항목 → 사업이익. items=[{label,amt,kind}] */
 /* 폭포 차트 항목 이름: 4글자 이상이면 두 줄 (간접/공사비, 분양/제비용 …) — 큰 글씨에서 이름끼리 겹치지 않게 */
 const wfLabel=(label,x,y)=>{const t=String(label);if(t.length<4)return `<text x="${x}" y="${y}" text-anchor="middle" class="ax">${esc(t)}</text>`;
- return `<text x="${x}" y="${y}" text-anchor="middle" class="ax">${esc(t.slice(0,2))}<tspan x="${x}" dy="18">${esc(t.slice(2))}</tspan></text>`};
+ return `<text x="${x}" y="${y}" text-anchor="middle" class="ax">${esc(t.slice(0,2))}<tspan x="${x}" dy="16">${esc(t.slice(2))}</tspan></text>`};
 export function waterfall(R,items,profit,{w=760,h=290}={}){
  if(!fin(R)||!fin(profit)||items.some(x=>!fin(x.amt)))return '<p class="empty">수지 계산이 끝나면 표시됩니다.</p>';
  const all=[{label:'총수입',v:R,kind:'total'},...items.map(x=>({label:x.label,v:-x.amt,kind:x.kind})),{label:'사업이익',v:profit,kind:'result'}];
@@ -91,7 +91,7 @@ export function heatmap(rows,cols,matrix,current,{w=420,h=250,rowLabel=v=>v,colL
  const pad={l:104,t:36,r:6,b:8},cw=(w-pad.l-pad.r)/cols.length,ch=(h-pad.t-pad.b)/rows.length;
  const color=m=>!fin(m)?'var(--grid)':m<0?`color-mix(in srgb,var(--bad) ${Math.min(85,25+(-m)*2)}%,var(--surface))`:m<10?`color-mix(in srgb,var(--warn) ${30+m*3}%,var(--surface))`:`color-mix(in srgb,var(--good) ${Math.min(85,20+m*1.4)}%,var(--surface))`;
  let g=cols.map((c,j)=>`<text x="${pad.l+cw*(j+.5)}" y="${pad.t-10}" text-anchor="middle" class="ax">${esc(colLabel(c))}</text>`).join('')+`<text x="${pad.l-8}" y="${pad.t-10}" text-anchor="end" class="ax">${esc(corner)}</text>`;
- rows.forEach((r,i)=>{g+=`<text x="${pad.l-8}" y="${pad.t+ch*(i+.5)+4}" text-anchor="end" class="ax">${esc(rowLabel(r))}</text>`;cols.forEach((c,j)=>{const m=matrix[i][j],cur=current&&current[0]===r&&current[1]===c;g+=`<rect x="${pad.l+cw*j+2}" y="${pad.t+ch*i+2}" width="${cw-4}" height="${ch-4}" rx="5" fill="${color(m)}" ${cur?'stroke="var(--ink)" stroke-width="2.5"':''} data-tip="${esc(rowLabel(r))} · ${esc(colLabel(c))} → ${pct(m)}"/><text x="${pad.l+cw*(j+.5)}" y="${pad.t+ch*(i+.5)+4}" text-anchor="middle" class="lb" style="font-size:18px">${pct(m,0)}</text>`})});
+ rows.forEach((r,i)=>{g+=`<text x="${pad.l-8}" y="${pad.t+ch*(i+.5)+4}" text-anchor="end" class="ax">${esc(rowLabel(r))}</text>`;cols.forEach((c,j)=>{const m=matrix[i][j],cur=current&&current[0]===r&&current[1]===c;g+=`<rect x="${pad.l+cw*j+2}" y="${pad.t+ch*i+2}" width="${cw-4}" height="${ch-4}" rx="5" fill="${color(m)}" ${cur?'stroke="var(--ink)" stroke-width="2.5"':''} data-tip="${esc(rowLabel(r))} · ${esc(colLabel(c))} → ${pct(m)}"/><text x="${pad.l+cw*(j+.5)}" y="${pad.t+ch*(i+.5)+4}" text-anchor="middle" class="lb" style="font-size:15px">${pct(m,0)}</text>`})});
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="민감도 표">${g}</svg>`;
 }
 /* 가정별 ±10% 민감도 막대. items=[{label,down,up}] (%p) */
@@ -101,7 +101,7 @@ export function tornado(items,{w=420,h=210}={}){
  const pad={l:124,r:70,t:14,b:30},rowH=(h-pad.t-pad.b)/list.length,m=Math.max(...list.flatMap(x=>[Math.abs(x.up),Math.abs(x.down)]),.5)*1.1;
  const cx=pad.l+(w-pad.l-pad.r)/2,half=(w-pad.l-pad.r)/2-56,X=v=>cx+v/m*half;
  let g=`<line x1="${cx}" x2="${cx}" y1="${pad.t-4}" y2="${h-pad.b+4}" stroke="var(--muted)"/>`;
- list.forEach((d,i)=>{const y=pad.t+rowH*i+rowH*.2,bh=rowH*.6;[[d.down,'−10%'],[d.up,'+10%']].forEach(([v,l])=>{const x=Math.min(X(0),X(v)),wd=Math.abs(X(v)-X(0));g+=`<rect x="${x}" y="${y}" width="${Math.max(1,wd)}" height="${bh}" rx="3" fill="${v<0?'var(--bad)':'var(--good)'}" fill-opacity=".8" data-tip="${esc(d.label)} ${l} → 수익률 ${signed(v,1,'%p')}"/><text x="${v<0?x-5:x+wd+5}" y="${y+bh/2+4}" text-anchor="${v<0?'end':'start'}" class="ax">${signed(v,1,'p')}</text>`});g+=`<text x="${pad.l-10}" y="${y+bh/2+4}" text-anchor="end" class="lb" style="font-size:18px">${esc(d.label)}</text>`});
+ list.forEach((d,i)=>{const y=pad.t+rowH*i+rowH*.2,bh=rowH*.6;[[d.down,'−10%'],[d.up,'+10%']].forEach(([v,l])=>{const x=Math.min(X(0),X(v)),wd=Math.abs(X(v)-X(0));g+=`<rect x="${x}" y="${y}" width="${Math.max(1,wd)}" height="${bh}" rx="3" fill="${v<0?'var(--bad)':'var(--good)'}" fill-opacity=".8" data-tip="${esc(d.label)} ${l} → 수익률 ${signed(v,1,'%p')}"/><text x="${v<0?x-5:x+wd+5}" y="${y+bh/2+4}" text-anchor="${v<0?'end':'start'}" class="ax">${signed(v,1,'p')}</text>`});g+=`<text x="${pad.l-10}" y="${y+bh/2+4}" text-anchor="end" class="lb" style="font-size:15px">${esc(d.label)}</text>`});
  g+=`<text x="${cx}" y="${h-4}" text-anchor="middle" class="ax">각 가정 ±10% → 목표 수익률 변화(%p)</text>`;
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="가정별 민감도">${g}</svg>`;
 }
@@ -112,7 +112,7 @@ export function lineSeries(points,{w=620,h=150,unit='',color='var(--s2)',label='
  points.forEach((p,i)=>{if(String(p[0]).endsWith('-01'))g+=`<text x="${X(i)}" y="${h-4}" text-anchor="middle" class="ax">${String(p[0]).slice(0,4)}</text>`});
  g+=`<path d="${points.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(p[1]).toFixed(1)).join('')}" fill="none" stroke="${color}" stroke-width="2"/>`;
  points.forEach((p,i)=>{g+=`<rect x="${X(i)-2}" y="${pad.t}" width="4" height="${h-pad.t-pad.b}" fill="transparent" data-tip="${esc(p[0])} · ${nf(p[1],2)}${unit}"/>`});
- const l=points.at(-1);g+=`<circle cx="${X(points.length-1)}" cy="${Y(l[1])}" r="3.5" fill="${color}"/><text x="${X(points.length-1)+6}" y="${Y(l[1])+4}" class="lb" style="font-size:18px">${nf(l[1],2)}${unit}</text>`;
+ const l=points.at(-1);g+=`<circle cx="${X(points.length-1)}" cy="${Y(l[1])}" r="3.5" fill="${color}"/><text x="${X(points.length-1)+6}" y="${Y(l[1])+4}" class="lb" style="font-size:15px">${nf(l[1],2)}${unit}</text>`;
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="${esc(label)}">${g}</svg>`;
 }
 /* 주변시설 거리 분포 (가운데 = 선택 필지 중심) */
