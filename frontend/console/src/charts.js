@@ -67,30 +67,34 @@ export function parcelPlan({fills=[],parcels=[]},{w=640,h=360}={}){
  const P=c=>{const [x,y]=W(c);return [ox+x*sc,oy+y*sc]};
  const path=g=>rings(g).map(r=>r.map((c,i)=>{const [x,y]=P(c);return `${i?'L':'M'}${x.toFixed(1)},${y.toFixed(1)}`}).join('')+'Z').join('');
  let g=`<defs><pattern id="planHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#1A212B" fill-opacity=".7"/><line x1="0" y1="0" x2="0" y2="7" stroke="#C9D1DC" stroke-width="2"/></pattern></defs><rect width="${w}" height="${h}" fill="#0a0e13"/>`;
- // 바탕 위성사진: 화면 배율에 맞는 단계(6~19)의 타일을 깐다
+ // 바탕 위성사진: 화면 배율에 맞는 단계(6~19)의 타일을 깐다. 투명도 70% (불투명도 0.3, 2026-10-30 요청)
  const z=Math.max(6,Math.min(19,Math.round(Math.log2(sc*(globalThis.devicePixelRatio||1))))),n=2**z,ts=256/n*sc;
  const tx0=Math.floor((-ox/sc)/(256/n)),tx1=Math.floor(((w-ox)/sc)/(256/n)),ty0=Math.floor((-oy/sc)/(256/n)),ty1=Math.floor(((h-oy)/sc)/(256/n));
- for(let ty=Math.max(0,ty0);ty<=Math.min(n-1,ty1);ty++)for(let tx=Math.max(0,tx0);tx<=Math.min(n-1,tx1);tx++)g+=`<image href="/api/tiles/${z}/${ty}/${tx}.jpeg" x="${(ox+tx*ts).toFixed(2)}" y="${(oy+ty*ts).toFixed(2)}" width="${(ts+.5).toFixed(2)}" height="${(ts+.5).toFixed(2)}" preserveAspectRatio="none"/>`;
+ for(let ty=Math.max(0,ty0);ty<=Math.min(n-1,ty1);ty++)for(let tx=Math.max(0,tx0);tx<=Math.min(n-1,tx1);tx++)g+=`<image href="/api/tiles/${z}/${ty}/${tx}.jpeg" x="${(ox+tx*ts).toFixed(2)}" y="${(oy+ty*ts).toFixed(2)}" width="${(ts+.5).toFixed(2)}" height="${(ts+.5).toFixed(2)}" preserveAspectRatio="none" opacity=".3"/>`;
  for(const f of fills)g+=`<path d="${path(f.geometry)}" fill="${f.hatch?'url(#planHatch)':f.color}" fill-opacity="${f.hatch?.9:.6}" fill-rule="evenodd" stroke="none" data-tip="${esc(f.tip)}"/>`;
  for(const p of parcels)g+=`<path d="${path(p.geometry)}" fill="none" stroke="#fff" stroke-width="1" stroke-opacity=".95" fill-rule="evenodd" pointer-events="none"/>`;
  // 필지 번호: 가장 큰 고리의 무게중심, 화면에서 너무 작은 필지는 생략
  for(const p of parcels){let best=null,bestA=0;for(const r of rings(p.geometry)){const pts=r.map(P);let a=0,cx=0,cy=0;for(let i=0;i<pts.length-1;i++){const [x1,y1]=pts[i],[x2,y2]=pts[i+1],q=x1*y2-x2*y1;a+=q;cx+=(x1+x2)*q;cy+=(y1+y2)*q}if(Math.abs(a)>bestA){bestA=Math.abs(a);best=[cx/(3*a),cy/(3*a)]}}
   if(best&&bestA/2>260)g+=`<text x="${best[0].toFixed(1)}" y="${(best[1]+4).toFixed(1)}" text-anchor="middle" class="plan-no" pointer-events="none">${p.number}</text>`}
- // 방위표·축척
- g+=`<g transform="translate(${w-22},22)" pointer-events="none"><rect x="-16" y="-16" width="32" height="40" rx="4" fill="#0D1117" fill-opacity=".72"/><path d="M0 -12L5 4L0 1L-5 4Z" fill="var(--ink)"/><text y="17" text-anchor="middle" class="ax">N</text></g>`;
- const mpp=156543.03392*Math.cos(lat0*Math.PI/180)/sc,m=niceMax(w/4*mpp),len=m/mpp,bx=14,by=h-14;
- g+=`<rect x="${bx-8}" y="${by-16}" width="${len+70}" height="26" rx="4" fill="#0D1117" fill-opacity=".72"/>`;
- g+=`<g pointer-events="none"><line x1="${bx}" x2="${bx+len}" y1="${by}" y2="${by}" stroke="var(--ink-2)" stroke-width="2"/><line x1="${bx}" x2="${bx}" y1="${by-5}" y2="${by+1}" stroke="var(--ink-2)" stroke-width="2"/><line x1="${bx+len}" x2="${bx+len}" y1="${by-5}" y2="${by+1}" stroke="var(--ink-2)" stroke-width="2"/><text x="${bx+len+8}" y="${by+4}" class="ax">${m>=1000?nf(m/1000,1)+'km':nf(m)+'m'}</text></g>`;
+ // 방위표·축척: 오른쪽 아래에 함께, 축척은 4칸으로 나눈 막대 (2026-10-30 요청)
+ const mpp=156543.03392*Math.cos(lat0*Math.PI/180)/sc,steps=[20,40,100,200,400,1000,2000,4000,10000],target=w/4.5*mpp;
+ const m=steps.filter(v=>v<=target).at(-1)||steps[0],len=m/mpp,km=m>=1000,fmt=v=>km?nf(v/1000,v%1000?2:0):nf(v);
+ const pw=len+92,ph=56,x0=w-8-pw,y0=h-8-ph,sx=x0+18,sy=y0+18;
+ g+=`<g pointer-events="none"><rect x="${x0}" y="${y0}" width="${pw}" height="${ph}" rx="5" fill="#0D1117" fill-opacity=".78"/>`;
+ for(let k=0;k<4;k++)g+=`<rect x="${(sx+len*k/4).toFixed(1)}" y="${sy}" width="${(len/4).toFixed(1)}" height="7" fill="${k%2?'#0D1117':'#F3F6FA'}" stroke="#F3F6FA" stroke-width="1"/>`;
+ for(let k=0;k<=4;k++){const x=sx+len*k/4;g+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${sy-3}" y2="${sy+10}" stroke="#F3F6FA" stroke-width="1"/><text x="${x.toFixed(1)}" y="${sy+25}" text-anchor="middle" class="ax" style="fill:#E6EBF2">${fmt(m*k/4)}</text>`}
+ g+=`<text x="${(sx+len+8).toFixed(1)}" y="${sy+8}" class="ax" style="fill:#E6EBF2">${km?'km':'m'}</text>`;
+ const nx=x0+pw-22,ny=y0+26;g+=`<path d="M${nx} ${ny-15}L${nx+6} ${ny+4}L${nx} ${ny}L${nx-6} ${ny+4}Z" fill="#F3F6FA"/><text x="${nx}" y="${ny+20}" text-anchor="middle" class="ax" style="fill:#E6EBF2;font-weight:700">N</text></g>`;
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="선택 필지 도면">${g}</svg>`;
 }
 /* 수지 폭포: 총수입 → 지출 항목 → 사업이익. items=[{label,amt,kind}] */
-/* 폭포 차트 항목 이름: 4글자 이상이면 두 줄 (간접/공사비, 분양/제비용 …) — 큰 글씨에서 이름끼리 겹치지 않게 */
-const wfLabel=(label,x,y)=>{const t=String(label);if(t.length<4)return `<text x="${x}" y="${y}" text-anchor="middle" class="ax">${esc(t)}</text>`;
- return `<text x="${x}" y="${y}" text-anchor="middle" class="ax">${esc(t.slice(0,2))}<tspan x="${x}" dy="16">${esc(t.slice(2))}</tspan></text>`};
+/* 수지 그래프 항목 이름: 수지 항목 표와 같은 이름. 띄어쓰기마다 줄을 바꿔(예상 / 간접 / 공사비) 이름끼리 겹치지 않게 */
+const wfLabel=(label,x,y)=>{const t=String(label),words=t.includes(' ')?t.split(' '):t.length<4?[t]:[t.slice(0,2),t.slice(2)];
+ return `<text x="${x}" y="${y}" text-anchor="middle" class="ax">${words.map((w,i)=>i?`<tspan x="${x}" dy="16">${esc(w)}</tspan>`:esc(w)).join('')}</text>`};
 export function waterfall(R,items,profit,{w=760,h=290}={}){
  if(!fin(R)||!fin(profit)||items.some(x=>!fin(x.amt)))return '<p class="empty">수지 계산이 끝나면 표시됩니다.</p>';
- const all=[{label:'총수입',v:R,kind:'total'},...items.map(x=>({label:x.label,v:-x.amt,kind:x.kind})),{label:'사업이익',v:profit,kind:'result'}];
- const pad={l:70,r:10,t:48,b:66},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b,n=all.length,bw=iw/n*.62;
+ const all=[{label:'예상 총수입',v:R,kind:'total'},...items.map(x=>({label:x.label,v:-x.amt,kind:x.kind})),{label:'사업이익',v:profit,kind:'result'}];
+ const pad={l:70,r:10,t:48,b:82},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b,n=all.length,bw=iw/n*.62;
  const lo=Math.min(0,profit),hi=Math.max(R,1),Y=v=>pad.t+(hi-v)/(hi-lo)*ih;
  let g='',run=0;
  for(let k=0;k<=4;k++){const v=lo+(hi-lo)/4*k;g+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${pad.l-8}" y="${Y(v)+4}" text-anchor="end" class="ax">${nf(v/1e8,0)}</text>`}

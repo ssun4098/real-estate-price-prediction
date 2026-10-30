@@ -51,6 +51,7 @@ aside h2{font-size:14px;font-weight:500;color:var(--muted);letter-spacing:.08em;
 .field{display:grid;gap:4px;margin-bottom:8px}.field label,.lbl{color:var(--ink-2);font-size:15px}
 .inp{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:5px;padding:5px 7px;font-size:16px}
 .inp:focus{border-color:var(--fore);outline:none}
+.inp[readonly]{background:var(--panel-2);color:var(--ink-2);cursor:default}
 .p-row{display:grid;grid-template-columns:minmax(0,1fr) 98px;gap:6px 8px;align-items:center;margin-bottom:8px}
 .p-row label{color:var(--ink-2)}
 .p-row .inp{text-align:right;font-family:var(--mono)}

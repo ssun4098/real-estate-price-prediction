@@ -367,7 +367,9 @@ function renderControls(){
  const ls={...LINKED_DEFAULTS,...input.linkedScenario},a=input.assumptions;
  set('projName',input.project.name);set('asOf',input.project.asOf);
  set('far',ls.farPct);set('farMax',ls.farMaxPct);document.querySelector('[data-for="far"]').max=ls.farMaxPct||500;document.querySelector('[data-for="far"]').value=ls.farPct??0;
- set('manualArea',ls.supplyAreaM2);$('manualAreaRow').hidden=ls.areaMode!=='manual';
+ // 호당 ㎡: '비교단지 중앙값'이면 계산에 쓰인 중앙값을 보여 주고(읽기 전용), '직접 입력'이면 입력값 (2026-10-30 요청: 공란이던 칸)
+ const unitMedian=(shown||current()).results?.development?.unitSupplyAreaM2,manual=ls.areaMode==='manual',ma=$('manualArea');
+ set('manualArea',manual?ls.supplyAreaM2:fin(unitMedian)?Math.round(unitMedian*10)/10:'');ma.readOnly=!manual;ma.title=manual?'호당 공급면적 직접 입력':'비교단지 중앙값에서 자동으로 정해집니다. 바꾸려면 ‘직접 입력’을 누르세요.';ma.placeholder=manual?'':'계산 후 표시';
  document.querySelectorAll('[data-area]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.area===ls.areaMode));
  set('revAdj',a.revenueAdjustmentPct??0);document.querySelector('[data-for="revAdj"]').value=a.revenueAdjustmentPct??0;
  set('landAdj',a.landAdjustmentPct??0);document.querySelector('[data-for="landAdj"]').value=a.landAdjustmentPct??0;
@@ -446,12 +448,12 @@ function renderFinance(r){
  $('costbar').innerHTML=fin(b.totalExpenseWon)&&b.totalExpenseWon>0?`<div class="costbar">${parts.map(([l,v,c])=>`<i style="flex:${Math.max(0,v||0)};background:${c}" data-tip="${l} ${eok(v)} · ${pct((v||0)/b.totalExpenseWon*100)}"></i>`).join('')}</div><div class="legend" style="margin:0 0 8px">${parts.map(([l,v,c])=>`<span><i style="background:${c}"></i>${l} ${pct((v||0)/b.totalExpenseWon*100,0)}</span>`).join('')}</div>`:'';
  const fe=$('finance');
  if(fe.contains(document.activeElement)){fe.querySelectorAll('[data-amt]').forEach(el=>{const id=el.dataset.amt;el.textContent=eok(id==='revenue'?b.revenueWon:id==='land'?b.landWon:id==='trust'?b.trustWon:b.allocationRows?.find(x=>x.id===id)?.amountWon,2)});const tot=fe.querySelector('[data-total]');if(tot)tot.textContent=eok(b.totalExpenseWon,2);const pr=fe.querySelector('[data-profit]');if(pr)pr.textContent=eok(b.profitWon,2);}
- else fe.innerHTML=`<div class="frow h"><span>항목</span><span>기준</span><span style="text-align:right">값</span><span style="text-align:right">억원</span></div>`+financeRow('revenue','예상 총수입',b,r)+financeRow('land','토지 매입대금',b,r)+[['construction','허용 공사비'],['indirect','간접 공사비'],['sales','분양제비용'],['trust','신탁보수'],['tax','제세공과금'],['finance','금융비용']].map(([id,l])=>financeRow(id,l,b,r)).join('')+
+ else fe.innerHTML=`<div class="frow h"><span>항목</span><span>기준</span><span style="text-align:right">값</span><span style="text-align:right">억원</span></div>`+financeRow('revenue','예상 총수입',b,r)+financeRow('land','예상 토지비',b,r)+[['construction','허용 공사비'],['indirect','예상 간접 공사비'],['sales','예상 분양제 비용'],['trust','예상 신탁보수'],['tax','예상 제세공과금'],['finance','예상 금융비용']].map(([id,l])=>financeRow(id,l,b,r)).join('')+
   `<div class="frow total"><span>예상 총지출</span><span></span><span></span><span class="amt" data-total>${eok(b.totalExpenseWon,2)}</span></div><div class="frow total"><span>사업이익 · 목표 수익률</span><span></span><span class="amt" style="color:var(--${!fin(b.targetMarginPct)?'ink':b.targetMarginPct<0?'bad':'good'})">${pct(b.targetMarginPct,2)}</span><span class="amt" data-profit>${eok(b.profitWon,2)}</span></div>`+
   (b.fieldErrors?.length?`<div class="alert bad">${b.fieldErrors.map(e=>esc(e.message)).join('<br>')}</div>`:'');
  // 폭포
- const rows=[{label:'토지비',amt:b.landWon,kind:'land'},...['construction','indirect','sales','tax','finance'].map(id=>{const x=b.allocationRows?.find(y=>y.id===id);return {label:{construction:'공사비',indirect:'간접공사비',sales:'분양제비용',tax:'제세공과금',finance:'금융비용'}[id],amt:x?.amountWon,kind:id}}),{label:'신탁보수',amt:b.trustWon,kind:'trust'}];
- $('wf').innerHTML=waterfall(b.revenueWon,rows,b.profitWon,{w:widthOf('wf',760),h:330});
+ const rows=[{label:'예상 토지비',amt:b.landWon,kind:'land'},...['construction','indirect','sales','tax','finance'].map(id=>{const x=b.allocationRows?.find(y=>y.id===id);return {label:{construction:'허용 공사비',indirect:'예상 간접 공사비',sales:'예상 분양제 비용',tax:'예상 제세공과금',finance:'예상 금융비용'}[id],amt:x?.amountWon,kind:id}}),{label:'예상 신탁보수',amt:b.trustWon,kind:'trust'}];
+ $('wf').innerHTML=waterfall(b.revenueWon,rows,b.profitWon,{w:widthOf('wf',760),h:350});
  // 민감도
  const dev=res.development||{},S=dev.supplyAreaM2,far=input.linkedScenario?.farPct,R=b.revenueWon,Lw=b.landWon,cs=financeRowSetting(input,'construction');
  const ok=fin(S)&&S>0&&fin(far)&&far>0&&fin(R)&&fin(Lw);
@@ -534,7 +536,8 @@ function bindControls(){
  onNum('radius',v=>setInput({...input,comparisonFilters:{...input.comparisonFilters,radiusKm:v}}));
  $('projName').addEventListener('change',e=>setInput({...input,project:{...input.project,name:e.target.value}}));
  $('asOf').addEventListener('change',e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))setInput(applyRollingPeriod({...input,project:{...input.project,asOf:e.target.value}}))});
- document.querySelectorAll('[data-area]').forEach(b=>b.addEventListener('click',()=>patchLinked({areaMode:b.dataset.area})));
+ // '직접 입력'으로 바꾸면 지금 중앙값을 시작값으로 넣어 둔다
+ document.querySelectorAll('[data-area]').forEach(b=>b.addEventListener('click',()=>{const ls={...LINKED_DEFAULTS,...input.linkedScenario},med=(shown||current()).results?.development?.unitSupplyAreaM2;patchLinked(b.dataset.area==='manual'&&ls.supplyAreaM2==null&&fin(med)?{areaMode:'manual',supplyAreaM2:Math.round(med*10)/10}:{areaMode:b.dataset.area})}));
  document.querySelectorAll('[data-method]').forEach(b=>b.addEventListener('click',()=>patchAssume({revenueMethod:b.dataset.method})));
  $('requery').addEventListener('click',()=>{autoQueryPending=true;fetchCases(true,true)});
  $('recalc').addEventListener('click',()=>{if(!input.parcels.length)return toast('필지를 먼저 선택하세요.',true);activeSample=null;scheduleAnalyze(true)});
