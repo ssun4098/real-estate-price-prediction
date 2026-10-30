@@ -268,12 +268,12 @@ async function importJson(file){
 }
 async function exportPdf(){
  if(calcing||parcelPending()||casesLoading)return toast('조회·계산이 끝난 뒤 저장하세요.',true);
- const btn=$('pdfBtn');btn.disabled=true;btn.textContent='PDF 만드는 중…';document.body.classList.add('capturing');printing=true;drawMap();if(document.querySelector('.tile.folded'))renderAll();
+ const btn=$('pdfBtn');btn.disabled=true;btn.textContent='PDF 만드는 중…';document.body.classList.add('capturing');printing=true;drawMap();renderAll();   // 인쇄용 배치(선택 필지 카드 빼기·지도 넓히기·접은 카드 펼치기)에 맞춰 차트를 다시 그린다
  const controller=new AbortController(),cache=new Map(),pages=[];
  try{
-  await new Promise(r=>setTimeout(r,250));
+  await new Promise(r=>setTimeout(r,600));
   for(const id of ['page1','page2','page3','page4','page5']){const el=$(id),rect=el.getBoundingClientRect();pages.push(await captureScreen(el,{width:Math.ceil(rect.width),height:Math.ceil(rect.height),pixelRatio:2,backgroundColor:'#0D1117',signal:controller.signal,resourceCache:cache}))}
-  downloadBlob(new Blob([buildScreenPdf(pages,{portrait:true})],{type:'application/pdf'}),`${fileName(input.project.name)}_분석콘솔_${todayKorea()}.pdf`);
+  downloadBlob(new Blob([buildScreenPdf(pages,{portrait:true,marginPt:34,sameScale:true,fillPage:false})],{type:'application/pdf'}),`${fileName(input.project.name)}_분석콘솔_${todayKorea()}.pdf`);
   toast('PDF 5쪽을 저장했습니다');
  }catch(e){fail(e)}
  finally{document.body.classList.remove('capturing');printing=false;drawMap();btn.disabled=false;btn.textContent='PDF 저장'}

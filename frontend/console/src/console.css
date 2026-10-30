@@ -211,3 +211,7 @@ body.capturing .fold-btn{display:none}
 .base-row>b{font-family:var(--mono);font-weight:600;text-align:right}
 .base-now{grid-column:1/-1;text-align:right;color:var(--warn);font-size:13px;font-family:var(--mono)}
 .fc-basis[hidden]{display:none}
+
+/* PDF 저장 (2026-10-30 요청): '선택 필지' 카드는 넣지 않고, 그 자리는 지도가 한 줄 전체를 쓴다 */
+body.capturing .parcel-tile{display:none}
+body.capturing .maptile{grid-column:span 12}
