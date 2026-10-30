@@ -15,7 +15,6 @@ import {assessLandCases} from '../../src/content/dashboard/land-comparison.mjs';
 import {withoutRetailSurvey} from '../../src/content/dashboard/map-overlays.mjs';
 import {calculationIdentity,periodErrors} from '../../src/content/dashboard/ui-workflow.mjs';
 import {cleanPortfolioValue} from '../../src/content/dashboard/portfolio-samples.mjs';
-import Lenis from 'lenis';
 import {captureScreen,buildScreenPdf} from '../../src/content/dashboard/screen-pdf.mjs';
 import {fin,nf,eok,man,m2,pct,signed,esc,PY,groupLabel,rolling,forecastChart,waterfall,strip,dotPlot,heatmap,tornado,lineSeries,radar,facIcon,parcelPlan} from './charts.js';
 import {uniqueSurveyParcels} from '../../src/content/dashboard/survey-summary.mjs';
@@ -613,34 +612,6 @@ async function boot(){
   btn.addEventListener('click',toggle);
   h.addEventListener('click',e=>{if(e.target===h)toggle()});  // 제목 글자를 눌러도 접힘 (안의 칩·체크박스는 제외)
  }));
- // 줄 단위 스크롤 (2026-10-30 요청: Lenis 사용, 아래로 스크롤하면 다음 카드 줄이 화면 맨 위로; 마지막 줄이면 무시).
- // Lenis 가 휠·터치 스크롤을 부드럽게 만들고, virtualScroll 에서 '아래로' 움직임만 가로채 다음 줄 맨 위(상단 바 바로 아래)로 보낸다.
- // 위로 스크롤은 Lenis 의 부드러운 일반 스크롤. 마지막 줄(다음 줄이 없음)에서는 가로채지 않고 일반 스크롤.
- // 트랙패드처럼 한 번에 여러 신호가 오는 경우, 신호 사이가 0.2초 이상 끊길 때까지를 한 동작으로 보고 한 줄만 넘긴다.
- // 왼쪽 가정 패널·목록·주소 후보처럼 안쪽 스크롤이 있는 곳은 그 안이 끝날 때까지 그 안에서 스크롤된다.
- const topGap=()=>(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--top-h'))||64)+12;
- const nextRowY=()=>{const gap=topGap(),now=scrollY+gap+4;   // 지금 맨 위 줄 다음 줄의 '맨 위' 스크롤 위치. 없으면 null(마지막 줄)
-  const tops=[...document.querySelectorAll('main .page>.tile')].filter(t=>t.offsetParent).map(t=>Math.round(t.getBoundingClientRect().top+scrollY)).sort((a,b)=>a-b);
-  const next=tops.find(t=>t>now);return next==null?null:next-gap};
- let lastWheelAt=0,gestureUsed=false,moving=false;
- // 안쪽 스크롤 영역(왼쪽 패널·목록·주소 후보)이 그 방향으로 실제로 더 움직일 수 있을 때만 그쪽에 맡긴다. 끝에 닿았거나 내용이 짧으면 줄 단위 이동.
- const innerScrolls=(node,dy)=>{for(let el=node;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){
-   if(el.nodeType!==1||!/(auto|scroll)/.test(getComputedStyle(el).overflowY)||el.scrollHeight<=el.clientHeight+1)continue;
-   if(dy>0?el.scrollTop+el.clientHeight<el.scrollHeight-1:el.scrollTop>0)return true}return false};
- const lenis=new Lenis({autoRaf:true,
-  prevent:node=>node?.hasAttribute?.('data-lenis-prevent'),
-  virtualScroll:({deltaX,deltaY,event})=>{
-   if(innerScrolls(event.target,deltaY))return false   // 안쪽 영역이 스스로 스크롤 (브라우저 기본 동작)
-   if(event.ctrlKey||Math.abs(deltaX)>Math.abs(deltaY)||document.body.classList.contains('capturing'))return true;
-   const t=performance.now(),newGesture=t-lastWheelAt>200;lastWheelAt=t;if(newGesture)gestureUsed=false;
-   const drop=()=>{if(event.cancelable)event.preventDefault();return false};   // false 만 돌려주면 브라우저 기본 스크롤이 남으므로 직접 막는다
-   if(deltaY<=0)return moving?drop():true;         // 위로: 일반(부드러운) 스크롤. 다음 줄로 가는 중에는 무시
-   if(moving||gestureUsed)return drop();           // 이미 이번 동작으로 한 줄 넘겼으면 나머지 신호는 버린다
-   const y=nextRowY();if(y==null)return true;      // 마지막 줄: 무시(일반 스크롤)
-   gestureUsed=moving=true;
-   lenis.scrollTo(y,{duration:.75,lock:true,onComplete:()=>{moving=false}});
-   setTimeout(()=>{moving=false},1200);           // 혹시 완료 신호가 오지 않아도 풀리도록
-   return drop()}});
  // 창 크기가 바뀌면 차트를 새 폭으로 다시 그린다
  let resizeTimer=0;addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderAll,200)});
  // 상단 바 높이(버튼이 줄바꿈되면 달라짐)에 맞춰 왼쪽 패널 위치를 정한다

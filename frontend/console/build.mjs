@@ -45,8 +45,6 @@ const bundle=await rolldown({
 await bundle.write({file:path.join(here,'build','console.js'),format:'esm',minify:true,sourcemap:false});
 await bundle.close();
 const css=[await readFile(path.join(here,'src','console.css'),'utf8')];
-// Lenis(줄 단위 스크롤) 기본 CSS (2026-10-30)
-css.push('/* ---- lenis/dist/lenis.css ---- */\n'+await readFile(path.join(here,'..','node_modules','lenis','dist','lenis.css'),'utf8'));
 for(const name of MAP_CSS)css.push(`/* ---- 기존 화면 지도 CSS: src/content/dashboard/${name} ---- */\n`+scaleFonts(await readFile(path.join(dashboard,name),'utf8')));
 await writeFile(path.join(here,'build','console.css'),css.join('\n'));
 console.log('콘솔 화면을 만들었습니다: frontend/console/build/console.js, console.css');
