@@ -10,7 +10,7 @@
 <header class="top">
  <h1>사업성 분석 콘솔</h1>
  <span class="tag" id="siteTag">사업지 미선택</span>
- <span class="tag" id="calcTag">준비 중</span>
+ <span class="status" id="calcTag" role="status" aria-live="polite"><i class="status-icon" aria-hidden="true"></i><span class="status-text">준비 중</span></span>
  <span class="spacer"></span>
  <label class="tag-select"><span class="sr">저장 샘플</span><select id="sampleSelect" aria-label="저장 샘플 열기"><option value="">저장 샘플 불러오는 중…</option></select></label>
  <button class="btn" id="saveSample" type="button">샘플로 저장</button>
@@ -18,6 +18,7 @@
  <label class="btn" for="importJson">JSON 불러오기</label><input type="file" id="importJson" accept="application/json,.json" hidden>
  <button class="btn primary" id="pdfBtn" type="button">PDF 저장</button>
  <a class="btn ghost" href="/" title="기존 화면으로">기존 화면</a>
+<div class="busybar" id="busyBar" hidden aria-hidden="true"><i></i></div>
 </header>
 <div class="app">
  <aside id="aside">

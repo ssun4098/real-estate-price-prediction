@@ -287,13 +287,27 @@ async function goCandidate(a){
 }
 
 /* ---------- 화면 그리기 ---------- */
+/* 지금 진행 중인 일. 상단 상태 표시, 진행 막대, KPI 스켈레톤이 모두 이것 하나를 본다.
+   kpi: 이 일이 끝나야 KPI 값(수입·지출·수익률 등)이 확정되는지 (주변시설 조회는 KPI와 무관) */
+function workState(){
+ const step=parcelPending()?'필지 조회 중':Object.values(boundaryState).some(s=>s.loading)?'용도지역 경계 조회 중':casesLoading?'비교사례 조회 중':calcing?'서버 계산 중':busy==='sample'?'샘플 여는 중':'';
+ if(step)return {kind:'busy',text:step,kpi:true};
+ if(surveyState.loading)return {kind:'busy',text:'주변시설 조회 중',kpi:false};
+ if(status.mode==='checking')return {kind:'busy',text:'서버 확인 중',kpi:true};
+ if(!local())return {kind:'off',text:'서버 연결 안 됨 · 보기 전용',kpi:false};
+ if(activeSample)return {kind:'saved',text:'저장 시점 결과',kpi:false};
+ if(needsPreview&&input.parcels.length)return {kind:'busy',text:'계산 준비 중',kpi:true};
+ if(!input.parcels.length)return {kind:'idle',text:'필지를 선택하세요',kpi:false};
+ return {kind:'done',text:'서버 계산 완료',kpi:false};
+}
 function renderStatus(){
  const r=current(),b=currentBudget(input,r.results||{});
  $('siteTag').textContent=input.parcels.length?`${input.parcels[0]?.attributes?.landRegister?.rows?.[0]?.ldCodeNm||input.parcels[0]?.legalDongName||'선택 지역'} · ${input.parcels.length}필지`:'사업지 미선택';
- const t=$('calcTag');
- const pending=parcelPending()?'필지 조회 중':Object.values(boundaryState).some(s=>s.loading)?'경계 조회 중':casesLoading?'비교사례 조회 중':surveyState.loading?'주변시설 조회 중':calcing?'서버 계산 중':busy==='sample'?'샘플 여는 중':'';
- t.className='tag '+(pending?'warn':activeSample?'':needsPreview?'warn':'good');
- t.textContent=pending||(status.mode==='checking'?'서버 확인 중':!local()?'서버 연결 안 됨 · 보기 전용':activeSample?'저장 시점 결과':needsPreview?'미리 계산 · 서버 계산 대기':'● 서버 계산 완료');
+ const w=workState(),t=$('calcTag');
+ t.className='status '+w.kind;t.querySelector('.status-text').textContent=w.text;
+ $('busyBar').hidden=w.kind!=='busy';
+ // 계산 중 ↔ 완료가 바뀌면 KPI 스켈레톤도 바로 바꾼다
+ const kpiBusy=w.kpi&&input.parcels.length>0;if(kpiBusy!==renderStatus.kpiBusy){renderStatus.kpiBusy=kpiBusy;renderKpis(r)}
  const note=[];if(!local())note.push('서버에 연결되지 않아 조회·계산을 할 수 없습니다.');if(activeSample)note.push('저장 샘플은 저장 당시 결과입니다. 값을 바꾸거나 다시 계산을 누르면 현재 규칙·모델로 계산합니다.');
  $('asideNote').textContent=note.join(' ');
 }
@@ -314,7 +328,11 @@ function delta(v,b,fmt,goodUp=true){if(!fin(v)||!fin(b))return '<span class="fla
 function renderKpis(r){
  const res=r.results||{},b=currentBudget(input,res),dev=res.development||{},land=res.land||{},m=b.targetMarginPct,t=!fin(m)?'ink':m<0?'bad':m<10?'warn':'good',B=baseline||{};
  const K=[['예상 총수입',eok(b.revenueWon,1),delta(b.revenueWon,B.R,v=>eok(v,1))],['예상 총지출',eok(b.totalExpenseWon,1),delta(b.totalExpenseWon,B.T,v=>eok(v,1),false)],['사업이익',eok(b.profitWon,1),delta(b.profitWon,B.P,v=>eok(v,1))],['목표 수익률',`<span style="color:var(--${t})">${pct(m,2)}</span>`,delta(m,B.M,v=>nf(v,2)+'%p')],['공급',fin(dev.units)?nf(dev.units)+'호':'—',`<span class="flat">${m2(dev.supplyAreaM2)} · 용적률 ${nf(input.linkedScenario?.farPct)}%</span>`],['토지비 비중',fin(b.landWon)&&fin(b.totalExpenseWon)&&b.totalExpenseWon>0?pct(b.landWon/b.totalExpenseWon*100):'—',`<span class="flat">${land.amountBasis==='model'?'모델 예측':'실거래 비교'} ${eok(b.landWon,1)}</span>`]];
- K.forEach(([l,v,d],i)=>$('k'+(i+1)).innerHTML=`<h3>${l}</h3><div class="v">${v}</div><div class="d">${d}</div>`);
+ // 계산이 끝나지 않았으면 값 대신 움직이는 회색 막대(스켈레톤)를 보여 준다. 값이 없고 할 일도 없으면 이유를 적는다.
+ const w=workState(),loading=w.kpi&&input.parcels.length>0,why=!input.parcels.length?'필지를 선택하면 계산합니다':'자료가 부족해 계산하지 못했습니다';
+ K.forEach(([l,v,d],i)=>{const el=$('k'+(i+1));el.classList.toggle('loading',loading);el.setAttribute('aria-busy',String(loading));
+  el.innerHTML=loading?`<h3>${l}<span class="r kpi-wait">${esc(w.text)}</span></h3><div class="v"><span class="skel skel-v"></span></div><div class="d"><span class="skel skel-d"></span></div>`
+   :`<h3>${l}</h3><div class="v">${v}</div><div class="d">${String(v).includes('—')?`<span class="flat">${why}</span>`:d}</div>`});
 }
 function renderParcels(){
  const ps=input.parcels,area=ps.reduce((t,p)=>t+(fin(p.areaM2)?p.areaM2:0),0);
