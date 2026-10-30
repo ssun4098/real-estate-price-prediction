@@ -58,21 +58,28 @@ export function parcelPlan({fills=[],parcels=[]},{w=640,h=360}={}){
  const rings=g=>!g?[]:g.type==='Polygon'?g.coordinates:g.type==='MultiPolygon'?g.coordinates.flat(1):[];
  const all=parcels.flatMap(p=>rings(p.geometry)).flat(1).filter(c=>fin(c?.[0])&&fin(c?.[1]));
  if(!all.length)return '<p class="empty">필지를 선택하면 도면이 표시됩니다.</p>';
- const lat0=all.reduce((t,c)=>t+c[1],0)/all.length,kx=111320*Math.cos(lat0*Math.PI/180),ky=110540;  // 경위도 → m (작은 범위라 평면 근사)
- const xs=all.map(c=>c[0]*kx),ys=all.map(c=>c[1]*ky),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
- const pad=24,sc=Math.min((w-2*pad)/Math.max(1,maxX-minX),(h-2*pad-26)/Math.max(1,maxY-minY));
- const ox=(w-(maxX-minX)*sc)/2,oy=(h-26-(maxY-minY)*sc)/2;
- const P=c=>[ox+(c[0]*kx-minX)*sc,oy+(maxY-c[1]*ky)*sc];
+ // 위성사진(VWorld 타일)과 맞도록 웹 메르카토르 좌표를 쓴다 (2026-10-30 요청: 위성사진 바탕, 필지선 흰색 얇게)
+ const W=c=>[(c[0]+180)/360*256,(1-Math.log(Math.tan(Math.PI/4+c[1]*Math.PI/360))/Math.PI)/2*256];  // 0단계 세계 픽셀
+ const lat0=all.reduce((t,c)=>t+c[1],0)/all.length,wp=all.map(W),xs=wp.map(c=>c[0]),ys=wp.map(c=>c[1]);
+ const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const pad=28,sc=Math.min((w-2*pad)/Math.max(1e-9,maxX-minX),(h-2*pad)/Math.max(1e-9,maxY-minY));
+ const ox=(w-(maxX-minX)*sc)/2-minX*sc,oy=(h-(maxY-minY)*sc)/2-minY*sc;   // 세계 픽셀 → 도면 좌표: x*sc+ox
+ const P=c=>{const [x,y]=W(c);return [ox+x*sc,oy+y*sc]};
  const path=g=>rings(g).map(r=>r.map((c,i)=>{const [x,y]=P(c);return `${i?'L':'M'}${x.toFixed(1)},${y.toFixed(1)}`}).join('')+'Z').join('');
- let g=`<defs><pattern id="planHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="var(--panel-2)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--muted)" stroke-width="2"/></pattern></defs>`;
- for(const f of fills)g+=`<path d="${path(f.geometry)}" fill="${f.hatch?'url(#planHatch)':f.color}" fill-opacity="${f.hatch?1:.85}" fill-rule="evenodd" stroke="${f.hatch?'var(--muted)':f.color}" stroke-width=".6" data-tip="${esc(f.tip)}"/>`;
- for(const p of parcels)g+=`<path d="${path(p.geometry)}" fill="none" stroke="#0D1117" stroke-width="1.6" fill-rule="evenodd" pointer-events="none"/>`;
+ let g=`<defs><pattern id="planHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#1A212B" fill-opacity=".7"/><line x1="0" y1="0" x2="0" y2="7" stroke="#C9D1DC" stroke-width="2"/></pattern></defs><rect width="${w}" height="${h}" fill="#0a0e13"/>`;
+ // 바탕 위성사진: 화면 배율에 맞는 단계(6~19)의 타일을 깐다
+ const z=Math.max(6,Math.min(19,Math.round(Math.log2(sc*(globalThis.devicePixelRatio||1))))),n=2**z,ts=256/n*sc;
+ const tx0=Math.floor((-ox/sc)/(256/n)),tx1=Math.floor(((w-ox)/sc)/(256/n)),ty0=Math.floor((-oy/sc)/(256/n)),ty1=Math.floor(((h-oy)/sc)/(256/n));
+ for(let ty=Math.max(0,ty0);ty<=Math.min(n-1,ty1);ty++)for(let tx=Math.max(0,tx0);tx<=Math.min(n-1,tx1);tx++)g+=`<image href="/api/tiles/${z}/${ty}/${tx}.jpeg" x="${(ox+tx*ts).toFixed(2)}" y="${(oy+ty*ts).toFixed(2)}" width="${(ts+.5).toFixed(2)}" height="${(ts+.5).toFixed(2)}" preserveAspectRatio="none"/>`;
+ for(const f of fills)g+=`<path d="${path(f.geometry)}" fill="${f.hatch?'url(#planHatch)':f.color}" fill-opacity="${f.hatch?.9:.6}" fill-rule="evenodd" stroke="none" data-tip="${esc(f.tip)}"/>`;
+ for(const p of parcels)g+=`<path d="${path(p.geometry)}" fill="none" stroke="#fff" stroke-width="1" stroke-opacity=".95" fill-rule="evenodd" pointer-events="none"/>`;
  // 필지 번호: 가장 큰 고리의 무게중심, 화면에서 너무 작은 필지는 생략
  for(const p of parcels){let best=null,bestA=0;for(const r of rings(p.geometry)){const pts=r.map(P);let a=0,cx=0,cy=0;for(let i=0;i<pts.length-1;i++){const [x1,y1]=pts[i],[x2,y2]=pts[i+1],q=x1*y2-x2*y1;a+=q;cx+=(x1+x2)*q;cy+=(y1+y2)*q}if(Math.abs(a)>bestA){bestA=Math.abs(a);best=[cx/(3*a),cy/(3*a)]}}
   if(best&&bestA/2>260)g+=`<text x="${best[0].toFixed(1)}" y="${(best[1]+4).toFixed(1)}" text-anchor="middle" class="plan-no" pointer-events="none">${p.number}</text>`}
  // 방위표·축척
- g+=`<g transform="translate(${w-22},22)" pointer-events="none"><path d="M0 -12L5 4L0 1L-5 4Z" fill="var(--ink)"/><text y="17" text-anchor="middle" class="ax">N</text></g>`;
- const m=niceMax(w/4/sc),len=m*sc,bx=pad,by=h-12;
+ g+=`<g transform="translate(${w-22},22)" pointer-events="none"><rect x="-16" y="-16" width="32" height="40" rx="4" fill="#0D1117" fill-opacity=".72"/><path d="M0 -12L5 4L0 1L-5 4Z" fill="var(--ink)"/><text y="17" text-anchor="middle" class="ax">N</text></g>`;
+ const mpp=156543.03392*Math.cos(lat0*Math.PI/180)/sc,m=niceMax(w/4*mpp),len=m/mpp,bx=14,by=h-14;
+ g+=`<rect x="${bx-8}" y="${by-16}" width="${len+70}" height="26" rx="4" fill="#0D1117" fill-opacity=".72"/>`;
  g+=`<g pointer-events="none"><line x1="${bx}" x2="${bx+len}" y1="${by}" y2="${by}" stroke="var(--ink-2)" stroke-width="2"/><line x1="${bx}" x2="${bx}" y1="${by-5}" y2="${by+1}" stroke="var(--ink-2)" stroke-width="2"/><line x1="${bx+len}" x2="${bx+len}" y1="${by-5}" y2="${by+1}" stroke="var(--ink-2)" stroke-width="2"/><text x="${bx+len+8}" y="${by+4}" class="ax">${m>=1000?nf(m/1000,1)+'km':nf(m)+'m'}</text></g>`;
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="선택 필지 도면">${g}</svg>`;
 }
