@@ -94,7 +94,7 @@ function scheduleAnalyze(force=false){
    const updated=adoptAnalyzedBoundaries(input,x.inputs);if(updated!==input)input=updated;
    result={...x,inputs:{...x.inputs,uiSettings:input.uiSettings,uiProgress:input.uiProgress,planHistory:input.planHistory}};
    lastIdentity=calculationIdentity(effective(input));needsPreview=false;activeSample=null;
-   if(!baseline)baseline=summary(current());
+   if(!baseline)baseline=summary(current(),'첫 계산 때 자동');
   }catch(e){if(v===analyzeVersion)fail(e)}
   finally{if(v===analyzeVersion){calcing=false;renderAll()}}
  },force?0:450);
@@ -106,7 +106,24 @@ function current(){
  if(currentCache?.input===input&&currentCache.result===result)return currentCache.value;
  const value=projectRevision(effective(input),result,{});currentCache={input,result,value};return value;
 }
-function summary(r){const res=r?.results||{},b=currentBudget(input,res);return {R:b.revenueWon,T:b.totalExpenseWon,P:b.profitWon,M:b.targetMarginPct,units:res.development?.units,L:b.landWon}}
+function summary(r,how=''){const res=r?.results||{},b=currentBudget(input,res);return {R:b.revenueWon,T:b.totalExpenseWon,P:b.profitWon,M:b.targetMarginPct,units:res.development?.units,L:b.landWon,cond:conditionsOf(input),at:new Date(),how}}
+/* 기준안을 정할 때의 입력 조건 (2026-10-30 피드백: 여러 번 바꾸면 기준안이 어떤 조건이었는지 기억하기 어려움 → 펼쳐 보기) */
+function conditionsOf(x){
+ const ls=x?.linkedScenario||{},a=x?.assumptions||{},c=x?.financeEditor?.expenses?.construction,sp=v=>`${v>0?'+':''}${nf(v??0)}%`;
+ return [['용적률',fin(ls.farPct)?nf(ls.farPct)+'%':'—'],
+  ['호당 공급면적',ls.areaMode==='manual'?(fin(ls.supplyAreaM2)?nf(ls.supplyAreaM2,1)+'㎡ (직접 입력)':'직접 입력'):'비교단지 중앙값'],
+  ['분양가 보정',sp(a.revenueAdjustmentPct)],['분양가 대표값',a.revenueMethod==='mean'?'평균':'중앙값'],
+  ['분양사례 반경',`${x?.comparisonFilters?.radiusKm??5}km`],['예상 토지비 보정',sp(a.landAdjustmentPct)],
+  ['평당 공사비',!c?'1,000만원 (기본)':c.mode==='areaUnit'&&fin(c.value)?nf(c.value)+'만원':'평당 아님 (직접 설정)']];
+}
+function renderBaseInfo(){
+ const box=$('baseInfo');if(!baseline?.cond){box.hidden=true;return}
+ box.hidden=false;const now=conditionsOf(input),d=baseline.at,today=new Date().toDateString()===d.toDateString();
+ const time=`${today?'':`${d.getMonth()+1}월 ${d.getDate()}일 `}${String(d.getHours()).padStart(2,'0')}시 ${String(d.getMinutes()).padStart(2,'0')}분`;
+ const diff=baseline.cond.filter(([k,v],i)=>now[i]?.[1]!==v).length;
+ $('baseSum').innerHTML=`기준안 조건 보기 <span class="sub">· ${time} 설정${baseline.how?` (${esc(baseline.how)})`:''}</span>${diff?` <span class="base-diff">지금과 ${diff}개 다름</span>`:''}`;
+ $('baseList').innerHTML=baseline.cond.map(([k,v],i)=>{const cur=now[i]?.[1];return `<div class="base-row"><span>${esc(k)}</span><b>${esc(v)}</b>${cur!==v?`<span class="base-now">지금 ${esc(cur)}</span>`:''}</div>`}).join('');
+}
 
 /* ---------- 필지 선택 · 조회 ---------- */
 /* 기존 화면 LiveDashboard.toggle 과 같은 동작 */
@@ -215,7 +232,7 @@ async function fetchCases(refresh,explicit=false){
 function openSnapshot(x,{display=null,label=''}={}){
  comparisonGate.cancel();parcelTokens.clear();boundaryAttempts.clear();boundaryState={};selection.reset();surveySeq++;analyzeVersion++;autoQueryPending=false;
  input=normal(x.inputs);result=x;lastIdentity=calculationIdentity(effective(input));needsPreview=false;
- survey=display?.survey||null;surveyState={};address=display?.address||'';baseline=summary(result);
+ survey=display?.survey||null;surveyState={};address=display?.address||'';baseline=summary(result,'샘플을 열 때 자동');
  const view=display?.mapView,center=selectedParcelCenter(input.parcels);mapFocus=view&&fin(view.lat)&&fin(view.lon)?{...view}:center?{...center,z:17}:mapFocus;
  if(label)toast(label);renderAll();
 }
@@ -379,7 +396,7 @@ function renderControls(){
 }
 // 이름표 + 값 (회색 이름표, 밝은 값) — KPI 아래 줄과 도면 범례에서 씀
 const kv=(label,value)=>`<span class="kv"><em>${esc(label)}</em><strong>${value}</strong></span>`;
-function delta(v,b,fmt,goodUp=true){if(!fin(v)||!fin(b))return '<span class="flat">—</span>';const d=v-b;if(Math.abs(d)<1e-6)return '';/* 기준안과 같으면 아무것도 쓰지 않는다 (2026-10-30 요청) */return `<span class="${(goodUp?d>0:d<0)?'up':'dn'}">${d>0?'▲':'▼'} ${fmt(Math.abs(d))} vs 기준안</span>`}
+function delta(v,b,fmt,goodUp=true){if(!fin(v)||!fin(b))return '<span class="flat">—</span>';const d=v-b;if(Math.abs(d)<1e-6)return '';/* 기준안과 같으면 아무것도 쓰지 않는다 (2026-10-30 요청) */return `<span class="${(goodUp?d>0:d<0)?'up':'dn'}">${d>0?'▲':'▼'} ${fmt(Math.abs(d))}</span>`}  /* 'vs 기준안' 글자는 빼고 ▲▼와 차이만 (2026-10-30 요청) */
 function renderKpis(r){
  const res=r.results||{},b=currentBudget(input,res),dev=res.development||{},land=res.land||{},m=b.targetMarginPct,t=!fin(m)?'ink':m<0?'bad':m<10?'warn':'good',B=baseline||{};
  const K=[['예상 총수입',eok(b.revenueWon,1),delta(b.revenueWon,B.R,v=>eok(v,1))],['예상 총지출',eok(b.totalExpenseWon,1),delta(b.totalExpenseWon,B.T,v=>eok(v,1),false)],['사업이익',eok(b.profitWon,1),delta(b.profitWon,B.P,v=>eok(v,1))],['목표 수익률',`<span style="color:var(--${t})">${pct(m,2)}</span>`,delta(m,B.M,v=>nf(v,2)+'%p')],['공급',fin(dev.units)?nf(dev.units)+'호':'—',kv('연면적',m2(dev.supplyAreaM2))+kv('대지면적',m2(dev.landAreaM2))+kv('용적률',`${nf(input.linkedScenario?.farPct)}%`)],['토지비 비중',fin(b.landWon)&&fin(b.totalExpenseWon)&&b.totalExpenseWon>0?pct(b.landWon/b.totalExpenseWon*100):'—',kv(land.amountBasis==='model'?'모델 예측':'실거래 비교',eok(b.landWon,1))]];
@@ -411,12 +428,20 @@ async function ensureHistory(keys){
  try{const d=await request('/api/console/land-history?keys='+encodeURIComponent(need.join(',')));for(const s of d.series||[])hist.set(s.key,rolling(s.points))}catch(e){need.forEach(k=>hist.set(k,[]))}
  finally{need.forEach(k=>histLoading.delete(k));renderForecast(current())}
 }
+const shortYm=s=>{const m=/^\d{2}(\d{2})-(\d{2})/.exec(s||'');return m?`${m[1]}.${m[2]}`:'—'};   // 2026-12 → 26.12
 function renderForecast(r){
  const land=r.results?.land||{},est=land.modelEstimate,groups=forecastGroups(r);
  $('modelTag').textContent=est?.used===false||!est?'모델 예측 없음':`${est.model||'토지가격 모델'}${est.version?' '+est.version:''}`;
- if(!groups.length){$('grpChips').innerHTML='';$('fc').innerHTML=`<p class="empty">${esc(est?.reason||(activeSample?'저장 시점 결과에는 모델 예측이 없습니다. 왼쪽 ‘다시 계산’을 누르면 현재 모델로 예측합니다.':'필지를 선택하고 계산이 끝나면 토지 그룹별 예측이 나옵니다.'))}</p>`;
+ if(!groups.length){$('grpChips').innerHTML='';$('fcBasis').hidden=true;$('fc').innerHTML=`<p class="empty">${esc(est?.reason||(activeSample?'저장 시점 결과에는 모델 예측이 없습니다. 왼쪽 ‘다시 계산’을 누르면 현재 모델로 예측합니다.':'필지를 선택하고 계산이 끝나면 토지 그룹별 예측이 나옵니다.'))}</p>`;
   $('fcTable').innerHTML=`<div class="fc-row"><span>실거래 비교 토지비</span><span class="num" style="text-align:right">${eok(land.comparablesRepresentativeWon??land.representativeWon,1)}</span><span></span></div>`;$('fcAlert').hidden=true;return}
  ensureHistory(groups.map(g=>g.key));
+ // 예측 시점 (2026-10-30 피드백: '6개월 뒤'가 오늘·분석 기준일·마지막 자료 중 무엇 기준인지 헷갈림)
+ // 예측 기준월 = 모델이 예측한 달, 예측 대상월 = 기준월 + 6개월, 모델이 쓴 실거래 자료 = 기준월 − 2개월까지. 분석 기준일·오늘과는 별개.
+ const ym=s=>{const m=/^(\d{4})-(\d{2})/.exec(s||'');return m?`${m[1]}년 ${+m[2]}월`:'—'},minus2=s=>{const m=/^(\d{4})-(\d{2})/.exec(s||'');if(!m)return '';const t=+m[1]*12+(+m[2]-1)-2;return `${Math.floor(t/12)}-${String(t%12+1).padStart(2,'0')}`};
+ const span=list=>{const v=[...new Set(list.filter(Boolean))].sort();return !v.length?'—':v.length===1?ym(v[0]):`${ym(v[0])} ~ ${ym(v.at(-1))}`};
+ const froms=groups.map(g=>g.fromMonth),tos=groups.map(g=>g.targetMonth),mixed=new Set(tos.filter(Boolean)).size>1;
+ $('fcBasis').hidden=false;
+ $('fcBasis').innerHTML=`<span class="kv"><span class="k">예측 기준월</span><b>${span(froms)}</b></span><span class="arrow">→</span><span class="kv"><span class="k">예측 대상월</span><b>${span(tos)}</b></span><span class="sub">기준월 + 6개월 · 모델이 쓴 실거래 자료: ${span(froms.map(minus2))}까지 · 분석 기준일·오늘과는 별개${mixed?' · 토지 그룹마다 자료가 있는 마지막 달이 달라 시점이 다릅니다(오른쪽 표)':''}</span>`;
  // 처음 보는 그룹은 면적이 큰 3개만 켜 둔다 (선이 많으면 라벨이 겹쳐 읽기 어려움). 나머지는 위 칩을 눌러 켠다.
  groups.forEach((g,i)=>{if(!grpSeen.has(g.key)){grpSeen.add(g.key);if(i>=3)grpOff.add(g.key)}});
  const shown=groups.map((g,i)=>({...g,color:COLORS[i%COLORS.length],points:hist.get(g.key)||[]}));
@@ -427,7 +452,7 @@ function renderForecast(r){
  $('fc').innerHTML=vis.some(g=>g.points.length)||!vis.length?forecastChart((vis.length?vis:shown.slice(0,1)).map(perPy),{w:widthOf('fc',820),h:380,asOf:input.project.asOf.slice(0,7)}):'<p class="empty">추이 자료 불러오는 중…</p>';
  const last=g=>g.points.filter(p=>fin(p[3])).at(-1);
  const rows=est.rows||[],filled=rows.filter(x=>!fin(x.unitPriceKrwPerM2)),filledArea=filled.reduce((t,x)=>t+(fin(x.areaM2)?x.areaM2:0),0);
- $('fcTable').innerHTML=`<div class="fc-row sub"><span>그룹 · 사업지 면적</span><span style="text-align:right">최근→예측 만원/평</span><span style="text-align:right">변화</span></div>`+shown.map(g=>{const l=last(g),c=l?(g.unit/l[3]-1)*100:null;return `<div class="fc-row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${g.color};margin-right:6px"></i>${esc(g.label)}<br><span class="sub">${nf(g.areaM2)}㎡ · ${esc(g.targetMonth||'')} 예측</span></span><span class="num" style="text-align:right">${l?nf(l[3]*PY/1e4,1):'—'} → <b>${nf(g.unit*PY/1e4,1)}</b></span><span class="num ${fin(c)?c<0?'dn':'up':'flat'}" style="text-align:right">${fin(c)?signed(c,1):'—'}</span></div>`}).join('')+(filled.length?`<div class="fc-row"><span>예측 없는 ${filled.length}필지<br><span class="sub">${nf(filledArea)}㎡ · 평균 단가로 채움</span></span><span class="num" style="text-align:right">평균 <b>${nf((est.averageUnitPriceKrwPerM2??est.averageUnitWonM2??NaN)*PY/1e4,1)}</b></span><span class="num flat" style="text-align:right">—</span></div>`:'')+`<div class="fc-row"><span><b>토지비 합계</b><br><span class="sub">실거래 비교 ${eok(land.comparablesRepresentativeWon,1)}</span></span><span class="num" style="text-align:right"><b>${eok(est.totalWon??land.representativeWon,1)}</b></span><span class="num ${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?'':'flat'}" style="text-align:right">${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?signed(((est.totalWon??land.representativeWon)/land.comparablesRepresentativeWon-1)*100,0):'—'}</span></div>`;
+ $('fcTable').innerHTML=`<div class="fc-row sub"><span>그룹 · 사업지 면적</span><span style="text-align:right">최근→예측 만원/평</span><span style="text-align:right">변화</span></div>`+shown.map(g=>{const l=last(g),c=l?(g.unit/l[3]-1)*100:null;return `<div class="fc-row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${g.color};margin-right:6px"></i>${esc(g.label)}<br><span class="sub">${nf(g.areaM2)}㎡</span><br><span class="sub" style="white-space:nowrap">기준 ${esc(shortYm(g.fromMonth))} → 대상 ${esc(shortYm(g.targetMonth))}</span></span><span class="num" style="text-align:right">${l?nf(l[3]*PY/1e4,1):'—'} → <b>${nf(g.unit*PY/1e4,1)}</b></span><span class="num ${fin(c)?c<0?'dn':'up':'flat'}" style="text-align:right">${fin(c)?signed(c,1):'—'}</span></div>`}).join('')+(filled.length?`<div class="fc-row"><span>예측 없는 ${filled.length}필지<br><span class="sub">${nf(filledArea)}㎡ · 평균 단가로 채움</span></span><span class="num" style="text-align:right">평균 <b>${nf((est.averageUnitPriceKrwPerM2??est.averageUnitWonM2??NaN)*PY/1e4,1)}</b></span><span class="num flat" style="text-align:right">—</span></div>`:'')+`<div class="fc-row"><span><b>토지비 합계</b><br><span class="sub">실거래 비교 ${eok(land.comparablesRepresentativeWon,1)}</span></span><span class="num" style="text-align:right"><b>${eok(est.totalWon??land.representativeWon,1)}</b></span><span class="num ${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?'':'flat'}" style="text-align:right">${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?signed(((est.totalWon??land.representativeWon)/land.comparablesRepresentativeWon-1)*100,0):'—'}</span></div>`;
  const thin=shown.filter(g=>g.points.length&&g.points.filter(p=>p[0]>=shiftMonth(input.project.asOf.slice(0,7),-12)).reduce((t,p)=>t+p[2],0)<6);
  $('fcAlert').hidden=!thin.length;$('fcAlert').textContent=thin.length?`${thin.map(g=>`'${g.label}'`).join(', ')}은 최근 1년 거래가 6건 미만이라 예측과 추이가 크게 흔들릴 수 있습니다.`:'';
 }
@@ -526,7 +551,7 @@ function renderAll(){
 function renderNow(){
  refreshPreview();
  const r=current();shown=r;
- renderStatus();renderControls();renderKpis(r);renderParcels();renderPlans();renderForecast(r);renderFinance(r);renderComparables(r);renderLocation();renderIndicators();renderSources(r);
+ renderStatus();renderControls();renderKpis(r);renderParcels();renderPlans();renderForecast(r);renderFinance(r);renderComparables(r);renderLocation();renderIndicators();renderSources(r);renderBaseInfo();
 }
 
 /* ---------- 이벤트 ---------- */
@@ -545,7 +570,7 @@ function bindControls(){
  document.querySelectorAll('[data-method]').forEach(b=>b.addEventListener('click',()=>patchAssume({revenueMethod:b.dataset.method})));
  $('requery').addEventListener('click',()=>{autoQueryPending=true;fetchCases(true,true)});
  $('recalc').addEventListener('click',()=>{if(!input.parcels.length)return toast('필지를 먼저 선택하세요.',true);activeSample=null;scheduleAnalyze(true)});
- $('pin').addEventListener('click',()=>{baseline=summary(current());renderAll();toast('지금 값을 기준안으로 고정했습니다')});
+ $('pin').addEventListener('click',()=>{baseline=summary(current(),'직접 고정');renderAll();toast('지금 값을 기준안으로 고정했습니다')});
  $('sampleSelect').addEventListener('change',e=>openSample(e.target.value));
  $('saveSample').addEventListener('click',saveSample);$('exportJson').addEventListener('click',exportJson);$('pdfBtn').addEventListener('click',exportPdf);
  $('importJson').addEventListener('change',e=>{const f=e.target.files?.[0];e.target.value='';if(f)importJson(f)});

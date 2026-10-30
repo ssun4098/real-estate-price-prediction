@@ -42,9 +42,10 @@
    <div class="p-row"><label for="landAdj">예상 토지비 보정 %</label><input type="number" id="landAdj" class="inp num" min="-50" max="50" step="1"><input type="range" data-for="landAdj" min="-30" max="30" step="1" aria-label="토지비 보정 조절"></div>
   </section>
   <section class="actions">
-   <button class="btn" id="requery" type="button">비교사례 다시 조회</button>
-   <button class="btn" id="recalc" type="button">다시 계산</button>
-   <button class="btn" id="pin" type="button">현재값을 기준안으로</button>
+   <button class="btn act" id="requery" type="button">비교사례 다시 조회<span class="act-sub">분양·토지 거래 사례를 지금 반경·기간으로 새로 불러온 뒤, 그 사례로 다시 계산합니다</span></button>
+   <button class="btn act" id="recalc" type="button">다시 계산<span class="act-sub">사례는 지금 불러온 그대로 두고, 현재 입력값·계산 규칙·모델로 다시 계산만 합니다</span></button>
+   <button class="btn act" id="pin" type="button">현재값을 기준안으로<span class="act-sub">지금 결과를 비교 기준으로 고정합니다. 위 숫자 카드의 ▲▼가 이 기준과의 차이입니다</span></button>
+   <details class="base-info" id="baseInfo" hidden><summary id="baseSum"></summary><div id="baseList"></div></details>
   </section>
   <p class="note" id="asideNote"></p>
  </aside>
@@ -61,7 +62,7 @@
    <div class="tile span6"><h3>용도지역 도면<span class="r sub" id="zoneSum"></span></h3><div id="zonePlan"></div><div id="zoneLegend" class="plan-legend"></div></div>
   </section>
   <section class="page" id="page2" aria-label="토지비 예측">
-   <div class="tile span8"><h3>토지 그룹 단가 추이 · 6개월 뒤 예측<span class="r chips" id="grpChips"></span></h3><div id="fc"></div><div class="note">점: 월 거래 중앙값 · 선: 12개월 이동 중앙값 · 점선/빈 원: 모델 예측 · 회색 막대: 월 거래 건수(낮을수록 선이 불안정)</div></div>
+   <div class="tile span8"><h3>토지 그룹 단가 추이 · 모델 예측<span class="r chips" id="grpChips"></span></h3><div class="fc-basis" id="fcBasis" hidden></div><div id="fc"></div><div class="note">점: 월 거래 중앙값 · 선: 12개월 이동 중앙값 · 점선/빈 원: 모델 예측 · 회색 막대: 월 거래 건수(낮을수록 선이 불안정)</div></div>
    <div class="tile span4"><h3>토지비 예측 요약<span class="r tag" id="modelTag"></span></h3><div id="fcTable"></div><div class="alert" id="fcAlert" hidden></div></div>
   </section>
   <section class="page" id="page3" aria-label="수지분석">

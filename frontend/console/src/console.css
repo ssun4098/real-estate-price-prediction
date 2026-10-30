@@ -188,3 +188,26 @@ body:not(.capturing) .tile.folded{align-self:start;padding-bottom:12px}
 body:not(.capturing) .tile.folded>h3{margin-bottom:0}
 body:not(.capturing) .tile.folded>:not(h3){display:none!important}
 body.capturing .fold-btn{display:none}
+
+/* 2026-10-30 피드백 반영 */
+/* 예측 시점 줄: 토지 그룹 단가 추이 카드 제목 아래 */
+.fc-basis{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:-2px 0 8px;font-size:15px}
+.fc-basis .kv{display:inline-flex;align-items:baseline;gap:6px}
+.fc-basis .k{color:var(--muted);font-size:13.5px}
+.fc-basis b{color:var(--fore);font-family:var(--mono);font-weight:600}
+.fc-basis .arrow{color:var(--muted)}
+.fc-basis .sub{flex-basis:100%;color:var(--muted);font-size:13.5px}
+/* 왼쪽 패널 단추: 이름 아래 한 줄 설명 */
+.actions .btn.act{flex-direction:column;align-items:flex-start;gap:2px;white-space:normal;text-align:left;padding:8px 10px}
+.act-sub{font-size:13px;color:var(--muted);line-height:1.4}
+/* 기준안 조건 펼쳐 보기 */
+.base-info{border:1px solid var(--line);border-radius:6px;background:var(--panel-2);padding:6px 10px;font-size:14.5px}
+.base-info summary{cursor:pointer;color:var(--ink)}
+.base-info summary .sub{color:var(--muted);font-size:13px}
+.base-diff{display:inline-block;margin-left:4px;padding:0 6px;border-radius:4px;background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn);font-size:12.5px}
+.base-row{display:grid;grid-template-columns:auto 1fr;gap:0 10px;padding:4px 0;border-top:1px solid var(--line)}
+.base-row:first-child{margin-top:6px}
+.base-row>span:first-child{color:var(--muted)}
+.base-row>b{font-family:var(--mono);font-weight:600;text-align:right}
+.base-now{grid-column:1/-1;text-align:right;color:var(--warn);font-size:13px;font-family:var(--mono)}
+.fc-basis[hidden]{display:none}
