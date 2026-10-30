@@ -180,8 +180,3 @@ body:not(.capturing) .tile.folded{align-self:start;padding-bottom:12px}
 body:not(.capturing) .tile.folded>h3{margin-bottom:0}
 body:not(.capturing) .tile.folded>:not(h3){display:none!important}
 body.capturing .fold-btn{display:none}
-
-/* 카드 단위 스크롤 (2026-10-30): 동작은 main.js(휠 → 다음 카드 줄). 여기서는 상단 단추 모양만. */
-#snapToggle[aria-pressed="false"]{color:var(--muted)}
-#snapToggle[aria-pressed="true"]{color:var(--ink)}
-#snapToggle[aria-pressed="false"] .snap-next{stroke-dasharray:3 3}
