@@ -122,11 +122,16 @@ tr.off td{opacity:.45}
 .toast.on{opacity:1}.toast.err{background:var(--bad);color:#fff}
 #tip{position:fixed;left:0;top:0;z-index:3000;pointer-events:none;background:#F5F7FA;color:#0D1117;font-family:var(--mono);font-size:14px;padding:5px 9px;border-radius:5px;opacity:0;transition:opacity .1s;max-width:420px}
 .capturing .maptile .search,.capturing .live-map-zoom{display:none}
+/* 선택 필지 목록: 옆 지도 카드 높이에 맞춰 카드 아래 끝까지 채운다 (2026-10-30 요청). 목록 높이는 줄 높이를 늘리지 않는다(flex-basis 0). */
+.listtile{display:flex;flex-direction:column}
+.listtile>.scroll{flex:1 1 0;min-height:220px;max-height:none}
 /* KPI 값이 커져서 화면 폭 1500px 미만에서는 한 줄에 3개씩 */
 @media (max-width:1500px){
  .kpi{grid-column:span 4}
  /* 글씨가 커져 나란히 두면 좁아지는 칸은 한 줄 전체로 (지도·필지, 예측·요약, 폭포·수지 항목, 토지 사례·입지) */
  .span7,.span5,.span8,.span4{grid-column:span 12}
+ /* 지도 아래로 내려가면 옆 카드가 없으므로 목록 높이를 정해 둔다 */
+ .listtile>.scroll{flex:none;max-height:420px}
  #page4 .span4{grid-column:span 6}
 }
 /* 상단 바가 한 줄에 들어가도록 사업지 표시와 샘플 목록 폭을 제한 */
