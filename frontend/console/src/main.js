@@ -10,6 +10,7 @@ import {createSelectionSession,canAutoQuery,confirmSelectedQuery} from '../../sr
 import {mergeParcelAttributes,mergeSurveyParcels,failParcelLookup,createTaskQueue,retryBusy} from '../../src/content/dashboard/parcel-recovery.mjs';
 import {boundaryAttributeIdentity,validateBoundaryAllocation} from '../../src/content/dashboard/boundary-allocation.mjs';
 import {adoptAnalyzedBoundaries} from '../../src/content/dashboard/boundary-adoption.mjs';
+import {clearedSelectionInputs} from '../../src/content/dashboard/selection-reset.mjs';
 import {assessLandCases} from '../../src/content/dashboard/land-comparison.mjs';
 import {withoutRetailSurvey} from '../../src/content/dashboard/map-overlays.mjs';
 import {calculationIdentity,periodErrors} from '../../src/content/dashboard/ui-workflow.mjs';
@@ -114,6 +115,18 @@ function toggleParcel(feature){
  setInput(applyRollingPeriod({...input,parcels}));
  if(!exists)fetchParcel(pnu);
  followUp();
+}
+/* 전체 해제: 기존 화면 LiveDashboard.clearParcels 와 같음. 필지와 필지에 딸린 조회 결과(경계·주변시설·비교사례·계산 결과)만 지우고,
+   입력한 사업 가정(용적률, 보정값, 수지 항목 기준 등)은 그대로 둔다. 진행 중인 조회·계산 응답은 버린다. */
+function clearParcels(){
+ if(!input.parcels.length)return;
+ comparisonGate.cancel();parcelTokens.clear();boundaryAttempts.clear();selection.reset();
+ surveySeq++;analyzeVersion++;clearTimeout(analyzeTimer);clearTimeout(followTimer);
+ autoQueryPending=false;casesLoading=false;calcing=false;busy='';
+ input=clearedSelectionInputs(input);result=null;lastIdentity='';needsPreview=false;baseline=null;activeSample=null;
+ boundaryState={};survey=null;surveyState={};surveyTried='';selectedPnu=null;
+ drawMap({now:true});renderAll();renderSampleSelect();
+ toast('선택한 필지를 모두 해제했습니다. 입력한 사업 가정은 유지됩니다.');
 }
 async function fetchParcel(pnu,refresh=false){
  const year=input.project.asOf.slice(0,4),token=Math.random().toString(36).slice(2);
@@ -287,6 +300,9 @@ async function goCandidate(a){
 }
 
 /* ---------- 화면 그리기 ---------- */
+/* 차트를 칸의 실제 폭으로 그린다 (글씨가 CSS 크기 그대로 보이도록; 칸이 넓어져도 글씨가 따라 커지지 않음) */
+const widthOf=(id,fallback)=>{const w=$(id)?.clientWidth;return w&&w>200?Math.round(w):fallback};
+
 /* 지금 진행 중인 일. 상단 상태 표시, 진행 막대, KPI 스켈레톤이 모두 이것 하나를 본다.
    kpi: 이 일이 끝나야 KPI 값(수입·지출·수익률 등)이 확정되는지 (주변시설 조회는 KPI와 무관) */
 function workState(){
@@ -336,7 +352,7 @@ function renderKpis(r){
 }
 function renderParcels(){
  const ps=input.parcels,area=ps.reduce((t,p)=>t+(fin(p.areaM2)?p.areaM2:0),0);
- $('parcelSum').textContent=ps.length?`${ps.length}필지 · ${m2(area)}`:'';
+ $('parcelSum').textContent=ps.length?`${ps.length}필지 · ${m2(area)}`:'';$('clearParcels').disabled=!ps.length;
  $('parcelList').innerHTML=ps.length?ps.map(p=>{const [s,t]=parcelStatus(p),reg=p.attributes?.landRegister?.rows?.[0]||{},zones=(p.attributes?.landUse?.rows||[]).filter(x=>String(x.prposAreaDstrcCode||'').startsWith('UQA')&&['1','2'].includes(String(x.cnflcAt))).map(x=>x.prposAreaDstrcCodeNm);
   return `<div class="prow"><div><b>${esc(jibun(p))}</b> <span class="sub">${esc(reg.lndcgrCodeNm||'')} · ${esc([...new Set(zones)].join(', ')||'용도지역 확인 중')}</span><div class="sub">${p.areaM2?m2(p.areaM2):'면적 확인 중'} · ${p.pnu}</div></div><span class="state ${s==='ok'?'ok':s==='err'?'err':'wait'}" title="${esc(t)}">${esc(t.split(' · ')[0])}</span><button class="x" type="button" data-remove="${p.pnu}" aria-label="${esc(jibun(p))} 선택 해제">×</button></div>`}).join('')+(ps.some(p=>parcelStatus(p)[0]==='err')?`<button class="btn sm" type="button" id="retryParcels" style="margin-top:8px">실패한 필지 다시 조회</button>`:''):'<p class="empty">주소로 이동하거나 지도를 16단계 이상 확대한 뒤 필지를 눌러 선택하세요.</p>';
  drawMap();renderStatus();
@@ -363,7 +379,7 @@ function renderForecast(r){
  const shown=groups.map((g,i)=>({...g,color:COLORS[i%COLORS.length],points:hist.get(g.key)||[]}));
  $('grpChips').innerHTML=shown.map(g=>`<button class="chip" type="button" data-grp="${esc(g.key)}" aria-pressed="${!grpOff.has(g.key)}"><i style="background:${g.color}"></i>${esc(g.label)}</button>`).join('');
  const vis=shown.filter(g=>!grpOff.has(g.key));
- $('fc').innerHTML=vis.some(g=>g.points.length)||!vis.length?forecastChart(vis.length?vis:shown.slice(0,1),{w:820,h:320,asOf:input.project.asOf.slice(0,7)}):'<p class="empty">추이 자료 불러오는 중…</p>';
+ $('fc').innerHTML=vis.some(g=>g.points.length)||!vis.length?forecastChart(vis.length?vis:shown.slice(0,1),{w:widthOf('fc',820),h:380,asOf:input.project.asOf.slice(0,7)}):'<p class="empty">추이 자료 불러오는 중…</p>';
  const last=g=>g.points.filter(p=>fin(p[3])).at(-1);
  const rows=est.rows||[],filled=rows.filter(x=>!fin(x.unitPriceKrwPerM2)),filledArea=filled.reduce((t,x)=>t+(fin(x.areaM2)?x.areaM2:0),0);
  $('fcTable').innerHTML=`<div class="fc-row sub"><span>그룹 · 사업지 면적</span><span style="text-align:right">최근→예측 만원/㎡</span><span style="text-align:right">변화</span></div>`+shown.map(g=>{const l=last(g),c=l?(g.unit/l[3]-1)*100:null;return `<div class="fc-row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${g.color};margin-right:6px"></i>${esc(g.label)}<br><span class="sub">${nf(g.areaM2)}㎡ · ${esc(g.targetMonth||'')} 예측</span></span><span class="num" style="text-align:right">${l?nf(l[3]/1e4,1):'—'} → <b>${nf(g.unit/1e4,1)}</b></span><span class="num ${fin(c)?c<0?'dn':'up':'flat'}" style="text-align:right">${fin(c)?signed(c,1):'—'}</span></div>`}).join('')+(filled.length?`<div class="fc-row"><span>예측 없는 ${filled.length}필지<br><span class="sub">${nf(filledArea)}㎡ · 평균 단가로 채움</span></span><span class="num" style="text-align:right">평균 <b>${nf((est.averageUnitPriceKrwPerM2??est.averageUnitWonM2??NaN)/1e4,1)}</b></span><span class="num flat" style="text-align:right">—</span></div>`:'')+`<div class="fc-row"><span><b>토지비 합계</b><br><span class="sub">실거래 비교 ${eok(land.comparablesRepresentativeWon,1)}</span></span><span class="num" style="text-align:right"><b>${eok(est.totalWon??land.representativeWon,1)}</b></span><span class="num ${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?'':'flat'}" style="text-align:right">${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?signed(((est.totalWon??land.representativeWon)/land.comparablesRepresentativeWon-1)*100,0):'—'}</span></div>`;
@@ -394,7 +410,7 @@ function renderFinance(r){
   `<div class="field" style="margin-top:8px"><label for="trustType">신탁상품</label><select id="trustType" class="inp" ${local()?'':'disabled'}><option value="">상품 미선택 · 총수입의 1% 가정</option>${[['management','관리형'],['completion','책임준공관리형'],['distribution','분양관리 · 적용 검토']].map(([v,l])=>`<option value="${v}" ${input.budgetAllocation?.trustType===v?'selected':''}>${l}</option>`).join('')}</select></div>`+(b.fieldErrors?.length?`<div class="alert bad">${b.fieldErrors.map(e=>esc(e.message)).join('<br>')}</div>`:'');
  // 폭포
  const rows=[{label:'토지비',amt:b.landWon,kind:'land'},...['construction','indirect','sales','tax','finance'].map(id=>{const x=b.allocationRows?.find(y=>y.id===id);return {label:{construction:'공사비',indirect:'간접공사비',sales:'분양제비용',tax:'제세공과금',finance:'금융비용'}[id],amt:x?.amountWon,kind:id}}),{label:'신탁보수',amt:b.trustWon,kind:'trust'}];
- $('wf').innerHTML=waterfall(b.revenueWon,rows,b.profitWon,{w:760,h:290});
+ $('wf').innerHTML=waterfall(b.revenueWon,rows,b.profitWon,{w:widthOf('wf',760),h:330});
  // 민감도
  const dev=res.development||{},S=dev.supplyAreaM2,far=input.linkedScenario?.farPct,R=b.revenueWon,Lw=b.landWon,cs=financeRowSetting(input,'construction');
  const ok=fin(S)&&S>0&&fin(far)&&far>0&&fin(R)&&fin(Lw);
@@ -402,9 +418,9 @@ function renderFinance(r){
  if(ok){
   const base=marginFor(),units=[800,900,1000,1100,1200,1400],fars=[...new Set([150,200,250,300,far].map(Math.round))].sort((a,b)=>a-b).filter(f=>f<=(input.linkedScenario?.farMaxPct||500)).slice(0,5);
   const curUnit=cs.mode==='areaUnit'?cs.value:null;
-  $('heat').innerHTML=heatmap(units,fars,units.map(u=>fars.map(f=>marginFor({far2:f,unit:u}))),curUnit!=null?[curUnit,Math.round(far)]:null,{w:420,h:250,rowLabel:u=>nf(u)+'만',colLabel:f=>f+'%',corner:'평당\\용적률'})+(cs.mode==='areaUnit'?'':'<p class="note">공사비가 평당 기준이 아니어서 표는 평당 단가를 가정해 계산했습니다.</p>');
+  $('heat').innerHTML=heatmap(units,fars,units.map(u=>fars.map(f=>marginFor({far2:f,unit:u}))),curUnit!=null?[curUnit,Math.round(far)]:null,{w:widthOf('heat',440),h:280,rowLabel:u=>nf(u)+'만',colLabel:f=>f+'%',corner:'평당\\용적률'})+(cs.mode==='areaUnit'?'':'<p class="note">공사비가 평당 기준이 아니어서 표는 평당 단가를 가정해 계산했습니다.</p>');
   const items=[['분양가',x=>marginFor({revF:1+x})],['토지비',x=>marginFor({landF:1+x})],...(cs.mode==='areaUnit'?[['평당 공사비',x=>marginFor({unit:cs.value*(1+x)})]]:[]),['용적률',x=>marginFor({far2:far*(1+x)})]].map(([label,f])=>({label,down:f(-.1)-base,up:f(.1)-base})).sort((a,b)=>Math.max(Math.abs(b.down),Math.abs(b.up))-Math.max(Math.abs(a.down),Math.abs(a.up)));
-  $('tor').innerHTML=tornado(items,{w:420,h:210});
+  $('tor').innerHTML=tornado(items,{w:widthOf('tor',440),h:250});
  }else{$('heat').innerHTML='<p class="empty">공급면적·총수입·토지비가 계산되면 표시됩니다.</p>';$('tor').innerHTML='<p class="empty">공급면적·총수입·토지비가 계산되면 표시됩니다.</p>'}
 }
 function renderComparables(r){
@@ -414,7 +430,7 @@ function renderComparables(r){
  const priced=new Map((rev.eligibleComplexes||rev.points||[]).map(p=>[String(p.id),p]));
  const list=[...byComplex.values()].map(c=>{const p=priced.get(c.id),off=c.cases.every(x=>(x.baseEligible??x.eligible)===false);return {...c,unit:p?.unitPriceWonM2,km:p?.distanceKm??c.cases[0]?.distanceKm,area:p?.medianSupplyAreaM2,on:!!p&&!off,off}}).sort((a,b)=>(b.on-a.on)||((b.unit||0)-(a.unit||0)));
  const applied=fin(rev.representativeWon)&&fin(dev.supplyAreaM2)&&dev.supplyAreaM2>0?rev.representativeWon/dev.supplyAreaM2*PY:null;
- $('strip').innerHTML=strip(list.filter(c=>fin(c.unit)).map(c=>({label:c.name,value:c.unit*PY,on:c.on,km:c.km})),applied,{w:420,h:150});
+ $('strip').innerHTML=strip(list.filter(c=>fin(c.unit)).map(c=>({label:c.name,value:c.unit*PY,on:c.on,km:c.km})),applied,{w:widthOf('strip',440),h:160});
  $('cxTable').innerHTML=list.length?`<div class="scroll" style="max-height:220px"><table><thead><tr><th>단지</th><th class="r">거리</th><th class="r">평당</th><th></th></tr></thead><tbody>${list.map(c=>`<tr class="${c.on?'':'off'}"><td>${esc(c.name)}<div class="sub">${esc(c.date||'')} · ${c.cases.length}개 주택형</div></td><td class="r">${fin(c.km)?nf(c.km,1)+'km':'—'}</td><td class="r">${fin(c.unit)?man(c.unit*PY,0):'—'}</td><td><button class="btn sm" type="button" data-cx="${esc(c.id)}" data-on="${c.off?'1':'0'}" ${local()?'':'disabled'}>${c.off?'포함':'제외'}</button></td></tr>`).join('')}</tbody></table></div>`:`<p class="empty">${casesLoading?'비교사례 조회 중…':'필지를 선택하면 반경 안 분양사례를 조회합니다.'}</p>`;
  // 토지 사례
  const land=assessLandCases(input).filter(c=>showExcluded||c.eligible!==false||c.referenceEligible===true||c.fallbackGroupIds?.length).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -442,8 +458,8 @@ async function renderIndicators(){
  const d=indicators.get(sgg);if(!d)return;
  const from=shiftMonth(input.project.asOf.slice(0,7),-60);
  $('m1h').textContent=`${d.regionName||'시군구'} 월간 지가변동률 %`;
- $('m1').innerHTML=lineSeries((d.landChange||[]).filter(p=>p[0]>=from),{w:620,h:150,unit:'%',color:'var(--s2)',label:'월간 지가변동률'});
- $('m2').innerHTML=lineSeries((d.cofix||[]).filter(p=>p[0]>=from),{w:620,h:150,unit:'%',color:'var(--s3)',label:'COFIX'});
+ $('m1').innerHTML=lineSeries((d.landChange||[]).filter(p=>p[0]>=from),{w:widthOf('m1',620),h:170,unit:'%',color:'var(--s2)',label:'월간 지가변동률'});
+ $('m2').innerHTML=lineSeries((d.cofix||[]).filter(p=>p[0]>=from),{w:widthOf('m2',620),h:170,unit:'%',color:'var(--s3)',label:'COFIX'});
 }
 function renderSources(r){
  const src=(input.sources||[]).filter(s=>s&&(s.title||s.label));
@@ -485,7 +501,7 @@ function bindControls(){
  $('sampleSelect').addEventListener('change',e=>openSample(e.target.value));
  $('saveSample').addEventListener('click',saveSample);$('exportJson').addEventListener('click',exportJson);$('pdfBtn').addEventListener('click',exportPdf);
  $('importJson').addEventListener('change',e=>{const f=e.target.files?.[0];e.target.value='';if(f)importJson(f)});
- $('addrBtn').addEventListener('click',searchAddress);$('addr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchAddress()}if(e.key==='Escape')$('cands').hidden=true});
+ $('addrBtn').addEventListener('click',searchAddress);$('clearParcels').addEventListener('click',clearParcels);$('addr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchAddress()}if(e.key==='Escape')$('cands').hidden=true});
  $('showExcluded').addEventListener('change',e=>{showExcluded=e.target.checked;renderComparables(current())});
  // 지도 안 '면적·단가 보기' 버튼(기존 화면 부품)은 이 신호를 보낸다 → 콘솔에서는 토지 예측·사례 쪽으로 이동
  addEventListener('pf-v3-navigate',()=>$('page2').scrollIntoView({behavior:'smooth',block:'start'}));
@@ -525,7 +541,17 @@ function bindTips(){
 
 /* ---------- 시작 ---------- */
 async function boot(){
- bindControls();bindTips();renderAll();
+ bindControls();bindTips();
+ // 왼쪽 가정 패널 접기·펼치기. 상태는 이 브라우저에만 기억한다 (다음에 열어도 같은 상태).
+ const setAside=(off,remember=true)=>{document.body.classList.toggle('aside-off',off);const b=$('asideToggle'),t=off?'왼쪽 가정 패널 펼치기':'왼쪽 가정 패널 접기';
+  b.setAttribute('aria-expanded',String(!off));b.setAttribute('aria-label',t);b.title=t;if(remember)try{localStorage.setItem('console.asideOff',off?'1':'0')}catch{}renderAll()};
+ let savedOff=false;try{savedOff=localStorage.getItem('console.asideOff')==='1'}catch{}
+ if(savedOff)setAside(true,false);
+ $('asideToggle').addEventListener('click',()=>setAside(!document.body.classList.contains('aside-off')));
+ // 창 크기가 바뀌면 차트를 새 폭으로 다시 그린다
+ let resizeTimer=0;addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderAll,200)});
+ // 상단 바 높이(버튼이 줄바꿈되면 달라짐)에 맞춰 왼쪽 패널 위치를 정한다
+ new ResizeObserver(([e])=>document.documentElement.style.setProperty('--top-h',Math.ceil(e.target.getBoundingClientRect().height)+'px')).observe(document.querySelector('.top'));renderAll();
  try{status=await request('/api/status')}catch{status={mode:'offline'};toast('서버에 연결할 수 없습니다. 보기 전용으로 엽니다.',true)}
  renderAll();
  const defaultId=await loadSamples();
