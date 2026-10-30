@@ -2,7 +2,7 @@ import {cloneNode} from './pdf-vendor/clone-node.mjs';
 import {nodeToDataURL,createImage} from './pdf-vendor/util.mjs';
 
 const encoder = new TextEncoder();
-const A4_WIDTH = 841.889764, A4_HEIGHT = 595.275591;
+const A4_LONG = 841.889764, A4_SHORT = 595.275591;
 const BACKGROUND = '#101214';
 const MAX_PIXELS = 40_000_000;
 const PNG_SIGNATURE = [137,80,78,71,13,10,26,10];
@@ -313,8 +313,10 @@ const pdfNumber=value=>Number(value.toFixed(5)).toString();
 function bytesOf(value){return typeof value==='string'?encoder.encode(value):value;}
 function concat(chunks){const size=chunks.reduce((n,item)=>n+item.length,0),result=new Uint8Array(size);let at=0;for(const item of chunks){result.set(item,at);at+=item.length;}return result;}
 
-/** One lossless RGB/Flate PDF, exactly five uncropped A4 landscape pages. */
-export function buildScreenPdf(pages) {
+/** One lossless RGB/Flate PDF, exactly five uncropped A4 pages: landscape by default (existing screen),
+ *  portrait with {portrait:true} (분석 콘솔, 2026-10-30 요청: 세로 화면을 세로 A4 에). */
+export function buildScreenPdf(pages, {portrait=false}={}) {
+  const A4_WIDTH=portrait?A4_SHORT:A4_LONG, A4_HEIGHT=portrait?A4_LONG:A4_SHORT;
   if(!Array.isArray(pages)||pages.length!==5)throw error('사업 기본조사 4장과 수지분석 1장, 총 5장이 필요합니다.');
   for(const page of pages){
     if(!Number.isSafeInteger(page.width)||!Number.isSafeInteger(page.height)||page.width<=0||page.height<=0)throw error('화면 이미지 크기가 올바르지 않습니다.');
@@ -328,7 +330,7 @@ export function buildScreenPdf(pages) {
   objects.push(`<< /Type /Pages /Count 5 /Kids [${pages.map((_,i)=>`${3+i*3} 0 R`).join(' ')}] >>`);
   pages.forEach((page,index)=>{
     const pageId=3+index*3,imageId=pageId+1,contentId=pageId+2;
-    const scale=Math.min(A4_WIDTH/page.width,A4_HEIGHT/page.height),w=page.width*scale,h=page.height*scale,x=(A4_WIDTH-w)/2,y=(A4_HEIGHT-h)/2;
+    const scale=Math.min(A4_WIDTH/page.width,A4_HEIGHT/page.height),w=page.width*scale,h=page.height*scale,x=(A4_WIDTH-w)/2,y=portrait?A4_HEIGHT-h:(A4_HEIGHT-h)/2;  // 세로(콘솔): 짧은 화면은 위쪽에 붙인다
     objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pdfNumber(A4_WIDTH)} ${pdfNumber(A4_HEIGHT)}] /Resources << /XObject << /Screen ${imageId} 0 R >> >> /Contents ${contentId} 0 R >>`);
     objects.push([bytesOf(`<< /Type /XObject /Subtype /Image /Width ${page.width} /Height ${page.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Interpolate false /Length ${page.rgbDeflateBytes.length} >>\nstream\n`),page.rgbDeflateBytes,bytesOf('\nendstream')]);
     const commands=`q\n${pdfNumber(16/255)} ${pdfNumber(18/255)} ${pdfNumber(20/255)} rg\n0 0 ${pdfNumber(A4_WIDTH)} ${pdfNumber(A4_HEIGHT)} re f\n${[w,0,0,h,x,y].map(pdfNumber).join(' ')} cm\n/Screen Do\nQ\n`;

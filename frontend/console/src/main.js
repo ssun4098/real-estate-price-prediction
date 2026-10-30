@@ -273,7 +273,7 @@ async function exportPdf(){
  try{
   await new Promise(r=>setTimeout(r,250));
   for(const id of ['page1','page2','page3','page4','page5']){const el=$(id),rect=el.getBoundingClientRect();pages.push(await captureScreen(el,{width:Math.ceil(rect.width),height:Math.ceil(rect.height),pixelRatio:2,backgroundColor:'#0D1117',signal:controller.signal,resourceCache:cache}))}
-  downloadBlob(new Blob([buildScreenPdf(pages)],{type:'application/pdf'}),`${fileName(input.project.name)}_분석콘솔_${todayKorea()}.pdf`);
+  downloadBlob(new Blob([buildScreenPdf(pages,{portrait:true})],{type:'application/pdf'}),`${fileName(input.project.name)}_분석콘솔_${todayKorea()}.pdf`);
   toast('PDF 5쪽을 저장했습니다');
  }catch(e){fail(e)}
  finally{document.body.classList.remove('capturing');printing=false;drawMap();btn.disabled=false;btn.textContent='PDF 저장'}
