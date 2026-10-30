@@ -8,7 +8,7 @@ import {sanitizeSnapshot} from '../../src/content/dashboard/v2-policy.mjs';
 import {selectedParcelCenter,comparisonIdentity,invalidateChangedComparisons,replaceComparisonSources,comparisonRequest,createComparisonRequestGate} from '../../src/content/dashboard/comparison-scope.mjs';
 import {createSelectionSession,canAutoQuery,confirmSelectedQuery} from '../../src/content/dashboard/selection-query.mjs';
 import {mergeParcelAttributes,mergeSurveyParcels,failParcelLookup,createTaskQueue,retryBusy} from '../../src/content/dashboard/parcel-recovery.mjs';
-import {boundaryAttributeIdentity,validateBoundaryAllocation} from '../../src/content/dashboard/boundary-allocation.mjs';
+import {boundaryAttributeIdentity,validateBoundaryAllocation,validBoundaryGeometry} from '../../src/content/dashboard/boundary-allocation.mjs';
 import {adoptAnalyzedBoundaries} from '../../src/content/dashboard/boundary-adoption.mjs';
 import {clearedSelectionInputs} from '../../src/content/dashboard/selection-reset.mjs';
 import {assessLandCases} from '../../src/content/dashboard/land-comparison.mjs';
@@ -16,12 +16,15 @@ import {withoutRetailSurvey} from '../../src/content/dashboard/map-overlays.mjs'
 import {calculationIdentity,periodErrors} from '../../src/content/dashboard/ui-workflow.mjs';
 import {cleanPortfolioValue} from '../../src/content/dashboard/portfolio-samples.mjs';
 import {captureScreen,buildScreenPdf} from '../../src/content/dashboard/screen-pdf.mjs';
-import {fin,nf,eok,man,m2,pct,signed,esc,PY,groupLabel,rolling,forecastChart,waterfall,strip,heatmap,tornado,lineSeries,radar} from './charts.js';
+import {fin,nf,eok,man,m2,pct,signed,esc,PY,groupLabel,rolling,forecastChart,waterfall,strip,heatmap,tornado,lineSeries,radar,facIcon,parcelPlan} from './charts.js';
+import {uniqueSurveyParcels} from '../../src/content/dashboard/survey-summary.mjs';
+import {classifyZone} from '../../src/content/dashboard/land-classification.mjs';
 import {renderMap} from './map.jsx';
 
 const $=id=>document.getElementById(id);
 const COLORS=['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)'];
-const FAC={school:['학교','var(--s1)'],mountain:['산','var(--s2)'],river:['하천','var(--fin)'],sewage:['하수처리시설','var(--land)'],industrial:['산업단지','var(--s4)']};
+// 주변시설 종류: 이름과 색 (색은 기존 화면 지도 FACILITY_CATEGORIES 와 같게)
+const FAC={school:['학교','#76b8ee'],mountain:['산','#c2d579'],river:['하천','#dc8ad4'],sewage:['하수처리시설','#55d9d0'],industrial:['산업단지','#b89aff']};
 
 /* ---------- 입력 기본값 (기존 화면 LiveDashboard 의 fresh/normal 과 같은 규칙) ---------- */
 const COSTS=[['land_extra','토지 부대비·명도비'],['construction','본 도급공사비'],['separate_construction','별도 공사비'],['professional','설계·감리·사업관리비'],['tax_guarantee','세금·부담금·보증료'],['marketing_operating','분양·광고·운영비'],['finance_trust','금융비·신탁보수'],['contingency','예비비']];
@@ -299,6 +302,38 @@ async function goCandidate(a){
  }catch(e){fail(e)}
 }
 
+/* ---------- 사업지 도면 (지목·용도지역) ---------- */
+// 지목 색 (흔한 지목만 정하고 나머지는 차례로)
+const JIMOK_COLOR={전:'#D9B26F',답:'#7FC8C0',대:'#F08C7A',임야:'#5FA866',공장용지:'#A78BDA',도로:'#8A94A6',잡종지:'#C7A0C9',하천:'#6EA8E0',구거:'#5B8FC9',유지:'#4F9FD1',묘지:'#B7B7B7',주차장:'#9AA7B8',창고용지:'#C98F6B',학교용지:'#E6C35C',과수원:'#B9D66B',목장용지:'#A8C77F',철도용지:'#7D7F8C',공원:'#4FB98A',종교용지:'#D9A3B8'};
+// 용도지역 색 (도시계획 도면의 관례: 주거=노랑~주황, 상업=분홍·빨강, 공업=보라, 녹지·관리=초록 계열)
+const ZONE_COLOR=[[/제1종전용주거/,'#FFF2A8'],[/제2종전용주거/,'#FFE98A'],[/제1종일반주거/,'#FFE070'],[/제2종일반주거/,'#F5C94E'],[/제3종일반주거/,'#E8B03A'],[/준주거/,'#E39540'],[/상업/,'#E8707E'],[/공업/,'#A98BE0'],[/보전녹지/,'#3E9B5A'],[/생산녹지/,'#7CC36A'],[/자연녹지/,'#A7D98C'],[/보전관리/,'#6FAE8A'],[/생산관리/,'#C9C47A'],[/계획관리/,'#D9B88A'],[/관리지역/,'#CDBB8F'],[/농림/,'#B5CF6B'],[/자연환경보전/,'#4F8F6F']];
+const SPARE=['#7AA7FF','#E58FD3','#C9D36B','#4FD1A5','#F2A65A','#B392F0'];
+const colorFor=(map,name,used)=>{if(map[name])return map[name];if(!used.has(name))used.set(name,SPARE[used.size%SPARE.length]);return used.get(name)};
+const zoneColor=name=>(ZONE_COLOR.find(([re])=>re.test(name))||[])[1]||'#9AA7B8';
+function planLegend(rows,total){
+ return rows.sort((a,b)=>b.area-a.area).map(x=>`<div data-tip="${esc(x.name)} · ${x.pnus.size}필지 · ${m2(x.area)}"><i style="${x.hatch?'background:repeating-linear-gradient(45deg,var(--panel-2) 0 3px,var(--muted) 3px 5px)':`background:${x.color}`}"></i><b>${esc(x.name)}</b><span>${x.pnus.size}필지 · ${nf(x.area)}㎡${total>0?` · ${nf(x.area/total*100,0)}%`:''}</span></div>`).join('');
+}
+function renderPlans(){
+ const ps=uniqueSurveyParcels(input.parcels).filter(p=>p.geometry),number=new Map(uniqueSurveyParcels(input.parcels).map((p,i)=>[String(p.pnu),i+1]));
+ const outline=ps.map(p=>({geometry:p.geometry,number:number.get(String(p.pnu))}));
+ const name=p=>`${number.get(String(p.pnu))}번 ${jibun(p)}`;
+ // 지목: 토지대장 지목으로 필지 전체를 칠한다
+ const jUsed=new Map(),jRows=new Map(),jFills=[];
+ for(const p of ps){const j=p.attributes?.landRegister?.rows?.[0]?.lndcgrCodeNm||'미확인',c=j==='미확인'?'#5A6472':colorFor(JIMOK_COLOR,j,jUsed),a=fin(p.areaM2)?p.areaM2:0;
+  jFills.push({geometry:p.geometry,color:c,tip:`${name(p)} · 지목 ${j} · ${m2(p.areaM2)}`});const row=jRows.get(j)||{name:j,color:c,area:0,pnus:new Set()};row.area+=a;row.pnus.add(p.pnu);jRows.set(j,row)}
+ // 용도지역: 검증된 경계 배분(필지 안 용도지역별 도형)을 쓰고, 없으면 토지이용계획의 용도지역이 하나일 때만 필지 전체를 그 색으로. 둘 이상인데 경계가 없으면 '경계 미확정'
+ const zRows=new Map(),zFills=[],add=(n,c,a,pnu,hatch=false)=>{const row=zRows.get(n)||{name:n,color:c,area:0,pnus:new Set(),hatch};row.area+=a;row.pnus.add(pnu);zRows.set(n,row)};
+ for(const p of ps){const check=validateBoundaryAllocation(p),parts=check.status==='ready'?(check.parts||[]).filter(x=>validBoundaryGeometry(x.geometry)):[];
+  if(parts.length){for(const x of parts){const n=x.zoneName||'용도지역 미확인',c=zoneColor(n),a=fin(x.allocatedAreaM2)?x.allocatedAreaM2:0;zFills.push({geometry:x.geometry,color:c,tip:`${name(p)} · ${n} · ${m2(x.allocatedAreaM2)}${fin(x.ratio)?` (${nf(x.ratio*100,0)}%)`:''}`});add(n,c,a,p.pnu)}continue}
+  const zones=[...new Map((p.attributes?.landUse?.rows||[]).filter(x=>['1','2'].includes(String(x.cnflcAt))).map(x=>[x,classifyZone(x.prposAreaDstrcCodeNm,x.prposAreaDstrcCode)]).filter(([,z])=>z.status==='ready').map(([x,z])=>[z.code,x.prposAreaDstrcCodeNm])).values()];
+  const a=fin(p.areaM2)?p.areaM2:0;
+  if(zones.length===1){const n=zones[0],c=zoneColor(n);zFills.push({geometry:p.geometry,color:c,tip:`${name(p)} · ${n} · ${m2(p.areaM2)} (토지이용계획 기준)`});add(n,c,a,p.pnu)}
+  else{const n=p.attributes?'경계 미확정':'조회 중';zFills.push({geometry:p.geometry,hatch:true,tip:`${name(p)} · ${zones.length>1?zones.join(', ')+' · ':''}${n}`});add(n,null,a,p.pnu,true)}}
+ const total=ps.reduce((t,p)=>t+(fin(p.areaM2)?p.areaM2:0),0),opt={w:widthOf('jimokPlan',640),h:360};
+ $('jimokPlan').innerHTML=parcelPlan({fills:jFills,parcels:outline},opt);$('zonePlan').innerHTML=parcelPlan({fills:zFills,parcels:outline},{...opt,w:widthOf('zonePlan',640)});
+ $('jimokLegend').innerHTML=planLegend([...jRows.values()],total);$('zoneLegend').innerHTML=planLegend([...zRows.values()],total);
+ $('jimokSum').textContent=ps.length?`${jRows.size}종 · ${ps.length}필지`:'';$('zoneSum').textContent=ps.length?`${[...zRows.values()].filter(x=>!x.hatch).length}개 용도지역`:'';
+}
 /* ---------- 화면 그리기 ---------- */
 /* 차트를 칸의 실제 폭으로 그린다 (글씨가 CSS 크기 그대로 보이도록; 칸이 넓어져도 글씨가 따라 커지지 않음) */
 const widthOf=(id,fallback)=>{const w=$(id)?.clientWidth;return w&&w>200?Math.round(w):fallback};
@@ -379,10 +414,12 @@ function renderForecast(r){
  const shown=groups.map((g,i)=>({...g,color:COLORS[i%COLORS.length],points:hist.get(g.key)||[]}));
  $('grpChips').innerHTML=shown.map(g=>`<button class="chip" type="button" data-grp="${esc(g.key)}" aria-pressed="${!grpOff.has(g.key)}"><i style="background:${g.color}"></i>${esc(g.label)}</button>`).join('');
  const vis=shown.filter(g=>!grpOff.has(g.key));
- $('fc').innerHTML=vis.some(g=>g.points.length)||!vis.length?forecastChart(vis.length?vis:shown.slice(0,1),{w:widthOf('fc',820),h:380,asOf:input.project.asOf.slice(0,7)}):'<p class="empty">추이 자료 불러오는 중…</p>';
+ // 2026-10-30 요청: 단가는 평당으로 보여 준다 (모델·자료는 ㎡당 → 평당 = ㎡당 × 3.3058)
+ const perPy=g=>({...g,unit:fin(g.unit)?g.unit*PY:g.unit,points:g.points.map(p=>[p[0],fin(p[1])?p[1]*PY:p[1],p[2],fin(p[3])?p[3]*PY:p[3]])});
+ $('fc').innerHTML=vis.some(g=>g.points.length)||!vis.length?forecastChart((vis.length?vis:shown.slice(0,1)).map(perPy),{w:widthOf('fc',820),h:380,asOf:input.project.asOf.slice(0,7)}):'<p class="empty">추이 자료 불러오는 중…</p>';
  const last=g=>g.points.filter(p=>fin(p[3])).at(-1);
  const rows=est.rows||[],filled=rows.filter(x=>!fin(x.unitPriceKrwPerM2)),filledArea=filled.reduce((t,x)=>t+(fin(x.areaM2)?x.areaM2:0),0);
- $('fcTable').innerHTML=`<div class="fc-row sub"><span>그룹 · 사업지 면적</span><span style="text-align:right">최근→예측 만원/㎡</span><span style="text-align:right">변화</span></div>`+shown.map(g=>{const l=last(g),c=l?(g.unit/l[3]-1)*100:null;return `<div class="fc-row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${g.color};margin-right:6px"></i>${esc(g.label)}<br><span class="sub">${nf(g.areaM2)}㎡ · ${esc(g.targetMonth||'')} 예측</span></span><span class="num" style="text-align:right">${l?nf(l[3]/1e4,1):'—'} → <b>${nf(g.unit/1e4,1)}</b></span><span class="num ${fin(c)?c<0?'dn':'up':'flat'}" style="text-align:right">${fin(c)?signed(c,1):'—'}</span></div>`}).join('')+(filled.length?`<div class="fc-row"><span>예측 없는 ${filled.length}필지<br><span class="sub">${nf(filledArea)}㎡ · 평균 단가로 채움</span></span><span class="num" style="text-align:right">평균 <b>${nf((est.averageUnitPriceKrwPerM2??est.averageUnitWonM2??NaN)/1e4,1)}</b></span><span class="num flat" style="text-align:right">—</span></div>`:'')+`<div class="fc-row"><span><b>토지비 합계</b><br><span class="sub">실거래 비교 ${eok(land.comparablesRepresentativeWon,1)}</span></span><span class="num" style="text-align:right"><b>${eok(est.totalWon??land.representativeWon,1)}</b></span><span class="num ${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?'':'flat'}" style="text-align:right">${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?signed(((est.totalWon??land.representativeWon)/land.comparablesRepresentativeWon-1)*100,0):'—'}</span></div>`;
+ $('fcTable').innerHTML=`<div class="fc-row sub"><span>그룹 · 사업지 면적</span><span style="text-align:right">최근→예측 만원/평</span><span style="text-align:right">변화</span></div>`+shown.map(g=>{const l=last(g),c=l?(g.unit/l[3]-1)*100:null;return `<div class="fc-row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${g.color};margin-right:6px"></i>${esc(g.label)}<br><span class="sub">${nf(g.areaM2)}㎡ · ${esc(g.targetMonth||'')} 예측</span></span><span class="num" style="text-align:right">${l?nf(l[3]*PY/1e4,1):'—'} → <b>${nf(g.unit*PY/1e4,1)}</b></span><span class="num ${fin(c)?c<0?'dn':'up':'flat'}" style="text-align:right">${fin(c)?signed(c,1):'—'}</span></div>`}).join('')+(filled.length?`<div class="fc-row"><span>예측 없는 ${filled.length}필지<br><span class="sub">${nf(filledArea)}㎡ · 평균 단가로 채움</span></span><span class="num" style="text-align:right">평균 <b>${nf((est.averageUnitPriceKrwPerM2??est.averageUnitWonM2??NaN)*PY/1e4,1)}</b></span><span class="num flat" style="text-align:right">—</span></div>`:'')+`<div class="fc-row"><span><b>토지비 합계</b><br><span class="sub">실거래 비교 ${eok(land.comparablesRepresentativeWon,1)}</span></span><span class="num" style="text-align:right"><b>${eok(est.totalWon??land.representativeWon,1)}</b></span><span class="num ${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?'':'flat'}" style="text-align:right">${fin(land.comparablesRepresentativeWon)&&land.comparablesRepresentativeWon>0?signed(((est.totalWon??land.representativeWon)/land.comparablesRepresentativeWon-1)*100,0):'—'}</span></div>`;
  const thin=shown.filter(g=>g.points.length&&g.points.filter(p=>p[0]>=shiftMonth(input.project.asOf.slice(0,7),-12)).reduce((t,p)=>t+p[2],0)<6);
  $('fcAlert').hidden=!thin.length;$('fcAlert').textContent=thin.length?`${thin.map(g=>`'${g.label}'`).join(', ')}은 최근 1년 거래가 6건 미만이라 예측과 추이가 크게 흔들릴 수 있습니다.`:'';
 }
@@ -407,7 +444,7 @@ function renderFinance(r){
  if(fe.contains(document.activeElement)){fe.querySelectorAll('[data-amt]').forEach(el=>{const id=el.dataset.amt;el.textContent=eok(id==='revenue'?b.revenueWon:id==='land'?b.landWon:id==='trust'?b.trustWon:b.allocationRows?.find(x=>x.id===id)?.amountWon,2)});const tot=fe.querySelector('[data-total]');if(tot)tot.textContent=eok(b.totalExpenseWon,2);const pr=fe.querySelector('[data-profit]');if(pr)pr.textContent=eok(b.profitWon,2);}
  else fe.innerHTML=`<div class="frow h"><span>항목</span><span>기준</span><span style="text-align:right">값</span><span style="text-align:right">억원</span></div>`+financeRow('revenue','예상 총수입',b,r)+financeRow('land','토지 매입대금',b,r)+[['construction','허용 공사비'],['indirect','간접 공사비'],['sales','분양제비용'],['trust','신탁보수'],['tax','제세공과금'],['finance','금융비용']].map(([id,l])=>financeRow(id,l,b,r)).join('')+
   `<div class="frow total"><span>예상 총지출</span><span></span><span></span><span class="amt" data-total>${eok(b.totalExpenseWon,2)}</span></div><div class="frow total"><span>사업이익 · 목표 수익률</span><span></span><span class="amt" style="color:var(--${!fin(b.targetMarginPct)?'ink':b.targetMarginPct<0?'bad':'good'})">${pct(b.targetMarginPct,2)}</span><span class="amt" data-profit>${eok(b.profitWon,2)}</span></div>`+
-  `<div class="field" style="margin-top:8px"><label for="trustType">신탁상품</label><select id="trustType" class="inp" ${local()?'':'disabled'}><option value="">상품 미선택 · 총수입의 1% 가정</option>${[['management','관리형'],['completion','책임준공관리형'],['distribution','분양관리 · 적용 검토']].map(([v,l])=>`<option value="${v}" ${input.budgetAllocation?.trustType===v?'selected':''}>${l}</option>`).join('')}</select></div>`+(b.fieldErrors?.length?`<div class="alert bad">${b.fieldErrors.map(e=>esc(e.message)).join('<br>')}</div>`:'');
+  (b.fieldErrors?.length?`<div class="alert bad">${b.fieldErrors.map(e=>esc(e.message)).join('<br>')}</div>`:'');
  // 폭포
  const rows=[{label:'토지비',amt:b.landWon,kind:'land'},...['construction','indirect','sales','tax','finance'].map(id=>{const x=b.allocationRows?.find(y=>y.id===id);return {label:{construction:'공사비',indirect:'간접공사비',sales:'분양제비용',tax:'제세공과금',finance:'금융비용'}[id],amt:x?.amountWon,kind:id}}),{label:'신탁보수',amt:b.trustWon,kind:'trust'}];
  $('wf').innerHTML=waterfall(b.revenueWon,rows,b.profitWon,{w:widthOf('wf',760),h:330});
@@ -440,13 +477,13 @@ function renderLocation(){
  const center=selectedParcelCenter(input.parcels),items=survey?.facilities?.items||[];
  const bands=[[0,1,'1km'],[1,3,'1~3km'],[3,5,'3~5km']];
  const groups=Object.entries(FAC).filter(([g])=>items.some(f=>f.group===g)||['school','mountain','river','sewage'].includes(g));
- const counts=groups.map(([g,[l,c]])=>{const fs=items.filter(f=>f.group===g),near=fs.slice().sort((a,b)=>(a.distanceKm??9)-(b.distanceKm??9))[0];return `<tr><td><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:6px"></i>${l}</td>${bands.map(([a,b])=>`<td class="r">${fs.filter(f=>f.distanceKm>a&&f.distanceKm<=b).length}</td>`).join('')}<td>${near?`${esc(near.name)} <span class="sub">${nf(near.distanceKm,2)}km</span>`:'—'}</td></tr>`}).join('');
+ const counts=groups.map(([g,[l,c]])=>{const fs=items.filter(f=>f.group===g),near=fs.slice().sort((a,b)=>(a.distanceKm??9)-(b.distanceKm??9))[0];return `<tr><td>${facIcon(g,c)}${l}</td>${bands.map(([a,b])=>`<td class="r">${fs.filter(f=>f.distanceKm>a&&f.distanceKm<=b).length}</td>`).join('')}<td>${near?`${esc(near.name)} <span class="sub">${nf(near.distanceKm,2)}km</span>`:'—'}</td></tr>`}).join('');
  const reg={};for(const p of input.parcels)for(const x of p.attributes?.landUse?.rows||[]){if(!['1','2'].includes(String(x.cnflcAt)))continue;const code=String(x.prposAreaDstrcCode||''),n=x.prposAreaDstrcCodeNm;if(!n||['UQA01X','UQA001'].includes(code))continue;(reg[n]=reg[n]||new Set()).add(p.pnu)}
  const regRows=Object.entries(reg).sort((a,b)=>b[1].size-a[1].size).slice(0,10);
  const road={};for(const p of input.parcels){const r=p.attributes?.characteristics?.rows?.[0]?.roadSideCodeNm;if(r)road[r]=(road[r]||0)+1}
  const warn=[reg['개발제한구역']?`개발제한구역 ${reg['개발제한구역'].size}필지`:'',road['맹지']?`맹지 ${road['맹지']}필지`:''].filter(Boolean);
  $('loc').innerHTML=`${surveyState.loading?'<p class="note">주변시설 조회 중…</p>':surveyState.error?`<div class="alert bad">${esc(surveyState.error)} <button class="btn sm" type="button" id="retrySurvey">다시 조회</button></div>`:''}
-  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">${radar(items,center,{size:240,radiusKm:Math.min(5,input.comparisonFilters.radiusKm||5),groups:FAC})}
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">${radar(items,center,{size:300,radiusKm:Math.min(5,input.comparisonFilters.radiusKm||5),groups:FAC})}
   <div>${warn.length?`<div class="alert" style="margin:0 0 8px">${warn.join(' · ')} · 개발 가능 여부 확인 필요</div>`:''}<table><thead><tr><th>규제 (포함·저촉)</th><th class="r">필지</th></tr></thead><tbody>${regRows.map(([n,s])=>`<tr><td>${esc(n)}</td><td class="r">${s.size}</td></tr>`).join('')||'<tr><td colspan="2" class="sub">필지 속성 조회 후 표시</td></tr>'}</tbody></table>
   <p class="sub" style="margin:8px 0 0">도로 접면: ${Object.entries(road).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')||'—'}</p></div></div>
   <table style="margin-top:8px"><thead><tr><th>주변시설</th>${bands.map(b=>`<th class="r">${b[2]}</th>`).join('')}<th>가장 가까운 곳</th></tr></thead><tbody>${counts}</tbody></table>`;
@@ -479,7 +516,7 @@ function renderAll(){
 function renderNow(){
  refreshPreview();
  const r=current();shown=r;
- renderStatus();renderControls();renderKpis(r);renderParcels();renderForecast(r);renderFinance(r);renderComparables(r);renderLocation();renderIndicators();renderSources(r);
+ renderStatus();renderControls();renderKpis(r);renderParcels();renderPlans();renderForecast(r);renderFinance(r);renderComparables(r);renderLocation();renderIndicators();renderSources(r);
 }
 
 /* ---------- 이벤트 ---------- */
@@ -518,7 +555,6 @@ function bindControls(){
  const fin2=$('finance');
  fin2.addEventListener('change',e=>{
   const el=e.target;
-  if(el.id==='trustType'){setInput({...input,budgetAllocation:{...input.budgetAllocation,trustType:el.value}});return}
   if(el.dataset.fmode){const id=el.dataset.fmode,mode=el.value,r=current(),b=currentBudget(input,r.results||{}),S=r.results?.development?.supplyAreaM2;
    const applied=id==='revenue'?b.revenueWon:id==='land'?b.landWon:id==='trust'?b.trustWon:b.allocationRows?.find(x=>x.id===id)?.amountWon;
    const base=mode==='comparablePct'?r.results?.[id]?.comparableWon:mode==='budgetPct'?b.totalExpenseWon:mode==='revenuePct'?b.revenueWon:mode==='areaUnit'&&fin(S)?S/3.3*1e4:null;

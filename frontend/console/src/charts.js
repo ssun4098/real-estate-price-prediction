@@ -29,19 +29,19 @@ export function forecastChart(groups,{w=820,h=320,from='2021-01',asOf}={}){
  const X=i=>pad.l+(i-x0)/(x1-x0)*iw,Y=v=>pad.t+ih-Math.min(v,ymax)/ymax*ih;
  let g='';
  for(let k=0;k<=5;k++){const v=ymax/5*k,y=Y(v);g+=`<line x1="${pad.l}" x2="${pad.l+iw}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${pad.l-8}" y="${y+4}" text-anchor="end" class="ax">${nf(v/1e4,0)}</text>`}
- g+=`<text x="4" y="16" class="ax">만원/㎡</text>`;
+ g+=`<text x="4" y="16" class="ax">만원/평</text>`;
  for(let i=x0;i<=x1;i++)if(i%12===0)g+=`<line x1="${X(i)}" x2="${X(i)}" y1="${pad.t}" y2="${pad.t+ih}" stroke="var(--grid)" stroke-dasharray="2 4"/><text x="${X(i)}" y="${pad.t+ih+21}" text-anchor="middle" class="ax">${Math.floor(i/12)}</text>`;
  if(asOf){const a=ym(asOf);g+=`<rect x="${X(a)}" y="${pad.t}" width="${Math.max(0,pad.l+iw-X(a))}" height="${ih}" fill="var(--fore)" fill-opacity=".08"/><line x1="${X(a)}" x2="${X(a)}" y1="${pad.t}" y2="${pad.t+ih}" stroke="var(--fore)" stroke-dasharray="3 3"/><text x="${X(a)+5}" y="${pad.t+12}" class="ax" style="fill:var(--fore)">예측 구간</text>`}
  const labels=[];
  groups.forEach((s,si)=>{
   const c=COLORS[si%COLORS.length],pts=s.points.filter(p=>ym(p[0])>=x0);
-  pts.forEach(p=>{if(fin(p[1]))g+=`<circle cx="${X(ym(p[0]))}" cy="${Y(p[1])}" r="2.2" fill="${c}" fill-opacity=".3" data-tip="${esc(s.label)} · ${p[0]} · ${man(p[1])}원/㎡ · 거래 ${p[2]}건"/>`});
+  pts.forEach(p=>{if(fin(p[1]))g+=`<circle cx="${X(ym(p[0]))}" cy="${Y(p[1])}" r="2.2" fill="${c}" fill-opacity=".3" data-tip="${esc(s.label)} · ${p[0]} · ${man(p[1])}원/평 · 거래 ${p[2]}건"/>`});
   let d='',last=null;pts.forEach(p=>{if(fin(p[3])){d+=(d?'L':'M')+X(ym(p[0])).toFixed(1)+','+Y(p[3]).toFixed(1);last=p}});
   if(d)g+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round"/>`;
   if(!fin(s.unit)||!s.targetMonth)return;
   const fx=X(ym(s.targetMonth)),fy=Y(s.unit);
   if(last){const lx=X(ym(last[0])),ly=Y(last[3]);g+=`<path d="M${lx},${ly}L${fx},${fy}" stroke="${c}" stroke-width="2" stroke-dasharray="5 4" fill="none"/><circle cx="${lx}" cy="${ly}" r="3.5" fill="${c}"/>`}
-  g+=`<circle cx="${fx}" cy="${fy}" r="6" fill="var(--surface)" stroke="${c}" stroke-width="2.5" data-tip="${esc(s.label)} 예측 · ${s.targetMonth} · ${man(s.unit)}원/㎡${s.fromMonth?` (${s.fromMonth} 기준 6개월 뒤)`:''}"/>`;
+  g+=`<circle cx="${fx}" cy="${fy}" r="6" fill="var(--surface)" stroke="${c}" stroke-width="2.5" data-tip="${esc(s.label)} 예측 · ${s.targetMonth} · ${man(s.unit)}원/평${s.fromMonth?` (${s.fromMonth} 기준 6개월 뒤)`:''}"/>`;
   labels.push({y:fy,c,s,chg:last?(s.unit/last[3]-1)*100:null});
  });
  labels.sort((p,q)=>p.y-q.y);let prev=-99;
@@ -50,7 +50,31 @@ export function forecastChart(groups,{w=820,h=320,from='2021-01',asOf}={}){
  const cnt={};groups.forEach(s=>s.points.forEach(p=>{if(ym(p[0])>=x0)cnt[p[0]]=(cnt[p[0]]||0)+p[2]}));
  const mx=Math.max(...Object.values(cnt),1),bw=Math.max(1.5,iw/(x1-x0)-1.5);
  Object.entries(cnt).forEach(([m,n])=>{if(n)g+=`<rect x="${X(ym(m))-bw/2}" y="${base-n/mx*cH}" width="${bw}" height="${n/mx*cH}" fill="var(--muted)" fill-opacity=".45" data-tip="${m} · 거래 ${n}건"/>`});
- return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="토지 그룹별 ㎡당 거래 단가 추이와 모델 예측">${g}</svg>`;
+ return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="토지 그룹별 평당 거래 단가 추이와 모델 예측">${g}</svg>`;
+}
+/* 사업지 도면 (지목·용도지역): 선택 필지만 위에서 내려다본 평면도. 위성사진 없이 색으로 구분 (2026-10-30 요청)
+   fills=[{geometry,color,tip,hatch}] 색칠할 도형, parcels=[{geometry,number}] 필지 경계와 번호(지도와 같은 번호) */
+export function parcelPlan({fills=[],parcels=[]},{w=640,h=360}={}){
+ const rings=g=>!g?[]:g.type==='Polygon'?g.coordinates:g.type==='MultiPolygon'?g.coordinates.flat(1):[];
+ const all=parcels.flatMap(p=>rings(p.geometry)).flat(1).filter(c=>fin(c?.[0])&&fin(c?.[1]));
+ if(!all.length)return '<p class="empty">필지를 선택하면 도면이 표시됩니다.</p>';
+ const lat0=all.reduce((t,c)=>t+c[1],0)/all.length,kx=111320*Math.cos(lat0*Math.PI/180),ky=110540;  // 경위도 → m (작은 범위라 평면 근사)
+ const xs=all.map(c=>c[0]*kx),ys=all.map(c=>c[1]*ky),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+ const pad=24,sc=Math.min((w-2*pad)/Math.max(1,maxX-minX),(h-2*pad-26)/Math.max(1,maxY-minY));
+ const ox=(w-(maxX-minX)*sc)/2,oy=(h-26-(maxY-minY)*sc)/2;
+ const P=c=>[ox+(c[0]*kx-minX)*sc,oy+(maxY-c[1]*ky)*sc];
+ const path=g=>rings(g).map(r=>r.map((c,i)=>{const [x,y]=P(c);return `${i?'L':'M'}${x.toFixed(1)},${y.toFixed(1)}`}).join('')+'Z').join('');
+ let g=`<defs><pattern id="planHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="var(--panel-2)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--muted)" stroke-width="2"/></pattern></defs>`;
+ for(const f of fills)g+=`<path d="${path(f.geometry)}" fill="${f.hatch?'url(#planHatch)':f.color}" fill-opacity="${f.hatch?1:.85}" fill-rule="evenodd" stroke="${f.hatch?'var(--muted)':f.color}" stroke-width=".6" data-tip="${esc(f.tip)}"/>`;
+ for(const p of parcels)g+=`<path d="${path(p.geometry)}" fill="none" stroke="#0D1117" stroke-width="1.6" fill-rule="evenodd" pointer-events="none"/>`;
+ // 필지 번호: 가장 큰 고리의 무게중심, 화면에서 너무 작은 필지는 생략
+ for(const p of parcels){let best=null,bestA=0;for(const r of rings(p.geometry)){const pts=r.map(P);let a=0,cx=0,cy=0;for(let i=0;i<pts.length-1;i++){const [x1,y1]=pts[i],[x2,y2]=pts[i+1],q=x1*y2-x2*y1;a+=q;cx+=(x1+x2)*q;cy+=(y1+y2)*q}if(Math.abs(a)>bestA){bestA=Math.abs(a);best=[cx/(3*a),cy/(3*a)]}}
+  if(best&&bestA/2>260)g+=`<text x="${best[0].toFixed(1)}" y="${(best[1]+4).toFixed(1)}" text-anchor="middle" class="plan-no" pointer-events="none">${p.number}</text>`}
+ // 방위표·축척
+ g+=`<g transform="translate(${w-22},22)" pointer-events="none"><path d="M0 -12L5 4L0 1L-5 4Z" fill="var(--ink)"/><text y="17" text-anchor="middle" class="ax">N</text></g>`;
+ const m=niceMax(w/4/sc),len=m*sc,bx=pad,by=h-12;
+ g+=`<g pointer-events="none"><line x1="${bx}" x2="${bx+len}" y1="${by}" y2="${by}" stroke="var(--ink-2)" stroke-width="2"/><line x1="${bx}" x2="${bx}" y1="${by-5}" y2="${by+1}" stroke="var(--ink-2)" stroke-width="2"/><line x1="${bx+len}" x2="${bx+len}" y1="${by-5}" y2="${by+1}" stroke="var(--ink-2)" stroke-width="2"/><text x="${bx+len+8}" y="${by+4}" class="ax">${m>=1000?nf(m/1000,1)+'km':nf(m)+'m'}</text></g>`;
+ return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="선택 필지 도면">${g}</svg>`;
 }
 /* 수지 폭포: 총수입 → 지출 항목 → 사업이익. items=[{label,amt,kind}] */
 /* 폭포 차트 항목 이름: 4글자 이상이면 두 줄 (간접/공사비, 분양/제비용 …) — 큰 글씨에서 이름끼리 겹치지 않게 */
@@ -115,13 +139,24 @@ export function lineSeries(points,{w=620,h=150,unit='',color='var(--s2)',label='
  const l=points.at(-1);g+=`<circle cx="${X(points.length-1)}" cy="${Y(l[1])}" r="3.5" fill="${color}"/><text x="${X(points.length-1)+6}" y="${Y(l[1])+4}" class="lb" style="font-size:15px">${nf(l[1],2)}${unit}</text>`;
  return `<svg viewBox="0 0 ${w} ${h}" class="chart" role="img" aria-label="${esc(label)}">${g}</svg>`;
 }
+/* 주변시설 아이콘: 기존 화면 지도의 FacilityIcon.jsx 와 같은 모양 (24×24 선 그림). 색만이 아니라 모양으로도 구분 (2026-10-30 요청) */
+const FAC_PATHS={
+ school:['M3 10L12 3L21 10M5 9V21H19V9M2 21H22M10 21V15H14V21','M7 12H8M16 12H17M7 16H8M16 16H17M12 3V1H17V4H13'],
+ mountain:['M2 21L10 5L15 14L18 9L23 21ZM6.5 12L10 14L12.5 10M15 14L18 16L20 13'],
+ river:['M9 2C2 5 17 7 10 11S4 17 10 22M15 2C8 5 23 7 16 11S10 17 16 22M2 7H5M20 17H23'],
+ industrial:['M3 21V11L9 7V11L15 7V11H21V21ZM17 11V3H20V11M7 15H8M12 15H13M17 15H18M7 18H8M12 18H13M17 18H18'],
+ sewage:['M2 13V21H22V13M2 13C4 10 7 16 10 13S16 10 18 13S21 14 22 13M2 17C4 14 7 20 10 17S16 14 18 17S21 18 22 17M16 2C16 2 12 6 12 8A4 4 0 0 0 20 8C20 6 16 2 16 2ZM3 11V5H8'],
+};
+const facGlyph=(kind,color)=>`<g fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${(FAC_PATHS[kind]||['M4 4H20V20H4Z']).map(d=>`<path d="${d}"/>`).join('')}</g>`;
+/* 표·범례용 아이콘 하나 (인라인 SVG) */
+export const facIcon=(kind,color,size=20)=>`<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true" style="vertical-align:-4px;margin-right:6px;flex:none">${facGlyph(kind,color)}</svg>`;
 /* 주변시설 거리 분포 (가운데 = 선택 필지 중심) */
 export function radar(items,center,{size=320,radiusKm=5,groups={}}={}){
  if(!center)return '<p class="empty">필지를 선택하면 주변시설이 표시됩니다.</p>';
  const S=size/2,R=S-16,pos=f=>{const dx=(f.lon-center.lon)*111.32*Math.cos(center.lat*Math.PI/180),dy=(f.lat-center.lat)*110.57;return [S+dx/radiusKm*R,S-dy/radiusKm*R]};
  let g=[1,3,5].filter(k=>k<=radiusKm).map(k=>`<circle cx="${S}" cy="${S}" r="${k/radiusKm*R}" fill="none" stroke="var(--grid)" ${k===radiusKm?'':'stroke-dasharray="3 4"'}/><text x="${S+4}" y="${S-k/radiusKm*R+12}" class="ax">${k}km</text>`).join('');
  g+=`<line x1="${S}" y1="${S-R}" x2="${S}" y2="${S+R}" stroke="var(--grid)"/><line x1="${S-R}" y1="${S}" x2="${S+R}" y2="${S}" stroke="var(--grid)"/>`;
- items.forEach(f=>{if(!fin(f.lon)||!fin(f.lat))return;const [x,y]=pos(f);if(Math.hypot(x-S,y-S)>R+2)return;g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${(groups[f.group]||[])[1]||'var(--soft)'}" stroke="var(--surface)" stroke-width="1.2" data-tip="${esc(f.name)} · ${fin(f.distanceKm)?nf(f.distanceKm,2)+'km':''}"/>`});
+ items.forEach(f=>{if(!fin(f.lon)||!fin(f.lat))return;const [x,y]=pos(f);if(Math.hypot(x-S,y-S)>R+2)return;const c=(groups[f.group]||[])[1]||'var(--soft)',s=.68;g+=`<g transform="translate(${(x-12*s).toFixed(1)},${(y-12*s).toFixed(1)}) scale(${s})" data-tip="${esc((groups[f.group]||[])[0]||'')} · ${esc(f.name)} · ${fin(f.distanceKm)?nf(f.distanceKm,2)+'km':''}"><circle cx="12" cy="12" r="14" fill="var(--panel)" stroke="${c}" stroke-opacity=".55"/>${facGlyph(f.group,c)}</g>`});
  g+=`<circle cx="${S}" cy="${S}" r="6" fill="var(--ink)"/>`;
  return `<svg viewBox="0 0 ${size} ${size}" class="chart" style="max-width:${size}px;margin:0 auto" role="img" aria-label="주변 시설 거리 분포">${g}</svg>`;
 }

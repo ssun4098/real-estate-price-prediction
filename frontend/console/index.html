@@ -57,13 +57,15 @@
     <div id="map" class="pf-live-page pf-v3-page cmap"><section class="v3-map-panel" aria-label="개발 대상 필지"><div class="v2-runtime-map" id="mapRoot"></div></section></div>
    </div>
    <div class="tile span5 listtile"><h3>선택 필지<span class="r num" id="parcelSum"></span></h3><div id="parcelList" class="scroll"></div></div>
+   <div class="tile span6"><h3>지목 도면<span class="r sub" id="jimokSum"></span></h3><div id="jimokPlan"></div><div id="jimokLegend" class="plan-legend"></div></div>
+   <div class="tile span6"><h3>용도지역 도면<span class="r sub" id="zoneSum"></span></h3><div id="zonePlan"></div><div id="zoneLegend" class="plan-legend"></div></div>
   </section>
   <section class="page" id="page2" aria-label="토지비 예측">
    <div class="tile span8"><h3>토지 그룹 단가 추이 · 6개월 뒤 예측<span class="r chips" id="grpChips"></span></h3><div id="fc"></div><div class="note">점: 월 거래 중앙값 · 선: 12개월 이동 중앙값 · 점선/빈 원: 모델 예측 · 회색 막대: 월 거래 건수(낮을수록 선이 불안정)</div></div>
    <div class="tile span4"><h3>토지비 예측 요약<span class="r tag" id="modelTag"></span></h3><div id="fcTable"></div><div class="alert" id="fcAlert" hidden></div></div>
   </section>
   <section class="page" id="page3" aria-label="수지분석">
-   <div class="tile span7"><h3>수지 폭포 · 억원</h3><div id="wf"></div></div>
+   <div class="tile span7"><h3>수지 그래프</h3><div id="wf"></div></div>
    <div class="tile span5"><h3>수지 항목<span class="r num" id="totalTag"></span></h3><div id="costbar"></div><div id="finance"></div></div>
   </section>
   <section class="page" id="page4" aria-label="민감도·분양 비교">
