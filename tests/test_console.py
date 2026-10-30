@@ -48,7 +48,7 @@ class ConsoleRouteTests(unittest.TestCase):
         js = self.client.get('/console/build/console.js')
         self.assertEqual(js.status_code, 200)
         self.assertIn('javascript', js.headers['content-type'])
-        self.assertEqual(self.client.get('/console/vendor/leaflet/leaflet.css').status_code, 200)
+        self.assertEqual(self.client.get('/console/build/console.css').status_code, 200)
 
     def test_existing_dashboard_is_unchanged(self):
         self.assertEqual(self.client.get('/').status_code, 200)

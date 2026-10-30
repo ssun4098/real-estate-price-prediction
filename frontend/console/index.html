@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>사업성 분석 콘솔</title>
-<link rel="stylesheet" href="/console/vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="/console/build/console.css">
 </head>
 <body>
@@ -51,10 +50,9 @@
   <section class="page" id="page1" aria-label="개요·필지·토지 예측">
    <div class="tile kpi" id="k1"></div><div class="tile kpi" id="k2"></div><div class="tile kpi" id="k3"></div><div class="tile kpi" id="k4"></div><div class="tile kpi" id="k5"></div><div class="tile kpi" id="k6"></div>
    <div class="tile span7 maptile">
-    <h3>필지 선택 · VWorld 위성<span class="r"><span id="mapHint" class="hint"></span></span></h3>
+    <h3>필지 선택 · VWorld 위성<span class="r hint">기존 화면과 같은 지도 · 누르면 선택, 다시 누르면 해제</span></h3>
     <div class="search"><input id="addr" class="inp" placeholder="주소 검색 (예: 장상동 82)" autocomplete="off" aria-label="주소 검색"><button class="btn" id="addrBtn" type="button">검색</button><div id="cands" class="cands" hidden></div></div>
-    <div id="map" role="application" aria-label="필지 선택 지도. 확대하면 필지 경계가 나오고, 누르면 선택하거나 해제합니다."></div>
-    <div class="legend"><span><i style="background:var(--s1)"></i>선택 · 조회 완료</span><span><i style="background:var(--warn)"></i>조회 중·경계 보류</span><span><i style="background:var(--bad)"></i>조회 실패</span><span><i class="ring"></i>선택 가능한 필지</span><label class="chk"><input type="checkbox" id="showFac" checked>주변시설</label></div>
+    <div id="map" class="pf-live-page pf-v3-page cmap"><section class="v3-map-panel" aria-label="개발 대상 필지"><div class="v2-runtime-map" id="mapRoot"></div></section></div>
    </div>
    <div class="tile span5"><h3>선택 필지<span class="r num" id="parcelSum"></span></h3><div id="parcelList" class="scroll"></div></div>
   </section>
@@ -82,7 +80,6 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="tip" role="tooltip"></div>
-<script src="/console/vendor/leaflet/leaflet.js"></script>
 <script type="module" src="/console/build/console.js"></script>
 </body>
 </html>

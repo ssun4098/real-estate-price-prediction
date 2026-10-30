@@ -16,8 +16,8 @@ import {calculationIdentity,periodErrors} from '../../src/content/dashboard/ui-w
 import {cleanPortfolioValue} from '../../src/content/dashboard/portfolio-samples.mjs';
 import {captureScreen,buildScreenPdf} from '../../src/content/dashboard/screen-pdf.mjs';
 import {fin,nf,eok,man,m2,pct,signed,esc,PY,groupLabel,rolling,forecastChart,waterfall,strip,heatmap,tornado,lineSeries,radar} from './charts.js';
+import {renderMap} from './map.jsx';
 
-const L=window.L;
 const $=id=>document.getElementById(id);
 const COLORS=['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)'];
 const FAC={school:['학교','var(--s1)'],mountain:['산','var(--s2)'],river:['하천','var(--fin)'],sewage:['하수처리시설','var(--land)'],industrial:['산업단지','var(--s4)']};
@@ -26,8 +26,15 @@ const FAC={school:['학교','var(--s1)'],mountain:['산','var(--s2)'],river:['�
 const COSTS=[['land_extra','토지 부대비·명도비'],['construction','본 도급공사비'],['separate_construction','별도 공사비'],['professional','설계·감리·사업관리비'],['tax_guarantee','세금·부담금·보증료'],['marketing_operating','분양·광고·운영비'],['finance_trust','금융비·신탁보수'],['contingency','예비비']];
 const fresh=()=>applyRollingPeriod({project:{name:'',scenario:'기준안',asOf:todayKorea()},parcels:[],unitPlan:[],linkedScenario:{...LINKED_DEFAULTS},budgetAllocation:{...BUDGET_DEFAULTS},comparables:{revenueCases:[],landCases:[]},uiSettings:{moneyUnit:'억원',areaUnit:'㎡',satelliteTransparency:40},uiProgress:{},planHistory:[],comparisonFilters:{periodMode:'rolling60',scope:'radius',radiusKm:5,sgg:'',dong:'',start:'',end:'',minSupplyM2:null,maxSupplyM2:null,jimok:'',landUse:'',search:''},assumptions:{revenueMethod:'median',landMethod:'median',revenueAdjustmentPct:0,landAdjustmentPct:0,targetMarginPct:null,discountPct:0,finalSalesPct:100,farPct:null,farBaseAreaM2:null},costs:COSTS.map(([id,label])=>({id,category:id,label,amountWon:null,sourceStatus:'미확보'})),cashflow:null,sources:[]});
 const normal=x=>restoreTrustDefaults({...fresh(),...x,linkedScenario:{...LINKED_DEFAULTS,enabled:false,...x.linkedScenario},budgetAllocation:{...BUDGET_DEFAULTS,...x.budgetAllocation},costs:(x.costs||fresh().costs).map(c=>({...c,category:c.category||c.id})),uiSettings:{...fresh().uiSettings,...x.uiSettings},uiProgress:{...x.uiProgress},project:{...fresh().project,...x.project},assumptions:{...fresh().assumptions,targetMarginPct:null,...x.assumptions},comparisonFilters:{...fresh().comparisonFilters,periodMode:'common',start:'',end:'',landStart:'',landEnd:'',revenueStart:'',revenueEnd:'',landStartDate:undefined,landEndDate:undefined,revenueStartDate:undefined,revenueEndDate:undefined,endExclusive:undefined,scope:'dong',...x.comparisonFilters},comparables:{revenueCases:[],landCases:[],...x.comparables}});
-/* 사례 포함·제외 판정 (기존 화면의 effective 와 같음) */
+/* 사례 포함·제외 판정 (기존 화면의 effective 와 같음).
+   토지 사례 판정이 무거우므로 같은 입력에는 한 번만 계산한다 (입력은 바뀔 때마다 새 객체).
+   경계 검사(validateBoundaryAllocation)는 빌드가 boundary-cache.mjs 로 바꿔 필지마다 한 번만 계산한다. */
+let effectiveCache={input:null,value:null};
 function effective(input){
+ if(effectiveCache.input===input)return effectiveCache.value;
+ const value=effectiveOf(input);effectiveCache={input,value};return value;
+}
+function effectiveOf(input){
  const f=input.comparisonFilters;
  const apply=r=>{const reasons=[];const baseEligible=r.baseEligible??r.eligible,baseReason=r.baseExclusionReason??r.exclusionReason;if(baseEligible===false)reasons.push(baseReason||'수집 검증 제외');if(f.minSupplyM2!=null&&r.supplyAreaM2<f.minSupplyM2)reasons.push('최소 공급면적 미달');if(f.maxSupplyM2!=null&&r.supplyAreaM2>f.maxSupplyM2)reasons.push('최대 공급면적 초과');if(f.search&&!`${r.name||''} ${r.address||''} ${r.contractor||''}`.includes(f.search))reasons.push('단지·시공사 불일치');return {...r,baseEligible,baseExclusionReason:baseReason,apiEligible:r.apiEligible??baseEligible,eligible:!reasons.length,exclusionReason:reasons.join(' · ')}};
  return {...input,comparables:{...input.comparables,revenueCases:input.comparables.revenueCases.map(apply),landCases:assessLandCases(input)}};
@@ -59,11 +66,16 @@ const fail=e=>{console.error(e);toast(e.message||String(e),true)};
 function setInput(next,{analyze=true}={}){
  const prev=input;next=invalidateChangedComparisons(prev,next);
  if(comparisonIdentity(prev)!==comparisonIdentity(next)){comparisonGate.cancel();casesLoading=false;if(next.comparables?.collectionStatus==='재조회 필요')autoQueryPending=true}
- input=next;
- const id=calculationIdentity(effective(input));
- needsPreview=id!==lastIdentity;
- if(analyze&&needsPreview)scheduleAnalyze();
- renderAll();
+ input=next;if(analyze)analyzeWanted=true;
+ // 지도(선택 필지 색칠)는 바로 다시 그리고, 무거운 미리 계산과 나머지 화면은 다음 순간에 한 번에 처리한다.
+ drawMap({now:true});renderAll();
+}
+/* 입력이 서버 계산 때와 달라졌는지 확인하고, 달라졌으면 서버 계산을 예약한다. */
+let analyzeWanted=false;
+function refreshPreview(){
+ needsPreview=calculationIdentity(effective(input))!==lastIdentity;
+ if(analyzeWanted&&needsPreview)scheduleAnalyze();
+ analyzeWanted=false;
 }
 function scheduleAnalyze(force=false){
  clearTimeout(analyzeTimer);
@@ -83,15 +95,22 @@ function scheduleAnalyze(force=false){
   finally{if(v===analyzeVersion){calcing=false;renderAll()}}
  },force?0:450);
 }
-function current(){return needsPreview||!result?projectRevision(effective(input),result,{}):result}
+/* 화면에 보여 줄 결과. 미리 계산(projectRevision)은 입력·서버 결과가 그대로면 다시 하지 않는다. */
+let currentCache=null;
+function current(){
+ if(!(needsPreview||!result))return result;
+ if(currentCache?.input===input&&currentCache.result===result)return currentCache.value;
+ const value=projectRevision(effective(input),result,{});currentCache={input,result,value};return value;
+}
 function summary(r){const res=r?.results||{},b=currentBudget(input,res);return {R:b.revenueWon,T:b.totalExpenseWon,P:b.profitWon,M:b.targetMarginPct,units:res.development?.units,L:b.landWon}}
 
 /* ---------- 필지 선택 · 조회 ---------- */
+/* 기존 화면 LiveDashboard.toggle 과 같은 동작 */
 function toggleParcel(feature){
  const pnu=String(feature.properties?.pnu||feature.id||'');if(!/^\d{19}$/.test(pnu))return;
  const exists=input.parcels.some(p=>p.pnu===pnu);
- const parcels=exists?input.parcels.filter(p=>p.pnu!==pnu):[...input.parcels,{pnu,geometry:feature.geometry,group:'기본',areaM2:null,sourceStatus:'필지 속성 조회 중',attributeRequestedYear:todayKorea().slice(0,4),address:feature.properties?.address||''}];
- parcelTokens.delete(pnu);selection.arm(parcels);autoQueryPending=parcels.length>0;activeSample=null;survey=null;
+ const parcels=exists?input.parcels.filter(p=>p.pnu!==pnu):[...input.parcels,{pnu,geometry:feature.geometry,group:'기본',areaM2:null,sourceStatus:'필지 속성 조회 중',attributeRequestedYear:todayKorea().slice(0,4)}];
+ parcelTokens.delete(pnu);selection.arm(parcels);autoQueryPending=parcels.length>0;activeSample=null;
  setInput(applyRollingPeriod({...input,parcels}));
  if(!exists)fetchParcel(pnu);
  followUp();
@@ -153,7 +172,7 @@ async function runSurvey(){
   survey=withoutRetailSurvey(data);surveyState={};
   const merged=mergeSurveyParcels(input.parcels,data.parcels,year);if(merged!==input.parcels){autoQueryPending=true;setInput({...input,parcels:merged})}
  })}catch(e){if(seq===surveySeq)surveyState={error:e.message}}
- renderLocation();updateMap();followUp();
+ renderLocation();drawMap();followUp();
 }
 async function fetchCases(refresh,explicit=false){
  if(!local()||parcelPending()||casesLoading)return;
@@ -181,7 +200,7 @@ function openSnapshot(x,{display=null,label=''}={}){
  comparisonGate.cancel();parcelTokens.clear();boundaryAttempts.clear();boundaryState={};selection.reset();surveySeq++;analyzeVersion++;autoQueryPending=false;
  input=normal(x.inputs);result=x;lastIdentity=calculationIdentity(effective(input));needsPreview=false;
  survey=display?.survey||null;surveyState={};address=display?.address||'';baseline=summary(result);
- const view=display?.mapView;if(view&&fin(view.lat))map.setView([view.lat,view.lon],view.z||17);else fitSelected();
+ const view=display?.mapView,center=selectedParcelCenter(input.parcels);mapFocus=view&&fin(view.lat)&&fin(view.lon)?{...view}:center?{...center,z:17}:mapFocus;
  if(label)toast(label);renderAll();
 }
 async function loadSamples(){
@@ -199,8 +218,7 @@ async function saveSample(){
  if(!result||needsPreview||calcing||parcelPending())return toast('계산이 끝난 뒤 저장하세요.',true);
  if(!input.parcels.length)return toast('필지를 먼저 선택하세요.',true);
  const label=(String(input.project?.name||'').trim()||address.trim()||'분석').replace(/\s*·\s*\d+\s*필지\s*$/,'');
- const c=map.getCenter();
- const payload=cleanPortfolioValue({name:`${label} · ${input.parcels.length}필지`,snapshot:{...result,inputs:{...result.inputs,uiSettings:input.uiSettings,uiProgress:input.uiProgress}},displayState:{survey,address,viewState:{main:'survey',tab:'parcels'},mapView:{lon:c.lng,lat:c.lat,z:map.getZoom()}}});
+ const payload=cleanPortfolioValue({name:`${label} · ${input.parcels.length}필지`,snapshot:{...result,inputs:{...result.inputs,uiSettings:input.uiSettings,uiProgress:input.uiProgress}},displayState:{survey,address,viewState:{main:'survey',tab:'parcels'},mapView:mapView?{...mapView}:null}});
  try{const item=await request('/api/portfolio-samples',{method:'POST',body:JSON.stringify(payload)});activeSample=item;await loadSamples();toast(`'${item.name}' 저장 완료`)}catch(e){fail(e)}
 }
 function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
@@ -217,30 +235,32 @@ async function importJson(file){
 }
 async function exportPdf(){
  if(calcing||parcelPending()||casesLoading)return toast('조회·계산이 끝난 뒤 저장하세요.',true);
- const btn=$('pdfBtn');btn.disabled=true;btn.textContent='PDF 만드는 중…';document.body.classList.add('capturing');
+ const btn=$('pdfBtn');btn.disabled=true;btn.textContent='PDF 만드는 중…';document.body.classList.add('capturing');printing=true;drawMap();
  const controller=new AbortController(),cache=new Map(),pages=[];
  try{
-  await new Promise(r=>setTimeout(r,120));
+  await new Promise(r=>setTimeout(r,250));
   for(const id of ['page1','page2','page3','page4','page5']){const el=$(id),rect=el.getBoundingClientRect();pages.push(await captureScreen(el,{width:Math.ceil(rect.width),height:Math.ceil(rect.height),pixelRatio:2,backgroundColor:'#0D1117',signal:controller.signal,resourceCache:cache}))}
   downloadBlob(new Blob([buildScreenPdf(pages)],{type:'application/pdf'}),`${fileName(input.project.name)}_분석콘솔_${todayKorea()}.pdf`);
   toast('PDF 5쪽을 저장했습니다');
  }catch(e){fail(e)}
- finally{document.body.classList.remove('capturing');btn.disabled=false;btn.textContent='PDF 저장'}
+ finally{document.body.classList.remove('capturing');printing=false;drawMap();btn.disabled=false;btn.textContent='PDF 저장'}
 }
 
-/* ---------- 지도 ---------- */
-let map,tileLayer,selectedLayer,candidateLayer,facilityLayer,parcelFetchTimer=0;
-const candidateCache=new Map();let candidateFeatures=[];
-function initMap(){
- map=L.map('map',{zoomControl:true,minZoom:6,maxZoom:20}).setView([37.5665,126.978],15);
- tileLayer=L.tileLayer('/api/tiles/{z}/{y}/{x}.jpeg',{minZoom:6,maxZoom:20,maxNativeZoom:19,attribution:'© VWorld 위성영상'}).addTo(map);
- candidateLayer=L.geoJSON(null,{style:()=>({color:'#ffffff',weight:1,opacity:.75,fillColor:'#ffffff',fillOpacity:.04}),onEachFeature:(f,layer)=>{layer.on('click',()=>toggleParcel(f));layer.bindTooltip(()=>esc(f.properties?.address||f.properties?.pnu||''),{sticky:true})}}).addTo(map);
- selectedLayer=L.geoJSON(null,{style:f=>parcelStyle(f.properties.state),onEachFeature:(f,layer)=>{layer.on('click',()=>toggleParcel(f));layer.bindTooltip(()=>f.properties.tip,{sticky:true})}}).addTo(map);
- facilityLayer=L.layerGroup().addTo(map);
- map.on('moveend',()=>{clearTimeout(parcelFetchTimer);parcelFetchTimer=setTimeout(loadCandidates,350)});
- tileLayer.on('tileerror',()=>{$('mapHint').textContent='위성영상을 불러오지 못했습니다 (VWorld 키·도메인 확인)'});
+/* ---------- 지도 (기존 화면 부품 SatelliteMap 그대로) ---------- */
+let mapFocus=null,mapView=null,selectedPnu=null,printing=false;
+let shown=null;  // 마지막으로 화면에 그린 결과 (지도를 먼저 그릴 때 씀)
+function drawMap({now=false}={}){
+ const r=shown||current();
+ renderMap($('mapRoot'),{
+  mode:status.mode,parcels:input.parcels,land:r.results?.land||{},boundaryState,onBoundaryRetry:retryBoundary,
+  facilities:survey?.facilities?.items||[],referenceFeatures:survey?.facilities?.referenceFeatureCollection?.features||[],
+  selectedPnu,onInspectParcel:pnu=>{selectedPnu=pnu;drawMap()},onToggle:toggleParcel,onNotice:msg=>toast(msg),
+  focus:mapFocus,onViewChange:view=>{mapView=view},printing,
+  transparency:input.uiSettings?.satelliteTransparency??40,
+  onTransparencyChange:v=>setInput({...input,uiSettings:{...input.uiSettings,satelliteTransparency:v}},{analyze:false}),
+ },{now});
 }
-const parcelStyle=s=>s==='ok'?{color:'#7AA7FF',weight:2,fillColor:'#7AA7FF',fillOpacity:.32}:s==='err'?{color:'#FF7A6B',weight:2,fillColor:'#FF7A6B',fillOpacity:.3}:{color:'#F2C14E',weight:2,dashArray:'5 4',fillColor:'#F2C14E',fillOpacity:.22};
+const retryBoundary=pnu=>{if(pnu)fetchBoundary(pnu,true);else input.parcels.forEach(p=>fetchBoundary(p.pnu,true))};
 function parcelStatus(p){
  if(['queued','loading'].includes(p.attributeState))return ['wait','속성 조회 중'];
  if(p.attributeState==='failed'||p.attributeError)return ['err',p.attributeError||'조회 실패'];
@@ -250,29 +270,6 @@ function parcelStatus(p){
  return ['ok','조회 완료'];
 }
 const jibun=p=>{const r=p.attributes?.landRegister?.rows?.[0];return r?.mnnmSlno||String(p.address||'').split(' ').pop()||p.pnu.slice(-8)};
-function updateMap(){
- if(!map)return;
- selectedLayer.clearLayers();
- const feats=input.parcels.filter(p=>p.geometry).map(p=>{const [s,t]=parcelStatus(p);return {type:'Feature',id:p.pnu,geometry:p.geometry,properties:{pnu:p.pnu,state:s,tip:`${esc(jibun(p))} · ${p.areaM2?m2(p.areaM2):'면적 미확인'} · ${esc(t)}`}}});
- selectedLayer.addData(feats);
- const sel=new Set(input.parcels.map(p=>p.pnu));
- candidateLayer.clearLayers();candidateLayer.addData(candidateFeatures.filter(f=>!sel.has(String(f.properties?.pnu||f.id))));
- facilityLayer.clearLayers();
- if($('showFac').checked)for(const f of survey?.facilities?.items||[])if(fin(f.lon)&&fin(f.lat))L.circleMarker([f.lat,f.lon],{radius:5,color:'#0D1117',weight:1,fillColor:getComputedStyle(document.documentElement).getPropertyValue(`--${f.group==='school'?'s1':f.group==='mountain'?'s2':f.group==='river'?'fin':'land'}`).trim()||'#fff',fillOpacity:.95}).bindTooltip(`${esc(f.name)} · ${fin(f.distanceKm)?nf(f.distanceKm,2)+'km':''}`).addTo(facilityLayer);
-}
-async function loadCandidates(){
- const z=map.getZoom();
- if(z<17){$('mapHint').textContent='필지를 보려면 지도를 더 확대하세요 (17단계 이상)';candidateFeatures=[];updateMap();return}
- const b=map.getBounds(),bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()];
- if(bbox[2]-bbox[0]>.04||bbox[3]-bbox[1]>.04){$('mapHint').textContent='범위가 넓어 필지를 불러오지 않았습니다';return}
- if(!local()){$('mapHint').textContent='서버 연결 후 필지를 선택할 수 있습니다';return}
- const key=bbox.map(v=>v.toFixed(4)).join(',');
- try{$('mapHint').textContent='필지 경계 불러오는 중…';
-  let d=candidateCache.get(key);if(!d){d=await retryBusy(()=>request('/api/parcels?bbox='+bbox.join(',')));candidateCache.set(key,d);if(candidateCache.size>40)candidateCache.delete(candidateCache.keys().next().value)}
-  candidateFeatures=d.features||[];$('mapHint').textContent=`필지 ${nf(candidateFeatures.length)}개 · 눌러서 선택`;updateMap();
- }catch(e){$('mapHint').textContent=e.message}
-}
-function fitSelected(){const g=input.parcels.filter(p=>p.geometry);if(g.length&&map){const layer=L.geoJSON({type:'FeatureCollection',features:g.map(p=>({type:'Feature',geometry:p.geometry,properties:{}}))});map.fitBounds(layer.getBounds(),{padding:[30,30],maxZoom:18})}}
 async function searchAddress(){
  const q=$('addr').value.trim();if(!q)return;address=q;
  try{const d=await request('/api/address?keyword='+encodeURIComponent(q));const c=d.candidates||[];
@@ -285,7 +282,7 @@ async function goCandidate(a){
  try{let p=fin(a.lon)&&fin(a.lat)?a:null;
   if(!p){const r=await request('/api/address?keyword='+encodeURIComponent(a.address||a.label));p=(r.candidates||[]).find(c=>fin(c.lon)&&fin(c.lat)&&c.address===a.address)||null}
   if(!p)throw new Error('이 주소의 좌표를 찾지 못했습니다. 지도를 직접 이동하세요.');
-  map.setView([p.lat,p.lon],18);
+  mapFocus={lon:p.lon,lat:p.lat,z:18};drawMap();
  }catch(e){fail(e)}
 }
 
@@ -323,8 +320,8 @@ function renderParcels(){
  const ps=input.parcels,area=ps.reduce((t,p)=>t+(fin(p.areaM2)?p.areaM2:0),0);
  $('parcelSum').textContent=ps.length?`${ps.length}필지 · ${m2(area)}`:'';
  $('parcelList').innerHTML=ps.length?ps.map(p=>{const [s,t]=parcelStatus(p),reg=p.attributes?.landRegister?.rows?.[0]||{},zones=(p.attributes?.landUse?.rows||[]).filter(x=>String(x.prposAreaDstrcCode||'').startsWith('UQA')&&['1','2'].includes(String(x.cnflcAt))).map(x=>x.prposAreaDstrcCodeNm);
-  return `<div class="prow"><div><b>${esc(jibun(p))}</b> <span class="sub">${esc(reg.lndcgrCodeNm||'')} · ${esc([...new Set(zones)].join(', ')||'용도지역 확인 중')}</span><div class="sub">${p.areaM2?m2(p.areaM2):'면적 확인 중'} · ${p.pnu}</div></div><span class="state ${s==='ok'?'ok':s==='err'?'err':'wait'}" title="${esc(t)}">${esc(t.split(' · ')[0])}</span><button class="x" type="button" data-remove="${p.pnu}" aria-label="${esc(jibun(p))} 선택 해제">×</button></div>`}).join('')+(ps.some(p=>parcelStatus(p)[0]==='err')?`<button class="btn sm" type="button" id="retryParcels" style="margin-top:8px">실패한 필지 다시 조회</button>`:''):'<p class="empty">지도를 17단계 이상 확대한 뒤 필지를 눌러 선택하세요.</p>';
- updateMap();renderStatus();
+  return `<div class="prow"><div><b>${esc(jibun(p))}</b> <span class="sub">${esc(reg.lndcgrCodeNm||'')} · ${esc([...new Set(zones)].join(', ')||'용도지역 확인 중')}</span><div class="sub">${p.areaM2?m2(p.areaM2):'면적 확인 중'} · ${p.pnu}</div></div><span class="state ${s==='ok'?'ok':s==='err'?'err':'wait'}" title="${esc(t)}">${esc(t.split(' · ')[0])}</span><button class="x" type="button" data-remove="${p.pnu}" aria-label="${esc(jibun(p))} 선택 해제">×</button></div>`}).join('')+(ps.some(p=>parcelStatus(p)[0]==='err')?`<button class="btn sm" type="button" id="retryParcels" style="margin-top:8px">실패한 필지 다시 조회</button>`:''):'<p class="empty">주소로 이동하거나 지도를 16단계 이상 확대한 뒤 필지를 눌러 선택하세요.</p>';
+ drawMap();renderStatus();
 }
 function forecastGroups(r){
  const est=r.results?.land?.modelEstimate,rows=est?.rows||[],by=new Map();
@@ -439,8 +436,15 @@ function renderSampleSelect(){
  const sel=$('sampleSelect');
  sel.innerHTML=`<option value="">${samples.length?'저장 샘플 열기…':'저장 샘플 없음'}</option>`+samples.map(s=>`<option value="${esc(s.id)}" ${activeSample?.id===s.id?'selected':''}>${esc(s.name||s.id)}${s.capturedAt?` · ${esc(String(s.capturedAt).slice(0,10))}`:''}</option>`).join('');
 }
+let renderQueued=false;
 function renderAll(){
- const r=current();
+ if(renderQueued)return;renderQueued=true;
+ // 화면이 한 번 그려진 뒤(지도 색칠이 먼저 보이도록) 실행한다.
+ requestAnimationFrame(()=>setTimeout(()=>{renderQueued=false;renderNow()},0));
+}
+function renderNow(){
+ refreshPreview();
+ const r=current();shown=r;
  renderStatus();renderControls();renderKpis(r);renderParcels();renderForecast(r);renderFinance(r);renderComparables(r);renderLocation();renderIndicators();renderSources(r);
 }
 
@@ -464,8 +468,9 @@ function bindControls(){
  $('saveSample').addEventListener('click',saveSample);$('exportJson').addEventListener('click',exportJson);$('pdfBtn').addEventListener('click',exportPdf);
  $('importJson').addEventListener('change',e=>{const f=e.target.files?.[0];e.target.value='';if(f)importJson(f)});
  $('addrBtn').addEventListener('click',searchAddress);$('addr').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchAddress()}if(e.key==='Escape')$('cands').hidden=true});
- $('showFac').addEventListener('change',updateMap);
  $('showExcluded').addEventListener('change',e=>{showExcluded=e.target.checked;renderComparables(current())});
+ // 지도 안 '면적·단가 보기' 버튼(기존 화면 부품)은 이 신호를 보낸다 → 콘솔에서는 토지 예측·사례 쪽으로 이동
+ addEventListener('pf-v3-navigate',()=>$('page2').scrollIntoView({behavior:'smooth',block:'start'}));
  document.addEventListener('click',e=>{
   const c=e.target.closest('[data-cand]');if(c){goCandidate($('cands').data[+c.dataset.cand]);return}
   if(!e.target.closest('.search'))$('cands').hidden=true;
@@ -502,12 +507,11 @@ function bindTips(){
 
 /* ---------- 시작 ---------- */
 async function boot(){
- initMap();bindControls();bindTips();renderAll();
+ bindControls();bindTips();renderAll();
  try{status=await request('/api/status')}catch{status={mode:'offline'};toast('서버에 연결할 수 없습니다. 보기 전용으로 엽니다.',true)}
  renderAll();
  const defaultId=await loadSamples();
  const first=samples.find(s=>s.id===defaultId)||samples[0];
  if(first&&!input.parcels.length)await openSample(first.id);
- else loadCandidates();
 }
 boot();

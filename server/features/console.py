@@ -1,6 +1,6 @@
 """새 분석 콘솔 화면 (/console). 기존 화면(/)은 그대로 두고 별도 경로로 제공한다.
 
-화면 파일은 frontend/console/ 에 있고(빌드 결과 build/, 지도 라이브러리 vendor/),
+화면 파일은 frontend/console/ 에 있고(빌드 결과 build/. 지도는 기존 화면의 지도 부품을 함께 묶어 씀),
 조회·계산은 기존 API(/api/parcel, /api/comparables, /api/analyze ...)를 그대로 쓴다.
 이 파일에서 새로 만드는 API는 예측 차트용 두 가지뿐이다.
 
@@ -29,7 +29,7 @@ CONSOLE_DIR = Path(__file__).resolve().parents[2] / "frontend" / "console"
 # 화면이 불러갈 수 있는 파일 종류. 이 밖의 파일(소스, 빌드 스크립트)은 내보내지 않는다.
 ASSET_TYPES = {".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
                ".png": "image/png", ".svg": "image/svg+xml"}
-ASSET_DIRS = ("build", "vendor")
+ASSET_DIRS = ("build",)
 GROUP_KEY = re.compile(r"^\d{5}\|[^|,]{1,12}\|[^|,]{1,20}$")
 MAX_KEYS = 12
 
@@ -48,7 +48,7 @@ def console_page():
 
 @router.get("/console/{folder}/{path:path}", include_in_schema=False)
 def console_asset(folder: str, path: str):
-    """build/ 와 vendor/ 안의 정해진 종류 파일만 돌려준다 (폴더 밖으로 나가는 경로는 거절)."""
+    """build/ 안의 정해진 종류 파일만 돌려준다 (폴더 밖으로 나가는 경로는 거절)."""
     if folder not in ASSET_DIRS:
         raise ApiError("NOT_FOUND", "요청한 경로를 찾을 수 없습니다.", 404)
     base = (CONSOLE_DIR / folder).resolve()
