@@ -215,3 +215,11 @@ body.capturing .fold-btn{display:none}
 /* PDF 저장 (2026-10-30 요청): '선택 필지' 카드는 넣지 않고, 그 자리는 지도가 한 줄 전체를 쓴다 */
 body.capturing .parcel-tile{display:none}
 body.capturing .maptile{grid-column:span 12}
+
+/* 팀 소개 (2026-11-03): 본문 맨 위 한 줄. 좁은 화면에서는 줄바꿈 */
+.team{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.team-title{font-size:14px;letter-spacing:.06em;color:var(--muted)}
+.team-list{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.team-list li{display:inline-flex;align-items:baseline;gap:8px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel-2)}
+.team-list b{font-weight:600;color:var(--ink)}
+.team-list span{font-size:14px;color:var(--ink-2)}
